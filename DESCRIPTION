@@ -1,0 +1,15 @@
+Package: OdinR
+Title: Qualtiy Control and AUC visualizations
+Version: 0.0.0.9000
+Authors@R: 
+  c(person(given="Katja",family= "Danielzik", email="katja.danielzik@uni-due.de", 
+           role = c("aut", "cre"),
+           comment=c(ORCID="0009-0007-5021-6212"),
+    person(given="Willson",family = "Tjioe",
+            role = c("aut","cre")S)
+Description: What the package does (one paragraph).
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
