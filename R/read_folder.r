@@ -7,7 +7,6 @@
 #' @param data_path Character. Path to directory containing CSV files.
 #' @param variables Character vector. Names of variables to extract from
 #'   the `Description` column (e.g., c("cell_line", "radiation.dose", "inhibitor")).
-#' @importFrom dplyr rbind_rows
 #' @return A tidy data frame in long format.
 #' @export
 read_folder <- function(data_path, variables) {
