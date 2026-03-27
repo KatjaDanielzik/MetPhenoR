@@ -4,19 +4,45 @@
 \alias{read_folder}
 \title{Process CSV Plate Data stored in folder into data frame in long format}
 \usage{
-read_folder(data_path, variables)
+read_folder(data_path, sample_column = "Description", variables)
 }
 \arguments{
-\item{data_path}{Character. Path to directory containing CSV files.}
+\item{data_path}{Character. Path to directory containing CSV files. At least
+one file, which name ends on "_PlateInfo.csv" containing the metadata with at
+least a column 'PlateId' and a column 'Description'
+and at least one file containing the raw Odin reads, which name end on
+"_RawReads.csv" and have at least one column 'PlateId' and columns 'A01' to
+'H12' representing the wells of a 96-well plate.}
+
+\item{sample_column}{Character. Which column in '_PlateInfo.csv' contains the
+'Description' (i.e. the Character vector that should be split according to 'variables')}
 
 \item{variables}{Character vector. Names of variables to extract from
-the \code{Description} column (e.g., c("cell_line", "radiation.dose", "inhibitor")).}
+the \code{Description} column (e.g., c("cell.line", "radiation.dose", "inhibitor")).
+Have to be separated by "_" and always in the same order for all "_PlateInfo.csv"
+files (e.g. in format cell.line, radiation.dose, time.point -> "A549_0Gy_0h")}
 }
 \value{
-A tidy data frame in long format.
+#' \itemize{
+\item \code{result}: A data frame in long format
+\itemize{
+\item \code{}:
+\item \code{}:
+\item \code{}
+}
 }
 \description{
-Reads multiple CSV files from a directory, merges them, reshapes
-well-based measurements into long format, and extracts metadata
-variables from a description column.
+Reads all 'PlateInfo' and 'RawRead' files from a directory (can have subdirectories),
+merges the 'PlateInfo'
+files and annotates the RawRead files with the 'Description' column of 'PlateInfo'.
+Proceeds by aligning the time points of OD values measured at 590 nm and 740 nm,
+calculates '590 nm' - '740 nm' for noise correction as advised by Biolog.
+}
+\examples{
+data("RawRead")
+head(RawRead)
+data("PlateInfo")
+head(PlateInfo)
+data("data")
+head(data)
 }
