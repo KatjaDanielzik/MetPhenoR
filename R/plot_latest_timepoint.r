@@ -7,6 +7,15 @@
 #' @param variables Character vector of experimental variables
 #'   (e.g. c("cell_line", "dose", "status")).
 #'
+#' @import dplyr
+#' @import ggplot2
+#' @import magrittr
+#' @importFrom tidyr unite
+#' @importFrom stringr str_extract
+#' @importFrom purrr map_chr
+#' @importFrom purrr map
+#' @importFrom tidyselect all_of
+#' 
 #' @return A named list of ggplot objects.
 #' @export
 plot_latest_timepoint <- function(data, variables) {
@@ -16,7 +25,7 @@ plot_latest_timepoint <- function(data, variables) {
     stop("'data' must be a data.frame.")
   }
   
-  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "raw_value")
+  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
   missing_cols <- setdiff(required_cols, names(data))
   
   if (length(missing_cols) > 0) {
@@ -63,7 +72,7 @@ plot_latest_timepoint <- function(data, variables) {
     
     ggplot2::ggplot(df, ggplot2::aes(x = .data$number, y = .data$category)) +
       ggplot2::geom_point(
-        ggplot2::aes(color = .data$raw_value),
+        ggplot2::aes(color = .data$diff_OD_590_740),
         size = 8
       ) +
       ggplot2::scale_x_continuous(breaks = 1:12) +
@@ -79,7 +88,7 @@ plot_latest_timepoint <- function(data, variables) {
         subtitle = subtitle_text,
         x = NULL,
         y = NULL,
-        color = "Raw Value"
+        color = "diff_OD_590_740"
       ) +
       ggplot2::theme_minimal(base_size = 14)
   }

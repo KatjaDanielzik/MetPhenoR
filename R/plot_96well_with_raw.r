@@ -7,6 +7,12 @@
 #' @param variables Character vector of experimental variables.
 #' @param curve_types_to_plot Optional vector of curve types to include.
 #'
+#' @import dplyr
+#' @import ggplot2
+#' @importFrom stringr str_extract
+#' @importFrom tidyr replace_na
+#' @importFrom patchwork plot_layout
+#' 
 #' @return A named list of combined ggplot objects.
 #' @export
 plot_96well_with_raw <- function(
@@ -18,7 +24,7 @@ plot_96well_with_raw <- function(
   
   # ---- Input validation ----
   required_ws <- c(variables, "Plate.Type", "Well", "curve_type")
-  required_raw <- c(variables, "Plate.Type", "Well", "Hour", "raw_value")
+  required_raw <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
   
   missing_ws <- setdiff(required_ws, names(well_summary))
   missing_raw <- setdiff(required_raw, names(raw_data))
@@ -116,7 +122,7 @@ plot_96well_with_raw <- function(
       raw_subset,
       ggplot2::aes(
         x = .data$Hour,
-        y = .data$raw_value,
+        y = .data$diff_OD_590_740,
         group = .data$Well,
         colour = .data$Well
       )

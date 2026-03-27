@@ -17,5 +17,15 @@ Suggests:
     testthat (>= 3.0.0)
 Imports:
     dplyr,
-    magrittr
+    magrittr,
+    tidyselect,
+    utils,
+    ggplot2,
+    tidyr, 
+    stringr, 
+    purrr, 
+    tidyselect, 
+    scales,
+    stats,
+    patchwork
 Config/testthat/edition: 3
