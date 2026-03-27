@@ -3,5 +3,7 @@
 export(classify_growth_curve_types)
 export(plot_96well_with_raw)
 export(plot_latest_timepoint)
-export(process_csv)
 export(qc_replicate)
+export(read_folder)
+import(magrittr)
+importFrom(dplyr,mutate)

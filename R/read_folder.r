@@ -1,4 +1,4 @@
-#' Process CSV Plate Data into Long Format
+#' Process CSV Plate Data stored in folder into data frame in long format
 #'
 #' Reads multiple CSV files from a directory, merges them, reshapes
 #' well-based measurements into long format, and extracts metadata
@@ -7,10 +7,10 @@
 #' @param data_path Character. Path to directory containing CSV files.
 #' @param variables Character vector. Names of variables to extract from
 #'   the `Description` column (e.g., c("cell_line", "radiation.dose", "inhibitor")).
-#'
+#' @importFrom dplyr rbind_rows
 #' @return A tidy data frame in long format.
 #' @export
-process_csv <- function(data_path, variables) {
+read_folder <- function(data_path, variables) {
   
   # ---- Input validation ----
   if (!dir.exists(data_path)) {
@@ -39,12 +39,13 @@ process_csv <- function(data_path, variables) {
     stop("No well columns (A01-H12) detected in the dataset.")
   }
   
+  # !!! keep the
   # ---- Pivot to long format ----
   combined_long <- tidyr::pivot_longer(
     combined_raw,
     cols = tidyselect::all_of(well_cols),
     names_to = "Well",
-    values_to = "raw_value"
+    values_to = "diff_OD_590_740"
   )
   
   # ---- Safe column removal ----

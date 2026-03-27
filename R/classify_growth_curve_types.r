@@ -15,6 +15,8 @@
 #'   \item{derivative_data}{Data with spline fits and derivatives}
 #'   \item{well_summary}{Per-well classification summary}
 #' }
+#' @import magrittr
+#' @importFrom dplyr mutate
 #' @export
 classify_growth_curve_types <- function(
     data,
@@ -63,6 +65,9 @@ classify_growth_curve_types <- function(
         first_derivative = NA_real_
       ))
     }
+    
+    # global binding of variables
+    n_points <- NULL
     
     dplyr::mutate(
       df,
