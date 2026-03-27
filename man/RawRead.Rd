@@ -4,9 +4,6 @@
 \title{
 Example Raw Read from Odin Biolog
 }
-\description{
-%%  ~~ A concise (1-5 lines) description of the dataset. ~~
-}
 \usage{data("RawRead")}
 \format{
   A data frame with 288 observations on the following 102 variables.
@@ -115,9 +112,6 @@ Example Raw Read from Odin Biolog
     \item{\code{H12}}{a numeric vector}
   }
 }
-\details{
-%%  ~~ If necessary, more details than the __description__ above ~~
-}
 \source{
   # data read in 
   ## list all files including all subdirectories
@@ -137,9 +131,6 @@ Example Raw Read from Odin Biolog
   
   RawRead <- RawReads[[1]]
   use_data(RawRead)
-}
-\references{
-%%  ~~ possibly secondary sources and usages ~~
 }
 \examples{
 data(RawRead)

@@ -10,6 +10,8 @@
 #' @importFrom dplyr select
 #' @importFrom dplyr filter
 .adjust_timestamp <- function(x){
+  Wavelength <- NULL
+  `Read At` <- NULL
   # get time stamps for 590 nm
   timestamps <- x%>%
     dplyr::filter(Wavelength=="590")%>%
@@ -38,6 +40,9 @@
 #' @importFrom dplyr relocate
 
 .calculate_diff_starttime <- function(x) {
+  `Read At` <- NULL
+  starttime <- NULL
+  Hour <- NULL
   x$starttime <- x$`Read At`[1]
   x <- x%>%
     dplyr::mutate(Hour=as.numeric(difftime(`Read At`,starttime,units="hours")))%>%
@@ -57,6 +62,16 @@
 #' @importFrom dplyr left_join
 #' @keywords internal
 .correct_OD <- function(x) {
+  Wavelength <- NULL
+  A01 <- NULL
+  H12 <- NULL
+  PlateId <- NULL
+  Hour <- NULL
+  Well <- NULL
+  OD <- NULL
+  `590` <- NULL
+  `740` <- NULL
+  
   # store all ID variables
   temp <- x%>%dplyr::select(-c(Wavelength,A01:H12))
   # caluclate diff_OD_590_740 

@@ -5,9 +5,6 @@
 Example data set as result of read_folder.R with sample_column = "Sample" and
 variables = c("cell.line", "LKB1.status", "radiation.dose")
 }
-\description{
-%%  ~~ A concise (1-5 lines) description of the dataset. ~~
-}
 \usage{data("data")}
 \format{
   The format is:
@@ -38,15 +35,6 @@ List of 3
   ..$ diff_OD_590_740               : num [1:442368] 0.0841 0.09 0.0647 0.0677 0.06 ...
  $ variables    : chr [1:3] "cell.line" "LKB1.status" "radiation.dose"
  $ sample_column: chr "Sample"
-}
-\details{
-%%  ~~ If necessary, more details than the __description__ above ~~
-}
-\source{
-%%  ~~ reference to a publication or URL from which the data were obtained ~~
-}
-\references{
-%%  ~~ possibly secondary sources and usages ~~
 }
 \examples{
 data(data)

@@ -4,9 +4,6 @@
 \title{
 A Capitalized Title for the Data Set
 }
-\description{
-%%  ~~ A concise (1-5 lines) description of the dataset. ~~
-}
 \usage{data("PlateInfo")}
 \format{
   A data frame with 1 observations on the following 13 variables.
@@ -25,9 +22,6 @@ A Capitalized Title for the Data Set
     \item{\code{Protocol}}{a logical vector}
     \item{\code{Description}}{a logical vector}
   }
-}
-\details{
-%%  ~~ If necessary, more details than the __description__ above ~~
 }
 \source{
 # data read in 
@@ -51,9 +45,6 @@ use_data(RawRead)
 
 PlateInfo <- PlateInfo[PlateInfo$PlateId==RawRead$PlateId[1],]
 PlateInfo$Sample <- gsub(" ","_",PlateInfo$Sample)
-}
-\references{
-%%  ~~ possibly secondary sources and usages ~~
 }
 \examples{
 data(PlateInfo)

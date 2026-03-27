@@ -15,7 +15,8 @@
 #' @param sample_column Character. Which column in '_PlateInfo.csv' contains the
 #' 'Description' (i.e. the Character vector that should be split according to 'variables')
 #' @param variables Character vector. Names of variables to extract from
-#'   the `Description` column (e.g., c("cell.line", "radiation.dose", "inhibitor")).
+#'   the 
+#'   'Description' column (e.g., c("cell.line", "radiation.dose", "inhibitor")).
 #'   Have to be separated by "_" and always in the same order for all "_PlateInfo.csv"
 #'   files (e.g. in format cell.line, radiation.dose, time.point -> "A549_0Gy_0h")
 #' @return 
@@ -26,7 +27,7 @@
 #'     \item \code{}: 
 #'     \item \code{}
 #'     }
-
+#' @importFrom readr read_csv
 #' @importFrom stringr str_detect
 #' @importFrom purrr list_rbind
 #' @importFrom tidyr separate

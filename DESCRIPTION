@@ -16,10 +16,10 @@ Depends: R (>= 4.5.0)
 Suggests: 
     testthat (>= 3.0.0)
 Imports:
+    readr,
     dplyr,
     magrittr,
     tidyselect,
-    utils,
     ggplot2,
     tidyr, 
     stringr, 
