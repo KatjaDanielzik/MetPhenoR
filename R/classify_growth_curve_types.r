@@ -16,7 +16,12 @@
 #'   \item{well_summary}{Per-well classification summary}
 #' }
 #' @import magrittr
-#' @importFrom dplyr mutate
+#' @import dplyr
+#' @importFrom stats smooth.spline
+#' @importFrom stats predict
+#' @importFrom stats sd
+#' 
+#' 
 #' @export
 classify_growth_curve_types <- function(
     data,
@@ -28,7 +33,7 @@ classify_growth_curve_types <- function(
 ) {
   
   # ---- Input validation ----
-  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "raw_value")
+  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
   missing_cols <- setdiff(required_cols, names(data))
   
   if (length(missing_cols) > 0) {
@@ -45,7 +50,7 @@ classify_growth_curve_types <- function(
   .fit_spline_safe <- function(df) {
     
     # Handle insufficient data
-    if (nrow(df) < 4 || all(is.na(df$raw_value))) {
+    if (nrow(df) < 4 || all(is.na(df$diff_OD_590_740))) {
       return(dplyr::mutate(
         df,
         spline = NA_real_,
@@ -54,7 +59,7 @@ classify_growth_curve_types <- function(
     }
     
     fit <- tryCatch(
-      stats::smooth.spline(x = df$Hour, y = df$raw_value, spar = spar),
+      stats::smooth.spline(x = df$Hour, y = df$diff_OD_590_740, spar = spar),
       error = function(e) NULL
     )
     
@@ -98,34 +103,28 @@ classify_growth_curve_types <- function(
       
       all_flat = all(abs(.data$first_derivative) <= tol, na.rm = TRUE),
       
-      max_od = max(.data$raw_value, na.rm = TRUE),
+      max_od = max(.data$diff_OD_590_740, na.rm = TRUE),
       
       # ---- NEW QC METRICS ----
       derivative_sd = stats::sd(.data$first_derivative, na.rm = TRUE),
-      od_range = diff(range(.data$raw_value, na.rm = TRUE)),
+      od_range = diff(range(.data$diff_OD_590_740, na.rm = TRUE)),
       
       .groups = "drop"
     ) %>%
     dplyr::mutate(
+      qc_low_points = .data$n_points < 4,
+      qc_high_noise = .data$derivative_sd > (0.1 * .data$od_range),
+      qc_flag = .data$qc_low_points | .data$qc_high_noise,
       
-      # ---- QC FLAGS ----
-      qc_low_points = n_points < 4,
-      
-      qc_high_noise = derivative_sd > (0.1 * od_range),  
-      # adaptive threshold (scale-aware!)
-      
-      qc_flag = qc_low_points | qc_high_noise,
-      
-      # ---- FINAL CLASSIFICATION ----
       curve_type = dplyr::case_when(
-        qc_flag ~ "uncertain",
-        has_drop ~ "OD_drop",
-        all_flat & max_od <= max_od_threshold ~ "flat_low",
-        has_growth ~ "growing",
+        .data$qc_flag ~ "uncertain",
+        .data$has_drop ~ "OD_drop",
+        .data$all_flat & .data$max_od <= max_od_threshold ~ "flat_low",
+        .data$has_growth ~ "growing",
         TRUE ~ "slow_growing"
       )
     )
-  
+      
   return(list(
     derivative_data = deriv_data,
     well_summary = well_summary

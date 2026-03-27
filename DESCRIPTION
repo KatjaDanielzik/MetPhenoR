@@ -18,7 +18,15 @@ Suggests:
 Imports:
     dplyr,
     magrittr,
-    purrr,
-    stringr
+    tidyselect,
+    utils,
+    ggplot2,
+    tidyr, 
+    stringr, 
+    purrr, 
+    tidyselect, 
+    scales,
+    stats,
+    patchwork
 Config/testthat/edition: 3
 LazyData: true

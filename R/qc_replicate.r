@@ -12,6 +12,14 @@
 #' @param wells Character vector of wells to inspect.
 #' @param group_vars Character vector of grouping variables.
 #'
+#' @importFrom dplyr filter
+#' @importFrom dplyr count
+#' @importFrom dplyr across
+#' @importFrom dplyr all_of
+#' @importFrom dplyr group_by
+#' @importFrom dplyr summarise
+#' @import ggplot2
+#' @import magrittr
 #' @return A named list with QC outputs:
 #' \describe{
 #'   \item{qc_data}{Filtered dataset}

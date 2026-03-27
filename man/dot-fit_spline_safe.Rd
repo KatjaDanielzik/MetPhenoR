@@ -2,14 +2,32 @@
 % Please edit documentation in R/utils.R
 \name{.fit_spline_safe}
 \alias{.fit_spline_safe}
-\title{Title}
+\title{Safely fit spline and compute derivatives for growth curves}
 \usage{
 .fit_spline_safe(df)
 }
 \arguments{
-\item{df}{}
+\item{df}{A data frame containing time-series measurements. Must include:
+\describe{
+\item{raw_value}{Numeric vector of observed values used for spline fitting.}
+}}
+}
+\value{
+A data frame with additional columns for spline fit and derivative.
 }
 \description{
-Title
+Performs basic quality control before spline fitting. If the input data
+is insufficient (e.g., too few observations or all missing values),
+the function returns \code{NA}-filled columns instead of failing.
+}
+\details{
+A minimum of 4 non-missing observations is required for spline fitting.
+If this condition is not met, the function returns the original data frame
+with additional columns:
+\itemize{
+\item \code{spline}: Fitted spline values (NA if fitting fails)
+\item \code{first_derivative}: First derivative of the spline (NA if fitting fails)
+}
+This function is intended for internal use in growth curve classification pipelines.
 }
 \keyword{internal}
