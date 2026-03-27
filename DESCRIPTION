@@ -1,15 +1,14 @@
 Package: OdinR
 Title: Quality Control and AUC visualizations of Phenotype Microarray Data created by Odin Biolog
-Version: 0.0.0.9000
+Version: 0.0.0.001
 Authors@R: 
   c(person(given="Katja",family= "Danielzik", email="katja.danielzik@uni-due.de", 
            role = c("aut", "cre"),
-           comment=c(ORCID="0009-0007-5021-6212"),
+           comment=c(ORCID="0009-0007-5021-6212")),
     person(given="Willson",family = "Tjioe",
-            role = c("aut","cre")S)
+            role = c("aut","ctb")))
 Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
