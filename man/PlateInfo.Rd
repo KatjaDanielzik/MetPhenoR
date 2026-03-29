@@ -2,7 +2,10 @@
 \alias{PlateInfo}
 \docType{data}
 \title{
-A Capitalized Title for the Data Set
+An example '..._PlateInfo.csv" file
+}
+\description{
+one PlateInfo.csv file
 }
 \usage{data("PlateInfo")}
 \format{

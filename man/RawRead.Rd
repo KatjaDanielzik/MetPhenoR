@@ -4,6 +4,9 @@
 \title{
 Example Raw Read from Odin Biolog
 }
+\description{
+one RawReads.csv file
+}
 \usage{data("RawRead")}
 \format{
   A data frame with 288 observations on the following 102 variables.

@@ -24,12 +24,35 @@ Have to be separated by "_" and always in the same order for all "_PlateInfo.csv
 files (e.g. in format cell.line, radiation.dose, time.point -> "A549_0Gy_0h")}
 }
 \value{
-#' \itemize{
+\describe{ a list
+\itemize{
 \item \code{result}: A data frame in long format
 \itemize{
-\item \code{}:
-\item \code{}:
-\item \code{}
+\item \code{PlateId}: Odin plate Id from 'PlateInfo', refers to a single 96-well plate
+\item \code{Project Name}: Odin project name from 'PlateInfo'
+\item \code{Project Code}: Odin project code from 'PlateInfo'
+\item \code{Plate Type}: Odin plate type from 'PlateInfo'
+\item \code{Sample}: Sample specification from 'PlateInfo'
+\item \code{Loaded At}: Loading time from 'PlateInfo'
+\item \code{Incubation Hours}: Incubation time from 'PlateInfo'
+\item \code{Incubation Temperature Celsius}: Incubation temperature from 'PlateInfo'
+\item \code{Incubated Offline}:
+\item \code{Cycle Time Minutes}: Time interval of measurements from 'PlateInfo'
+\item \code{Position}: Position of Plate in Odin from 'PlateInfo'
+\item \code{Protocol}: user specified protocol from 'PlateInfo'
+\item \code{Description}: user specified description of the experiment (or in 'Sample')
+\item \code{...}: single variable columns from 'sample_column'
+\item \code{Id}: Read Id from 'RawRead'
+\item \code{Actual Temperature Celsius}: measured temperature in Odin from 'RawRead'
+\item \code{Target Temperature Celsius}: Target temperature (should be equal to Incubation Temperature Celsius from 'PlateInfo')
+\item \code{Read At}: Time of Plate read from 'RawReads'
+\item \code{Hour}: difference between Read At and first entry in Read At per plate
+\item \code{Well}: Well Id of the 96-well plate
+\item \code{diff_OD_590_740}: OD_590nm-OD_740nm, noise correction for mammalian plates according to Biolog
+}
+\item \code{variables}: user specified variable column names
+\item \code{sample_column}: user specified column in 'PlateInfo' that contains the sample description
+}
 }
 }
 \description{
@@ -40,10 +63,15 @@ Proceeds by aligning the time points of OD values measured at 590 nm and 740 nm,
 calculates '590 nm' - '740 nm' for noise correction as advised by Biolog.
 }
 \examples{
+# Raw Reads are in this format
 data("RawRead")
 head(RawRead)
+
+# PlateInfo is in this format
 data("PlateInfo")
 head(PlateInfo)
-data("data")
-head(data)
+
+# resulting data frame 'data' from read_folder
+data("processed_data")
+head(processed_data$data)
 }

@@ -1,43 +1,44 @@
-\name{data}
-\alias{data}
+\name{processed_data}
+\alias{processed_data}
 \docType{data}
 \title{
 Example data set as result of read_folder.R with sample_column = "Sample" and
 variables = c("cell.line", "LKB1.status", "radiation.dose")
 }
-\usage{data("data")}
+\description{
+results of read_folder() function
+}
+\usage{data("processed_data")}
 \format{
-  The format is:
-List of 3
- $ data         : tibble [442,368 × 23] (S3: tbl_df/tbl/data.frame)
-  ..$ PlateId                       : chr [1:442368] "03475090-a582-45da-b9b2-427073d80381" "03475090-a582-45da-b9b2-427073d80381" "03475090-a582-45da-b9b2-427073d80381" "03475090-a582-45da-b9b2-427073d80381" ...
-  ..$ Project Name                  : chr [1:442368] "Drug plates" "Drug plates" "Drug plates" "Drug plates" ...
-  ..$ Project Code                  : chr [1:442368] "SEA" "SEA" "SEA" "SEA" ...
-  ..$ Plate Type                    : chr [1:442368] "PM-M11" "PM-M11" "PM-M11" "PM-M11" ...
-  ..$ Sample                        : chr [1:442368] "H460_CT_0Gy" "H460_CT_0Gy" "H460_CT_0Gy" "H460_CT_0Gy" ...
-  ..$ cell.line                     : chr [1:442368] "H460" "H460" "H460" "H460" ...
-  ..$ LKB1.status                   : chr [1:442368] "CT" "CT" "CT" "CT" ...
-  ..$ radiation.dose                : chr [1:442368] "0Gy" "0Gy" "0Gy" "0Gy" ...
-  ..$ Loaded At                     : POSIXct[1:442368], format: "2025-11-12 09:44:07" "2025-11-12 09:44:07" "2025-11-12 09:44:07" "2025-11-12 09:44:07" ...
-  ..$ Incubation Hours              : num [1:442368] 48 48 48 48 48 48 48 48 48 48 ...
-  ..$ Incubation Temperature Celsius: num [1:442368] 37 37 37 37 37 37 37 37 37 37 ...
-  ..$ Incubated Offline             : logi [1:442368] FALSE FALSE FALSE FALSE FALSE FALSE ...
-  ..$ Cycle Time Minutes            : num [1:442368] 20 20 20 20 20 20 20 20 20 20 ...
-  ..$ Position                      : chr [1:442368] "1b" "1b" "1b" "1b" ...
-  ..$ Protocol                      : logi [1:442368] NA NA NA NA NA NA ...
-  ..$ Description                   : logi [1:442368] NA NA NA NA NA NA ...
-  ..$ Id                            : chr [1:442368] "7e579b7d-b329-4d92-a6ca-f078bf3cbb2c" "7e579b7d-b329-4d92-a6ca-f078bf3cbb2c" "7e579b7d-b329-4d92-a6ca-f078bf3cbb2c" "7e579b7d-b329-4d92-a6ca-f078bf3cbb2c" ...
-  ..$ Actual Temperature Celsius    : num [1:442368] 37.3 37.3 37.3 37.3 37.3 ...
-  ..$ Target Temperature Celsius    : num [1:442368] 37 37 37 37 37 37 37 37 37 37 ...
-  ..$ Read At                       : POSIXct[1:442368], format: "2025-11-12 10:00:14" "2025-11-12 10:00:14" "2025-11-12 10:00:14" "2025-11-12 10:00:14" ...
-  ..$ diff_starttime_hours          : num [1:442368] 0 0 0 0 0 0 0 0 0 0 ...
-  ..$ Well                          : chr [1:442368] "A01" "A02" "A03" "A04" ...
-  ..$ diff_OD_590_740               : num [1:442368] 0.0841 0.09 0.0647 0.0677 0.06 ...
- $ variables    : chr [1:3] "cell.line" "LKB1.status" "radiation.dose"
- $ sample_column: chr "Sample"
+  A data frame with 27648 observations on the following 23 variables.
+  \describe{
+    \item{\code{PlateId}}{a character vector}
+    \item{\samp{Project Name}}{a character vector}
+    \item{\samp{Project Code}}{a character vector}
+    \item{\samp{Plate Type}}{a character vector}
+    \item{\code{Sample}}{a character vector}
+    \item{\code{cell.line}}{a character vector}
+    \item{\code{LKB1.status}}{a character vector}
+    \item{\code{radiation.dose}}{a character vector}
+    \item{\samp{Loaded At}}{a POSIXct}
+    \item{\samp{Incubation Hours}}{a numeric vector}
+    \item{\samp{Incubation Temperature Celsius}}{a numeric vector}
+    \item{\samp{Incubated Offline}}{a logical vector}
+    \item{\samp{Cycle Time Minutes}}{a numeric vector}
+    \item{\code{Position}}{a character vector}
+    \item{\code{Protocol}}{a logical vector}
+    \item{\code{Description}}{a logical vector}
+    \item{\code{Id}}{a character vector}
+    \item{\samp{Actual Temperature Celsius}}{a numeric vector}
+    \item{\samp{Target Temperature Celsius}}{a numeric vector}
+    \item{\samp{Read At}}{a POSIXct}
+    \item{\code{Hour}}{a numeric vector}
+    \item{\code{Well}}{a character vector}
+    \item{\code{diff_OD_590_740}}{a numeric vector}
+  }
 }
 \examples{
-data(data)
-head(data)
+data("processed_data")
+head(processed_data)
 }
 \keyword{datasets}
