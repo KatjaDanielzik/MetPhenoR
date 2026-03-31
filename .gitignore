@@ -9,7 +9,7 @@ src/*.dll
 src/*.cpp
 src/*.cc
 src/*.h
-*.Rproj
 doc/*
+*.Rproj
 Meta/*
 /doc/

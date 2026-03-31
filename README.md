@@ -1,5 +1,13 @@
 
 # OdinR
+# Important to know
+We do noise correction of 590-740 nm as suggested by Odin Biolog for assays with
+mammalian cells. The 740nm can have informative value for assays with liquid
+bacteria cultures (i.e. tracking growth), for these cases this packages is not
+applicable
+
+Can read folders with subfolder structures but will read all files in this
+folder and analyze together
 
 <!-- badges: start -->
 <!-- badges: end -->
