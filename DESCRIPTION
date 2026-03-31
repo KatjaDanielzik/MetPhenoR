@@ -27,6 +27,7 @@ Imports:
     tidyselect, 
     scales,
     stats,
-    patchwork
+    patchwork,
+    readr
 Config/testthat/edition: 3
 LazyData: true

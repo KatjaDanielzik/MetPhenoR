@@ -2,20 +2,39 @@
 % Please edit documentation in R/plot_latest_timepoint.r
 \name{plot_latest_timepoint}
 \alias{plot_latest_timepoint}
-\title{Plot Latest Timepoint per Experimental Condition}
+\title{Plot Final Time Point per Experimental Condition}
 \usage{
 plot_latest_timepoint(data, variables)
 }
 \arguments{
-\item{data}{A data frame containing plate-based measurements.}
+\item{data}{A data frame containing time-resolved plate-based measurements.
+Must include well identifiers, time points, and measurement values.}
 
-\item{variables}{Character vector of experimental variables
-(e.g. c("cell_line", "dose", "status")).}
+\item{variables}{A character vector specifying the column names that define
+experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).}
 }
 \value{
-A named list of ggplot objects.
+A named list of \code{ggplot2} objects, where each element corresponds
+to a unique experimental condition.
 }
 \description{
-Extracts the latest timepoint per well and experimental condition,
-then generates plate-layout scatter plots colored by raw values.
+This function extracts the final (latest) time point for each well across
+experimental conditions and visualizes the corresponding measurements in a
+96-well plate layout.
+}
+\details{
+Each plot represents a single experimental condition and displays wells as
+spatially arranged points, colored according to their measured value at the
+final time point.
+
+The function performs the following steps:
+\enumerate{
+\item Groups the data by experimental variables, plate type, and well.
+\item Extracts the latest time point per well.
+\item Converts well identifiers (e.g., "A01") into plate coordinates.
+\item Generates a separate plate-layout plot for each experimental condition.
+}
+
+Color intensity reflects the magnitude of \code{diff_OD_590_740} at the final
+recorded time point.
 }

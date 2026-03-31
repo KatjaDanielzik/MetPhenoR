@@ -55,6 +55,9 @@
     ggplot2::theme_minimal(base_size = 14)
 }
 
+
+
+
 # ---- Safe spline fitting function (classify_growth_curve_types) ----
 #' Safely fit spline and compute derivatives for growth curves
 #'
@@ -94,3 +97,41 @@
 }
 
 
+
+
+# ---- Trapezoidal AUC function (compute_auc_ci) ----
+#' Compute Area Under the Curve via Trapezoidal Integration
+#'
+#' This function calculates the Area Under the Curve (AUC) for a set of
+#' time-series observations using the trapezoidal rule. The method approximates
+#' the integral by summing the areas of trapezoids formed between consecutive
+#' data points.
+#'
+#' The input vectors are internally ordered by time to ensure correct numerical
+#' integration, regardless of the original data ordering.
+#'
+#' @param time A numeric vector representing time points.
+#' @param value A numeric vector of corresponding measurements (e.g., signal
+#'   intensity, optical density).
+#'
+#' @details
+#' The trapezoidal rule approximates the integral as:
+#' \deqn{
+#' AUC \approx \sum_{i=1}^{n-1} (t_{i+1} - t_i) \cdot \frac{y_i + y_{i+1}}{2}
+#' }
+#'
+#' Missing values are handled via \code{na.rm = TRUE}, meaning that any segments
+#' containing \code{NA} values are ignored in the summation.
+#'
+#' @return A single numeric value representing the estimated area under the curve.
+#' 
+#' @keywords internal
+#'
+auc_trapz <- function(time, value) {
+  ord <- order(time)
+  sum(
+    diff(time[ord]) *
+      (head(value[ord], -1) + tail(value[ord], -1)) / 2,
+    na.rm = TRUE
+  )
+}
