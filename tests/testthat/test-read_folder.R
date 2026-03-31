@@ -89,7 +89,7 @@ test_that("read_folder preserves all required columns in output", {
     "PlateId", "Project Name", "Project Code", "Plate Type", "Sample",
     "Loaded At", "Incubation Hours", "Incubation Temperature Celsius",
     "Incubated Offline", "Cycle Time Minutes", "Position", "Protocol",
-    "Description", "Id", "Actual Temperature Celsius", "Target Temperature Celsius",
+    "Description", "Actual Temperature Celsius", "Target Temperature Celsius",
     "Read At", "Hour", "Well", "diff_OD_590_740"
   )
   

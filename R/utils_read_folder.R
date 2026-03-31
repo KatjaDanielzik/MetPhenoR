@@ -60,6 +60,7 @@
 #' @importFrom dplyr mutate
 #' @importFrom dplyr select
 #' @importFrom dplyr left_join
+#' @importFrom dplyr distinct
 #' @keywords internal
 .correct_OD <- function(x) {
   Wavelength <- NULL
@@ -73,7 +74,8 @@
   `740` <- NULL
   
   # store all ID variables
-  temp <- x%>%dplyr::select(-c(Wavelength,A01:H12))
+  temp <- x%>%dplyr::select(-c(Wavelength,A01:H12,Id))%>%
+    dplyr::distinct()
   # caluclate diff_OD_590_740 
   x <- x %>%
     tidyr::pivot_longer(cols = A01:H12, 
@@ -83,7 +85,8 @@
     tidyr::pivot_wider(names_from = Wavelength, 
                        values_from = OD) %>%
     dplyr::mutate(diff_OD_590_740 = `590` - `740`) %>%
-    dplyr::select(-c(`740`, `590`))
+    dplyr::select(-c(`740`, `590`))%>%
+    dplyr::distinct()
   # join all ID variables
   x <- dplyr::left_join(temp,x)
 
