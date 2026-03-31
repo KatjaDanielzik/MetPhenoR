@@ -1,19 +1,46 @@
-#' Plot 96-Well Plate with Raw Growth Curves
+#' Plot 96-Well Plate Layout with Raw Growth Curves
 #'
-#' Combines spatial plate layout and raw time-series curves per condition.
+#' This function visualizes experimental results from 96-well plate assays by
+#' combining (i) a spatial representation of the plate layout and (ii) the
+#' corresponding raw time-series growth curves. For each unique experimental
+#' condition, a composite plot is generated.
 #'
-#' @param well_summary Data frame with curve classifications.
-#' @param raw_data Raw time-series data.
-#' @param variables Character vector of experimental variables.
-#' @param curve_types_to_plot Optional vector of curve types to include.
+#' The plate layout highlights the classification of each well (e.g., growth
+#' behavior), while the accompanying panel displays the raw optical density
+#' trajectories over time.
+#'
+#' @param well_summary A data frame containing per-well classifications,
+#'   including curve types and experimental conditions.
+#' @param raw_data A data frame containing raw time-series measurements
+#'   (e.g., optical density values over time).
+#' @param variables A character vector specifying the column names that define
+#'   experimental conditions (e.g., treatment, strain).
+#' @param curve_types_to_plot Optional character vector specifying which curve
+#'   types should be included in the raw data visualization. If `NULL`, all
+#'   curve types except `"growing"` are displayed.
+#'
+#' @details
+#' The function iterates over all unique combinations of the specified
+#' experimental variables and generates a composite plot for each condition.
+#'
+#' Each composite consists of:
+#' \itemize{
+#'   \item A plate layout (8 × 12 grid) showing well classifications.
+#'   \item A faceted line plot of raw growth curves grouped by curve type.
+#' }
+#'
+#' Wells without assigned classifications are labeled as `"empty"`.
+#'
+#' @return A named list of `ggplot2` objects, where each element corresponds to
+#'   a specific experimental condition. Each plot combines the plate layout and
+#'   raw growth curves using the \pkg{patchwork} package.
 #'
 #' @import dplyr
 #' @import ggplot2
 #' @importFrom stringr str_extract
 #' @importFrom tidyr replace_na
 #' @importFrom patchwork plot_layout
-#' 
-#' @return A named list of combined ggplot objects.
+#'
 #' @export
 plot_96well_with_raw <- function(
     well_summary,
@@ -48,11 +75,11 @@ plot_96well_with_raw <- function(
     
     cond <- conditions[i, ]
     
-    # ---- Subset data ----
+    # ---- Subset data for current condition ----
     ws <- dplyr::semi_join(well_summary, cond, by = join_keys)
     
     # ==========================================================
-    # 1️⃣ Plate layout
+    # 1. Plate layout construction
     # ==========================================================
     
     plate_layout <- expand.grid(
@@ -76,8 +103,6 @@ plot_96well_with_raw <- function(
         category = factor(.data$category, levels = LETTERS[8:1])
       )
     
-    title_text <- paste(unlist(cond), collapse = " | ")
-    
     p_plate <- ggplot2::ggplot(
       plate_df,
       ggplot2::aes(x = .data$number, y = .data$category)
@@ -95,7 +120,7 @@ plot_96well_with_raw <- function(
       ggplot2::theme_minimal()
     
     # ==========================================================
-    # 2️⃣ Raw curves
+    # 2. Raw growth curves
     # ==========================================================
     
     raw_subset <- raw_data %>%
@@ -132,7 +157,7 @@ plot_96well_with_raw <- function(
       ggplot2::theme_bw()
     
     # ==========================================================
-    # 3️⃣ Combine
+    # 3. Combine plots
     # ==========================================================
     
     plot_list[[i]] <- p_plate + p_raw +
