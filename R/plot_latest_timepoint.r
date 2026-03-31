@@ -1,22 +1,41 @@
-#' Plot Latest Timepoint per Experimental Condition
+#' Plot Final Time Point per Experimental Condition
 #'
-#' Extracts the latest timepoint per well and experimental condition,
-#' then generates plate-layout scatter plots colored by raw values.
+#' This function extracts the final (latest) time point for each well across
+#' experimental conditions and visualizes the corresponding measurements in a
+#' 96-well plate layout.
 #'
-#' @param data A data frame containing plate-based measurements.
-#' @param variables Character vector of experimental variables
-#'   (e.g. c("cell_line", "dose", "status")).
+#' Each plot represents a single experimental condition and displays wells as
+#' spatially arranged points, colored according to their measured value at the
+#' final time point.
+#'
+#' @param data A data frame containing time-resolved plate-based measurements.
+#'   Must include well identifiers, time points, and measurement values.
+#' @param variables A character vector specifying the column names that define
+#'   experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).
+#'
+#' @details
+#' The function performs the following steps:
+#' \enumerate{
+#'   \item Groups the data by experimental variables, plate type, and well.
+#'   \item Extracts the latest time point per well.
+#'   \item Converts well identifiers (e.g., "A01") into plate coordinates.
+#'   \item Generates a separate plate-layout plot for each experimental condition.
+#' }
+#'
+#' Color intensity reflects the magnitude of \code{diff_OD_590_740} at the final
+#' recorded time point.
+#'
+#' @return A named list of \code{ggplot2} objects, where each element corresponds
+#'   to a unique experimental condition.
 #'
 #' @import dplyr
 #' @import ggplot2
 #' @import magrittr
 #' @importFrom tidyr unite
 #' @importFrom stringr str_extract
-#' @importFrom purrr map_chr
-#' @importFrom purrr map
+#' @importFrom purrr map_chr map
 #' @importFrom tidyselect all_of
-#' 
-#' @return A named list of ggplot objects.
+#'
 #' @export
 plot_latest_timepoint <- function(data, variables) {
   
@@ -32,7 +51,7 @@ plot_latest_timepoint <- function(data, variables) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
-  # ---- Step 1: Extract latest timepoint ----
+  # ---- Step 1: Extract latest time point per well ----
   latest_timepoint <- data %>%
     dplyr::group_by(
       dplyr::across(dplyr::all_of(c(variables, "Plate.Type", "Well")))
@@ -40,14 +59,14 @@ plot_latest_timepoint <- function(data, variables) {
     dplyr::slice_max(.data$Hour, n = 1, with_ties = FALSE) %>%
     dplyr::ungroup()
   
-  # ---- Step 2: Convert well positions ----
+  # ---- Step 2: Convert well identifiers to plate coordinates ----
   latest_timepoint <- latest_timepoint %>%
     dplyr::mutate(
       category = stringr::str_extract(.data$Well, "^[A-H]"),
       number = as.numeric(stringr::str_extract(.data$Well, "\\d+"))
     )
   
-  # ---- Step 3: Create grouping variable ----
+  # ---- Step 3: Create grouping identifier ----
   latest_timepoint <- latest_timepoint %>%
     tidyr::unite(
       "group_id",
@@ -56,10 +75,10 @@ plot_latest_timepoint <- function(data, variables) {
       sep = "_"
     )
   
-  # ---- Step 4: Plot function (internal) ----
+  # ---- Step 4: Internal plotting function ----
   .plot_latest_point <- function(df) {
     
-    # Dynamic subtitle
+    # Construct descriptive subtitle
     var_values <- purrr::map_chr(variables, function(v) {
       paste0(v, ": ", df[[v]][1])
     })
@@ -84,7 +103,7 @@ plot_latest_timepoint <- function(data, variables) {
       ) +
       ggplot2::coord_fixed() +
       ggplot2::labs(
-        title = "OD at Latest Time Point",
+        title = "Measurement at Final Time Point",
         subtitle = subtitle_text,
         x = NULL,
         y = NULL,
@@ -93,7 +112,7 @@ plot_latest_timepoint <- function(data, variables) {
       ggplot2::theme_minimal(base_size = 14)
   }
   
-  # ---- Step 5: Split and generate plots ----
+  # ---- Step 5: Split data and generate plots ----
   split_data <- dplyr::group_split(latest_timepoint, .data$group_id)
   
   plot_names <- latest_timepoint %>%
