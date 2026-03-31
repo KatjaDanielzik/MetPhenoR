@@ -10,8 +10,10 @@ results of read_folder() function
 }
 \usage{data("processed_data")}
 \format{
-  A data frame with 27648 observations on the following 23 variables.
-  \describe{
+\describe{ a list
+  \itemize{
+   \item \code{data}: a data frame
+    \itemize{
     \item{\code{PlateId}}{a character vector}
     \item{\samp{Project Name}}{a character vector}
     \item{\samp{Project Code}}{a character vector}
@@ -35,6 +37,16 @@ results of read_folder() function
     \item{\code{Hour}}{a numeric vector}
     \item{\code{Well}}{a character vector}
     \item{\code{diff_OD_590_740}}{a numeric vector}
+    }
+  }
+  \itemize{
+   \item \code{meta}: A list
+     \itemize{
+     \item \code{data_path}: user set 'data_path'
+     \item \code{sample_column}: user set 'sample_column' 
+     \item \code{variables}: user set 'variables'
+     }
+    }
   }
 }
 \examples{

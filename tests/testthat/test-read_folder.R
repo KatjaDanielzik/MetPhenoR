@@ -4,12 +4,15 @@ test_that("read_folder returns a list with correct structure", {
   # Use test_data() to access files
   test_dir <- file.path(test_path(), "data", "matching")
   non_dir <- file.path(test_path(), "data", "non_matching")
-  result <- read_folder(data_path = test_dir, sample_column = "Sample", variables = c("cell.line", "radiation.dose", "time.point"))
+  result <- read_folder(data_path = test_dir, 
+                        sample_column = "Sample", 
+                        variables = c("cell.line", "radiation.dose", "time.point"))
   expect_type(result, "list")
-  expect_named(result, c("data", "variables", "sample_column"))
+  expect_named(result, c("data", "meta"))
   expect_s3_class(result$data, "data.frame")
-  expect_equal(result$variables, c("cell.line", "radiation.dose", "time.point"))
-  expect_equal(result$sample_column, "Sample")
+  expect_named(result$meta, c("data_path", "sample_column", "variables"))
+  expect_equal(result$meta$sample_column,"Sample")
+  expect_equal(result$meta$variables,c("cell.line","radiation.dose","time.point"))
 })
 
 test_that("read_folder warns about excluded PlateIds with correct info", {
@@ -92,3 +95,4 @@ test_that("read_folder preserves all required columns in output", {
   
   expect_true(all(required_cols %in% names(result$data)))
 })
+

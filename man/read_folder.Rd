@@ -50,8 +50,14 @@ files (e.g. in format cell.line, radiation.dose, time.point -> "A549_0Gy_0h")}
 \item \code{Well}: Well Id of the 96-well plate
 \item \code{diff_OD_590_740}: OD_590nm-OD_740nm, noise correction for mammalian plates according to Biolog
 }
-\item \code{variables}: user specified variable column names
-\item \code{sample_column}: user specified column in 'PlateInfo' that contains the sample description
+\itemize{
+\item \code{meta}: A list
+\itemize{
+\item \code{data_path}: user set 'data_path'
+\item \code{sample_column}: user set 'sample_column'
+\item \code{variables}: user set 'variables'
+}
+}
 }
 }
 }
