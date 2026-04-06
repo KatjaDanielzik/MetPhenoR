@@ -2,18 +2,19 @@
 #'
 #' This function estimates the Area Under the Curve (AUC) for time-series data
 #' on a per-well basis using spline-based smoothing, followed by residual
-#' bootstrap to derive confidence intervals.
+#' bootstrap to derive confidence intervals. The function operates on a
+#' structured \code{data} object and integrates results back into it.
 #'
 #' A natural spline model is fitted to each well-specific trajectory, and the
 #' AUC is computed from the fitted values using trapezoidal integration.
 #' Uncertainty is quantified via residual resampling.
 #'
-#' @param combined_raw_long A data frame in long format containing raw
-#'   time-series measurements (e.g., optical density values).
-#' @param well_summary A data frame containing well-level annotations,
-#'   including curve classifications.
-#' @param variables A character vector specifying grouping variables that
-#'   define experimental conditions.
+#' @param data A structured list containing:
+#' \describe{
+#'   \item{data}{Long-format raw measurements (e.g., OD values).}
+#'   \item{meta}{Metadata including grouping variables.}
+#'   \item{classification}{Well-level annotations (must include \code{well_summary}).}
+#' }
 #' @param curve_type A character string specifying which curve type to include
 #'   in the analysis (default: \code{"growing"}).
 #' @param n_boot Integer specifying the number of bootstrap replicates used
@@ -21,6 +22,8 @@
 #' @param spline_df Integer specifying the degrees of freedom for the natural
 #'   spline used in model fitting (default: 4).
 #' @param seed Integer random seed for reproducibility (default: 123).
+#' @param store Logical; if \code{TRUE}, results are stored in
+#'   \code{data$$auc_results} (default: \code{TRUE}).
 #'
 #' @details
 #' The function performs the following steps for each well:
@@ -38,7 +41,9 @@
 #' Wells with insufficient data points or failed model fits return \code{NA}
 #' estimates.
 #'
-#' @return A tibble containing:
+#' @return
+#' If \code{store = TRUE}, returns the updated \code{data} object.
+#' Otherwise, returns a tibble containing:
 #' \describe{
 #'   \item{AUC}{Estimated area under the fitted curve.}
 #'   \item{AUC_low}{Lower bound of the 95\% bootstrap confidence interval.}
@@ -47,45 +52,59 @@
 #' }
 #'
 #' @import dplyr
-#' @import magrittr
-#' @importFrom stats lm
-#' @importFrom stats fitted
-#' @importFrom stats residuals
-#' @importFrom stats quantile
+#' @importFrom stats lm fitted residuals quantile
 #' @importFrom splines ns
-#' 
+#'
 #' @export
-compute_auc_ci <- function(combined_raw_long,
-                           well_summary,
-                           variables,
+compute_auc_ci <- function(data,
                            curve_type = "growing",
                            n_boot = 1000,
                            spline_df = 4,
-                           seed = 123) {
+                           seed = 123,
+                           store = TRUE) {
   
   set.seed(seed)
   
-  # ---- Step 1: Join and filter data ----
-  combined_df <- dplyr::left_join(
-    combined_raw_long,
-    well_summary,
-    by = c(variables, "Plate.Type", "Well")
-  ) %>%
-    dplyr::filter(.data$Curve_type == curve_type)
+  # ---- Validation ----
+  if (!all(c("data", "meta", "classification") %in% names(data))) {
+    stop("data must contain 'data', 'meta', and 'classification'")
+  }
   
-  # ---- Step 2: Trapezoidal AUC function ----
+  if (!"well_summary" %in% names(data$classification)) {
+    stop("Run classify_growth_curve_types() first")
+  }
+  
+  raw_data     <- data$data
+  well_summary <- data$classification$well_summary
+  variables    <- data$meta$variables
+  
+  # ---- Step 1: Join and filter ----
+  combined_df <- dplyr::left_join(
+    raw_data,
+    well_summary,
+    by = c(variables, "Plate Type", "Well")
+  ) %>%
+    dplyr::filter(.data$curve_type == curve_type)
+  
+  # ---- Step 2: Trapezoidal AUC ----
+  auc_trapz <- function(x, y) {
+    idx <- order(x)
+    x <- x[idx]
+    y <- y[idx]
+    sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+  }
   
   # ---- Step 3: Per-well estimation ----
-  auc_ci_residual <- combined_df %>%
+  auc_results <- combined_df %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(c("Plate.Type", "Well", variables)))
+      dplyr::across(dplyr::all_of(c("Plate Type", "Well", variables)))
     ) %>%
     dplyr::group_modify(~{
       
       dat <- .x
       
-      # ---- Data sufficiency check ----
-      if (nrow(dat) < 4 || all(is.na(dat$raw_value))) {
+      # ---- Data sufficiency ----
+      if (nrow(dat) < 4 || all(is.na(dat$diff_OD_590_740))) {
         return(dplyr::tibble(
           AUC = NA_real_,
           AUC_low = NA_real_,
@@ -94,10 +113,10 @@ compute_auc_ci <- function(combined_raw_long,
         ))
       }
       
-      # ---- Fit spline-based regression model ----
+      # ---- Model fit ----
       fit <- tryCatch(
         stats::lm(
-          raw_value ~ splines::ns(Hour, df = spline_df),
+          diff_OD_590_740 ~ splines::ns(Hour, df = spline_df),
           data = dat
         ),
         error = function(e) NULL
@@ -115,16 +134,15 @@ compute_auc_ci <- function(combined_raw_long,
       fitted_vals <- stats::fitted(fit)
       residuals   <- stats::residuals(fit)
       
-      # ---- Observed AUC from fitted trajectory ----
+      # ---- Observed AUC ----
       auc_obs <- auc_trapz(dat$Hour, fitted_vals)
       
-      # ---- Residual bootstrap procedure ----
+      # ---- Bootstrap ----
       auc_boot <- replicate(n_boot, {
         y_star <- fitted_vals + sample(residuals, replace = TRUE)
         auc_trapz(dat$Hour, y_star)
       })
       
-      # ---- Return estimates ----
       dplyr::tibble(
         AUC      = auc_obs,
         AUC_low  = stats::quantile(auc_boot, 0.025, na.rm = TRUE),
@@ -135,5 +153,11 @@ compute_auc_ci <- function(combined_raw_long,
     }) %>%
     dplyr::ungroup()
   
-  return(auc_ci_residual)
+  # ---- Store results ----
+  if (store) {
+    data$auc_results <- auc_results
+    return(data)
+  } else {
+    return(auc_results)
+  }
 }

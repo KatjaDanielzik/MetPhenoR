@@ -8,9 +8,9 @@
 #'   \item Generating a QC heatmap
 #' }
 #'
-#' @param data A data frame containing plate-based measurements.
-#' @param wells Character vector of wells to inspect.
-#' @param group_vars Character vector of grouping variables.
+#' @param data Result of 'read_folder()'. 
+#' @param variables A character vector specifying the column names that define
+#'   experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).
 #'
 #' @importFrom dplyr filter
 #' @importFrom dplyr count
@@ -30,13 +30,17 @@
 #' @export
 qc_replicate <- function(
     data,
-    wells = c("A01","A02","A03","A04"),
-    group_vars = c("cell_line", "Plate.Type", "Description", "Well", "Hour")
+    variables = data$meta$variables,
+    sample_column = data$meta$sample_column
 ) {
   
+data_df <- data$data
+wells = c("A01","A02","A03","A04")
+group_vars <- c(variables, sample_column,"Plate Type", "Hour", "Well")
+  
   # ---- Input validation ----
-  if (!is.data.frame(data)) {
-    stop("'data' must be a data.frame.")
+  if (!is.data.frame(data_df)) {
+    stop("'data$data' must be a data.frame.")
   }
   
   if (!is.character(wells) || length(wells) == 0) {
@@ -47,13 +51,13 @@ qc_replicate <- function(
     stop("'group_vars' must be a non-empty character vector.")
   }
   
-  missing_cols <- setdiff(group_vars, names(data))
+  missing_cols <- setdiff(group_vars, names(data_df))
   if (length(missing_cols) > 0) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
   # ---- Filter wells ----
-  qc_data <- dplyr::filter(data, .data$Well %in% wells)
+  qc_data <- dplyr::filter(data_df, Well %in% wells)
   
   if (nrow(qc_data) == 0) {
     stop("No data found for the specified wells.")
@@ -76,19 +80,22 @@ qc_replicate <- function(
     )
   
   # ---- QC plot ----
+  sample_column <- as.symbol(sample_column)
+  sample_column <- enquo(sample_column)
+  
   qc_plot <- ggplot2::ggplot(
     qc_table,
     ggplot2::aes(
       x = .data$Well,
-      y = .data$Description,
+      y = .data[[sample_column]],
       fill = .data$n_entries
     )
   ) +
     ggplot2::geom_tile(color = "grey70") +
-    ggplot2::facet_wrap(~Plate.Type, scales = "free_x") +
+    ggplot2::facet_wrap(~"Plate Type", scales = "free_x") +
     ggplot2::scale_fill_gradient(name = "Replicates") +
     ggplot2::labs(
-      title = "Replicate QC Heatmap",
+      title = "QC heatmap: Number of replicates = 1?",
       subtitle = paste("Wells:", paste(wells, collapse = ", ")),
       x = "Well",
       y = "Description"
@@ -107,7 +114,7 @@ qc_replicate <- function(
       TRUE ~ "Unknown"
     )
   )
-  
+   
   return(list(
     qc_data = qc_data,
     duplicates = duplicates,
@@ -116,3 +123,4 @@ qc_replicate <- function(
     qc_plot = qc_plot
   ))
 }
+

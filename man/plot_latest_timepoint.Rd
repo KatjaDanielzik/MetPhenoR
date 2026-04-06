@@ -4,11 +4,10 @@
 \alias{plot_latest_timepoint}
 \title{Plot Final Time Point per Experimental Condition}
 \usage{
-plot_latest_timepoint(data, variables)
+plot_latest_timepoint(data, variables = data$meta$variables)
 }
 \arguments{
-\item{data}{A data frame containing time-resolved plate-based measurements.
-Must include well identifiers, time points, and measurement values.}
+\item{data}{Result of 'read_folder()'.}
 
 \item{variables}{A character vector specifying the column names that define
 experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).}

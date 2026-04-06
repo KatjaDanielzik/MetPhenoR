@@ -8,8 +8,7 @@
 #' spatially arranged points, colored according to their measured value at the
 #' final time point.
 #'
-#' @param data A data frame containing time-resolved plate-based measurements.
-#'   Must include well identifiers, time points, and measurement values.
+#' @param data Result of 'read_folder()'. 
 #' @param variables A character vector specifying the column names that define
 #'   experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).
 #'
@@ -37,24 +36,27 @@
 #' @importFrom tidyselect all_of
 #'
 #' @export
-plot_latest_timepoint <- function(data, variables) {
+plot_latest_timepoint <- function(data, 
+                                  variables = data$meta$variables) {
+  
+  data_df <- data$data
   
   # ---- Input validation ----
-  if (!is.data.frame(data)) {
-    stop("'data' must be a data.frame.")
+  if (!is.data.frame(data_df)) {
+    stop("'data$data' must be a data.frame.")
   }
   
-  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
-  missing_cols <- setdiff(required_cols, names(data))
+  required_cols <- c(variables, "Plate Type", "Well", "Hour", "diff_OD_590_740")
+  missing_cols <- setdiff(required_cols, names(data_df))
   
   if (length(missing_cols) > 0) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
   # ---- Step 1: Extract latest time point per well ----
-  latest_timepoint <- data %>%
+  latest_timepoint <- data_df %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(c(variables, "Plate.Type", "Well")))
+      dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well")))
     ) %>%
     dplyr::slice_max(.data$Hour, n = 1, with_ties = FALSE) %>%
     dplyr::ungroup()
@@ -70,7 +72,7 @@ plot_latest_timepoint <- function(data, variables) {
   latest_timepoint <- latest_timepoint %>%
     tidyr::unite(
       "group_id",
-      tidyselect::all_of(c(variables, "Plate.Type")),
+      tidyselect::all_of(c(variables, "Plate Type")),
       remove = FALSE,
       sep = "_"
     )
@@ -85,7 +87,7 @@ plot_latest_timepoint <- function(data, variables) {
     
     subtitle_text <- paste(
       paste(var_values, collapse = " | "),
-      paste("Plate:", unique(df$Plate.Type)),
+      paste("Plate:", unique(df$"Plate Type")),
       sep = " | "
     )
     

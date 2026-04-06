@@ -2,11 +2,11 @@
 % Please edit documentation in R/classify_growth_curve_types.r
 \name{classify_growth_curve_types}
 \alias{classify_growth_curve_types}
-\title{Classify Growth Curve Types Using Spline Derivatives}
+\title{Classify Growth Curves in Processed Data Object}
 \usage{
 classify_growth_curve_types(
   data,
-  variables,
+  variables = data$meta$variables,
   spar = 0.7,
   drop_threshold = -0.01,
   tol = 0.01,
@@ -14,26 +14,20 @@ classify_growth_curve_types(
 )
 }
 \arguments{
-\item{data}{A data frame containing time-course measurements.}
+\item{data}{A list containing:
+\itemize{
+\item data: data frame
+\item meta: list with variables
+}
 
-\item{variables}{Character vector of experimental variables.}
-
-\item{spar}{Smoothing parameter for spline fitting.}
-
-\item{drop_threshold}{Threshold for detecting decreasing trends.}
-
-\item{tol}{Tolerance for flat behavior.}
-
-\item{max_od_threshold}{Threshold for low OD flat classification.}
+@import dplyr
+@importFrom stats smooth.spline
+@importFrom stats predict
+@importFrom stats sd}
 }
 \value{
-A list with:
-\describe{
-\item{derivative_data}{Data with spline fits and derivatives}
-\item{well_summary}{Per-well classification summary}
-}
+Updated data list with results appended
 }
 \description{
-Fits smoothing splines to time-course data per well and classifies
-growth behavior based on first derivatives.
+Classify Growth Curves in Processed Data Object
 }

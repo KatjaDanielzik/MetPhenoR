@@ -6,16 +6,15 @@
 \usage{
 qc_replicate(
   data,
-  wells = c("A01", "A02", "A03", "A04"),
-  group_vars = c("cell_line", "Plate.Type", "Description", "Well", "Hour")
+  variables = data$meta$variables,
+  sample_column = data$meta$sample_column
 )
 }
 \arguments{
-\item{data}{A data frame containing plate-based measurements.}
+\item{data}{Result of 'read_folder()'.}
 
-\item{wells}{Character vector of wells to inspect.}
-
-\item{group_vars}{Character vector of grouping variables.}
+\item{variables}{A character vector specifying the column names that define
+experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).}
 }
 \value{
 A named list with QC outputs:
