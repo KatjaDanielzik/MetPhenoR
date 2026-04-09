@@ -17,10 +17,9 @@
 #' The function performs the following steps:
 #' \enumerate{
 #'   \item Accepts one or multiple annotation data frames.
-#'   \item Harmonizes column names (case-insensitive, trimmed).
 #'   \item Combines annotation tables and removes duplicate rows.
 #'   \item Merges annotation metadata into the experimental dataset.
-#'   \item Optionally assigns control categories based on chemical identity.
+#'   \item assigns control categories based on chemical identity.
 #' }
 #'
 #' Column name matching is case-insensitive and whitespace-tolerant.
@@ -28,7 +27,7 @@
 #' @return The input \code{data} object with an updated \code{data} element,
 #'   including annotation columns and an optional \code{control} column.
 #'
-#' @importFrom dplyr bind_rows distinct left_join mutate case_when select rename_with any_of
+#' @importFrom dplyr bind_rows distinct left_join mutate case_when select rename_with 
 #' @importFrom purrr imap
 #'
 #' @export
@@ -49,12 +48,6 @@ annotate_chemical <- function(
     stop("'data$data' must be a data.frame.")
   }
   
-  # ---- Normalize helper ----
-  normalize_names <- function(df) {
-    df %>%
-      dplyr::rename_with(~ trimws(tolower(.x)))
-  }
-  
   # ---- Handle annotation input ----
   if (is.data.frame(annotation)) {
     annotations_list <- list(annotation)
@@ -63,9 +56,6 @@ annotate_chemical <- function(
   } else {
     stop("'annotation' must be a data.frame or a list of data.frames.")
   }
-  
-  # ---- Normalize annotation tables ----
-  annotations_list <- lapply(annotations_list, normalize_names)
   
   # ---- Combine annotations ----
   annotations <- dplyr::bind_rows(annotations_list) %>%
@@ -83,25 +73,15 @@ annotate_chemical <- function(
     )
   }
   
-  # ---- Normalize data ----
-  data_df <- normalize_names(data_df)
-  
-  if (!all(required_cols %in% names(data_df))) {
-    stop(
-      "'data$data' must contain columns: ",
-      paste(required_cols, collapse = ", ")
-    )
-  }
-  
   # ---- Merge ----
   data_df <- dplyr::left_join(
     data_df,
-    dplyr::select(annotations, dplyr::any_of(c("Plate Type", "Well", "Chemical"))),
+    dplyr::select(annotations, "Plate Type", "Well", "Chemical"),
     by = c("Plate Type", "Well")
   )
   
   # ---- Control classification ----
-  if (!is.null(control_map) && "chemical" %in% names(data_df)) {
+  if (!is.null(control_map) && "Chemical" %in% names(data_df)) {
     
     data_df <- dplyr::mutate(
       data_df,
