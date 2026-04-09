@@ -24,7 +24,7 @@ filter_data <- function(data, plate_type, filters = list()) {
   }
   
   if (!"Plate.Type" %in% names(data)) {
-    stop("'Plate.Type' column not found in data.")
+    stop("'Plate Type' column not found in data.")
   }
   
   if (!is.list(filters)) {

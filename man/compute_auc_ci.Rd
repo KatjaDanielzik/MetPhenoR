@@ -5,24 +5,21 @@
 \title{Compute Area Under the Curve (AUC) with Bootstrap Confidence Intervals}
 \usage{
 compute_auc_ci(
-  combined_raw_long,
-  well_summary,
-  variables,
+  data,
   curve_type = "growing",
   n_boot = 1000,
   spline_df = 4,
-  seed = 123
+  seed = 123,
+  store = TRUE
 )
 }
 \arguments{
-\item{combined_raw_long}{A data frame in long format containing raw
-time-series measurements (e.g., optical density values).}
-
-\item{well_summary}{A data frame containing well-level annotations,
-including curve classifications.}
-
-\item{variables}{A character vector specifying grouping variables that
-define experimental conditions.}
+\item{data}{A structured list containing:
+\describe{
+\item{data}{Long-format raw measurements (e.g., OD values).}
+\item{meta}{Metadata including grouping variables.}
+\item{classification}{Well-level annotations (must include \code{well_summary}).}
+}}
 
 \item{curve_type}{A character string specifying which curve type to include
 in the analysis (default: \code{"growing"}).}
@@ -34,9 +31,13 @@ for confidence interval estimation (default: 1000).}
 spline used in model fitting (default: 4).}
 
 \item{seed}{Integer random seed for reproducibility (default: 123).}
+
+\item{store}{Logical; if \code{TRUE}, results are stored in
+\code{data$$auc_results} (default: \code{TRUE}).}
 }
 \value{
-A tibble containing:
+If \code{store = TRUE}, returns the updated \code{data} object.
+Otherwise, returns a tibble containing:
 \describe{
 \item{AUC}{Estimated area under the fitted curve.}
 \item{AUC_low}{Lower bound of the 95\\% bootstrap confidence interval.}
@@ -47,7 +48,8 @@ A tibble containing:
 \description{
 This function estimates the Area Under the Curve (AUC) for time-series data
 on a per-well basis using spline-based smoothing, followed by residual
-bootstrap to derive confidence intervals.
+bootstrap to derive confidence intervals. The function operates on a
+structured \code{data} object and integrates results back into it.
 }
 \details{
 A natural spline model is fitted to each well-specific trajectory, and the
