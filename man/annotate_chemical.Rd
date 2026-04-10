@@ -12,38 +12,33 @@ annotate_chemical(
 )
 }
 \arguments{
-\item{data}{A data frame produced by \code{read_folder()} containing at least
-\code{"Plate Type"} and \code{"Well"} columns.}
+\item{data}{A list-like object containing a data frame element \code{data},
+typically produced by \code{read_folder()}. The data frame must include
+columns \code{"Plate Type"} and \code{"Well"}.}
 
-\item{control_map}{Optional named list defining control classification.
-Example:
-\preformatted{
-  list(
-    negative = c("Negative Control", "No Chemical"),
-    positive = c("a-D-Glucose", "D-(+)-Glucose")
-  )
-  }}
+\item{annotation}{A data frame or a list of data frames containing annotation
+metadata. Each must include columns \code{"Plate Type"} and \code{"Well"}.}
 
-\item{annotation_paths}{Character vector of file paths to annotation files.}
-
-\item{delimiters}{Optional character vector specifying file delimiters
-(e.g., \code{","}, \code{"\t"}). Defaults to comma-separated files.}
+\item{control_map}{Optional named list defining control classifications.
+Each name corresponds to a control class and each element is a character
+vector of matching chemical names.}
 }
 \value{
-A tibble with merged annotation data and optional control labels.
+The input \code{data} object with an updated \code{data} element,
+including annotation columns and an optional \code{control} column.
 }
 \description{
-Integrates experimental data with external annotation files and assigns
-chemical identities to wells. Supports multiple annotation files and flexible
-delimiters.
+Integrates experimental assay data with one or more annotation data frames
+to assign chemical identities to wells. This version assumes that annotation
+data are already loaded into the R environment.
 }
 \details{
-The function:
+The function performs the following steps:
 \enumerate{
-\item Reads and combines multiple annotation files.
-\item Standardizes column names for consistent merging.
-\item Merges annotation metadata with experimental data.
-\item Optionally classifies wells into control categories.
+\item Accepts one or multiple annotation data frames.
+\item Combines annotation tables and removes duplicate rows.
+\item Merges annotation metadata into the experimental dataset.
+\item assigns control categories based on chemical identity.
 }
 
 Column name matching is case-insensitive and whitespace-tolerant.

@@ -86,6 +86,11 @@ compute_auc_ci <- function(data,
   ) %>%
     dplyr::filter(.data$curve_type == curve_type)
   
+  # ---- Check required columns ----
+  if (!all(c("Chemical", "control") %in% colnames(combined_df))) {
+    stop("'Chemical' and/or 'control' not found in data$data")
+  }
+  
   # ---- Step 2: Trapezoidal AUC ----
   auc_trapz <- function(x, y) {
     idx <- order(x)
@@ -109,7 +114,9 @@ compute_auc_ci <- function(data,
           AUC = NA_real_,
           AUC_low = NA_real_,
           AUC_high = NA_real_,
-          n_points = nrow(dat)
+          n_points = nrow(dat),
+          Chemical = dat$Chemical[1],
+          control  = dat$control[1]
         ))
       }
       
@@ -127,7 +134,9 @@ compute_auc_ci <- function(data,
           AUC = NA_real_,
           AUC_low = NA_real_,
           AUC_high = NA_real_,
-          n_points = nrow(dat)
+          n_points = nrow(dat),
+          Chemical = dat$Chemical[1],
+          control  = dat$control[1]
         ))
       }
       
@@ -147,7 +156,9 @@ compute_auc_ci <- function(data,
         AUC      = auc_obs,
         AUC_low  = stats::quantile(auc_boot, 0.025, na.rm = TRUE),
         AUC_high = stats::quantile(auc_boot, 0.975, na.rm = TRUE),
-        n_points = nrow(dat)
+        n_points = nrow(dat),
+        Chemical = dat$Chemical[1],
+        control  = dat$control[1]
       )
       
     }) %>%
