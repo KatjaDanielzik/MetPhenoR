@@ -1,4 +1,4 @@
-#' Annotate assay data with chemical metadata
+#' Annotate assay data with chemical
 #'
 #' Integrates experimental assay data with one or more annotation data frames
 #' to assign chemical identities to wells. This version assumes that annotation
@@ -27,8 +27,9 @@
 #' @return The input \code{data} object with an updated \code{data} element,
 #'   including annotation columns and an optional \code{control} column.
 #'
-#' @importFrom dplyr bind_rows distinct left_join mutate case_when select rename_with 
+#' @importFrom dplyr bind_rows distinct left_join mutate case_when select
 #' @importFrom purrr imap
+#' @importFrom rlang expr
 #'
 #' @export
 annotate_chemical <- function(

@@ -18,8 +18,8 @@ compute_auc_ci(
 \describe{
 \item{data}{Long-format raw measurements (e.g., OD values).}
 \item{meta}{Metadata including grouping variables.}
-\item{classification}{Well-level annotations (must include \code{well_summary}).}
-}}
+\item{classification}{Well-level annotations
+(must include \code{well_summary}).}}}
 
 \item{curve_type}{A character string specifying which curve type to include
 in the analysis (default: \code{"growing"}).}
@@ -35,16 +35,6 @@ spline used in model fitting (default: 4).}
 \item{store}{Logical; if \code{TRUE}, results are stored in
 \code{data$$auc_results} (default: \code{TRUE}).}
 }
-\value{
-If \code{store = TRUE}, returns the updated \code{data} object.
-Otherwise, returns a tibble containing:
-\describe{
-\item{AUC}{Estimated area under the fitted curve.}
-\item{AUC_low}{Lower bound of the 95\\% bootstrap confidence interval.}
-\item{AUC_high}{Upper bound of the 95\\% bootstrap confidence interval.}
-\item{n_points}{Number of observations used per well.}
-}
-}
 \description{
 This function estimates the Area Under the Curve (AUC) for time-series data
 on a per-well basis using spline-based smoothing, followed by residual
@@ -52,22 +42,5 @@ bootstrap to derive confidence intervals. The function operates on a
 structured \code{data} object and integrates results back into it.
 }
 \details{
-A natural spline model is fitted to each well-specific trajectory, and the
-AUC is computed from the fitted values using trapezoidal integration.
-Uncertainty is quantified via residual resampling.
 
-The function performs the following steps for each well:
-\enumerate{
-\item Merges raw measurements with well-level classifications.
-\item Filters data based on the specified curve type.
-\item Fits a linear model with a natural spline basis to capture
-non-linear temporal trends.
-\item Computes the AUC from fitted values using the trapezoidal rule.
-\item Applies residual bootstrap by resampling model residuals and
-reconstructing synthetic trajectories.
-\item Derives percentile-based confidence intervals (2.5\\% and 97.5\\%).
-}
-
-Wells with insufficient data points or failed model fits return \code{NA}
-estimates.
 }

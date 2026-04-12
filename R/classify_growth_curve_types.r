@@ -1,21 +1,33 @@
-#' Classify Growth Curves in Processed Data Object
+#' Classify Growth Curves 
+#'
+#' Classifies growth curve behavior based on smoothed splines and first derivatives
+#' of optical density (OD) measurements. The function assigns curve types such as
+#' growing, flat, OD_drop, or uncertain based on derivative thresholds and QC metrics.
 #'
 #' @param data A list containing:
-#'   - data: data frame
-#'   - meta: list with variables
-#'   
-#'   @import dplyr
-#'   @importFrom stats smooth.spline
-#'   @importFrom stats predict
-#'   @importFrom stats sd
-#'   
+#'   \itemize{
+#'     \item \code{data} A data frame of measurements
+#'     \item \code{meta} A list containing metadata, including \code{variables}
+#'   }
+#' @param spar Numeric smoothing parameter passed to \code{stats::smooth.spline} (default: 0.7)
+#' @param drop_threshold Numeric threshold for detecting negative growth drops in first derivative (default: -0.01)
+#' @param tol Numeric tolerance for considering growth as flat (default: 0.01)
+#' @param max_od_threshold Numeric maximum OD threshold used to define flat low curves (default: 0.1)
 #'
-#' @return Updated data list with results appended
+#' @return A list with the same structure as input, with an additional \code{classification}
+#' element containing:
+#' \itemize{
+#'   \item \code{derivative_data} Data frame with spline and first derivative values
+#'   \item \code{well_summary} Summary table with curve classification per well
+#' }
+#'
+#' @import dplyr
+#' @importFrom stats smooth.spline predict sd
+#'
 #' @export
 
 classify_growth_curve_types <- function(
     data,
-    variables = data$meta$variables,
     spar = 0.7,
     drop_threshold = -0.01,
     tol = 0.01,
@@ -33,6 +45,7 @@ classify_growth_curve_types <- function(
   }
   
   df <- data$data
+  variables <- data$meta$variables
   
   # ---- Column validation ----
   required_cols <- c(variables, "Plate Type", "Well", "Hour", "diff_OD_590_740")

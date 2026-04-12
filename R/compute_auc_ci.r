@@ -13,8 +13,9 @@
 #' \describe{
 #'   \item{data}{Long-format raw measurements (e.g., OD values).}
 #'   \item{meta}{Metadata including grouping variables.}
-#'   \item{classification}{Well-level annotations (must include \code{well_summary}).}
-#' }
+#'   \item{classification}{Well-level annotations 
+#'          (must include \code{well_summary}).}}
+#' 
 #' @param curve_type A character string specifying which curve type to include
 #'   in the analysis (default: \code{"growing"}).
 #' @param n_boot Integer specifying the number of bootstrap replicates used
@@ -25,8 +26,7 @@
 #' @param store Logical; if \code{TRUE}, results are stored in
 #'   \code{data$$auc_results} (default: \code{TRUE}).
 #'
-#' @details
-#' The function performs the following steps for each well:
+#' @details The function performs the following steps for each well:
 #' \enumerate{
 #'   \item Merges raw measurements with well-level classifications.
 #'   \item Filters data based on the specified curve type.
@@ -41,9 +41,8 @@
 #' Wells with insufficient data points or failed model fits return \code{NA}
 #' estimates.
 #'
-#' @return
-#' If \code{store = TRUE}, returns the updated \code{data} object.
-#' Otherwise, returns a tibble containing:
+#'#' @return
+#' A tibble with the following columns:
 #' \describe{
 #'   \item{AUC}{Estimated area under the fitted curve.}
 #'   \item{AUC_low}{Lower bound of the 95\% bootstrap confidence interval.}
@@ -51,6 +50,9 @@
 #'   \item{n_points}{Number of observations used per well.}
 #' }
 #'
+#' If \code{store = TRUE}, the results are instead added to
+#' \code{data$auc_results} and the modified \code{data} object is returned.
+#' 
 #' @import dplyr
 #' @importFrom stats lm fitted residuals quantile
 #' @importFrom splines ns
@@ -96,7 +98,7 @@ compute_auc_ci <- function(data,
     idx <- order(x)
     x <- x[idx]
     y <- y[idx]
-    sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+    sum(diff(x) * (base::head(y, -1) + base::tail(y, -1)) / 2)
   }
   
   # ---- Step 3: Per-well estimation ----

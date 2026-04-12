@@ -4,17 +4,10 @@
 \alias{qc_replicate}
 \title{Quality Control for Replicate Consistency}
 \usage{
-qc_replicate(
-  data,
-  variables = data$meta$variables,
-  sample_column = data$meta$sample_column
-)
+qc_replicate(data)
 }
 \arguments{
 \item{data}{Result of 'read_folder()'.}
-
-\item{variables}{A character vector specifying the column names that define
-experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).}
 }
 \value{
 A named list with QC outputs:

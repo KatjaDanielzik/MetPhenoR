@@ -28,6 +28,9 @@ Imports:
     scales,
     stats,
     patchwork,
-    readr
+    readr,
+    ggforce,
+    rlang,
+    base
 Config/testthat/edition: 3
 LazyData: true

@@ -2,7 +2,7 @@
 % Please edit documentation in R/annotate_chemical.r
 \name{annotate_chemical}
 \alias{annotate_chemical}
-\title{Annotate assay data with chemical metadata}
+\title{Annotate assay data with chemical}
 \usage{
 annotate_chemical(
   data,

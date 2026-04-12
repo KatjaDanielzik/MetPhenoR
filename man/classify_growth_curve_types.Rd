@@ -2,11 +2,10 @@
 % Please edit documentation in R/classify_growth_curve_types.r
 \name{classify_growth_curve_types}
 \alias{classify_growth_curve_types}
-\title{Classify Growth Curves in Processed Data Object}
+\title{Classify Growth Curves}
 \usage{
 classify_growth_curve_types(
   data,
-  variables = data$meta$variables,
   spar = 0.7,
   drop_threshold = -0.01,
   tol = 0.01,
@@ -16,18 +15,28 @@ classify_growth_curve_types(
 \arguments{
 \item{data}{A list containing:
 \itemize{
-\item data: data frame
-\item meta: list with variables
-}
+\item \code{data} A data frame of measurements
+\item \code{meta} A list containing metadata, including \code{variables}
+}}
 
-@import dplyr
-@importFrom stats smooth.spline
-@importFrom stats predict
-@importFrom stats sd}
+\item{spar}{Numeric smoothing parameter passed to \code{stats::smooth.spline} (default: 0.7)}
+
+\item{drop_threshold}{Numeric threshold for detecting negative growth drops in first derivative (default: -0.01)}
+
+\item{tol}{Numeric tolerance for considering growth as flat (default: 0.01)}
+
+\item{max_od_threshold}{Numeric maximum OD threshold used to define flat low curves (default: 0.1)}
 }
 \value{
-Updated data list with results appended
+A list with the same structure as input, with an additional \code{classification}
+element containing:
+\itemize{
+\item \code{derivative_data} Data frame with spline and first derivative values
+\item \code{well_summary} Summary table with curve classification per well
+}
 }
 \description{
-Classify Growth Curves in Processed Data Object
+Classifies growth curve behavior based on smoothed splines and first derivatives
+of optical density (OD) measurements. The function assigns curve types such as
+growing, flat, OD_drop, or uncertain based on derivative thresholds and QC metrics.
 }

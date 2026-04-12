@@ -9,8 +9,6 @@
 #' }
 #'
 #' @param data Result of 'read_folder()'. 
-#' @param variables A character vector specifying the column names that define
-#'   experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).
 #'
 #' @importFrom dplyr filter
 #' @importFrom dplyr count
@@ -29,12 +27,11 @@
 #' }
 #' @export
 qc_replicate <- function(
-    data,
-    variables = data$meta$variables,
-    sample_column = data$meta$sample_column
-) {
+    data) {
   
 data_df <- data$data
+variables <- data$meta$variables
+
 wells = c("A01","A02","A03","A04")
 group_vars <- c(variables, sample_column,"Plate Type", "Hour", "Well")
   
