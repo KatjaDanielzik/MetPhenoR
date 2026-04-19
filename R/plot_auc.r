@@ -40,12 +40,17 @@
 #'   \item Black: Control wells
 #' }
 #'
-#' @export
-#'
 #' @importFrom dplyr filter mutate case_when distinct across all_of group_by summarise ungroup arrange row_number pull left_join semi_join bind_rows
-#' @importFrom ggplot2 ggplot aes geom_errorbar geom_point geom_vline geom_rect scale_color_manual scale_shape_manual labs theme_bw theme element_text facet_wrap
+#' @import ggplot2
 #' @importFrom rlang sym .data
 #' 
+#' @examples
+#' \dontrun{
+#' auc_plots <- plot_auc(data, selected_plate = "PM-M11")
+#' print(auc_plots)
+#' }
+#' 
+#' @export
 
 plot_auc <- function(data,
                      selected_plate,
@@ -108,7 +113,7 @@ plot_auc <- function(data,
     "Control wells"         = "black"
   )
   
-  plots <- vector("list", nrow(combinations))
+  auc_plots <- vector("list", nrow(combinations))
   
   # ---- Main loop ----
   for (i in seq_len(nrow(combinations))) {
@@ -262,9 +267,9 @@ plot_auc <- function(data,
       ) +
       ggplot2::geom_vline(xintercept = 0, color = "blue", linewidth = 0.5)
     
-    plots[[i]] <- p
+    auc_plots[[i]] <- p
   }
   
-  return(plots)
+  return(auc_plots)
 }
 

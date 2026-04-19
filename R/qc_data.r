@@ -1,13 +1,12 @@
-#' Quality Control for Replicate Consistency
-#'
-#' Performs quality control (QC) on replicate measurements derived from
-#' plate-based experiments. The function filters a predefined subset of wells,
-#' evaluates replicate consistency across experimental conditions, detects
-#' duplicated entries, and visualizes replicate counts using a heatmap.
+#' Quality Control for input data after noise correction
+#' 
+#' The function filters the first five wells,evaluates replicate consistency 
+#' across experimental conditions, detects duplicated entries, and visualizes 
+#' replicate counts using a heatmap.
 #'
 #' The QC workflow comprises:
 #' \enumerate{
-#'   \item Subsetting the dataset to selected wells
+#'   \item Subsetting the dataset to first five wells
 #'   \item Identifying duplicated measurements across grouping variables
 #'   \item Summarising replicate counts per condition
 #'   \item Visualizing replicate distribution as a heatmap
@@ -126,8 +125,8 @@ qc_data <- function(data) {
     ggplot2::facet_wrap(~`Plate Type`, scales = "free_x") +
     ggplot2::scale_fill_gradient(name = "Replicates") +
     ggplot2::labs(
-      title = "QC heatmap: Number of replicates",
-      subtitle = paste("Wells:", paste(wells, collapse = ", ")),
+      title = "QC heatmap: Number of replicates = 1?",
+      subtitle = "raw_value entries of the first 5 wells",
       x = "Well",
       y = "Condition"
     ) +

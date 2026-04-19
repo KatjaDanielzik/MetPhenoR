@@ -2,35 +2,44 @@
 % Please edit documentation in R/utils.R
 \name{auc_trapz}
 \alias{auc_trapz}
-\title{Compute Area Under the Curve via Trapezoidal Integration}
+\title{Estimate Area Under the Curve (AUC) with Bootstrap Confidence Intervals}
 \usage{
-auc_trapz(time, value)
+auc_trapz(x, y)
 }
 \arguments{
-\item{time}{A numeric vector representing time points.}
+\item{data}{A structured list containing:
+\describe{
+\item{data}{A data frame of raw OD time-series measurements.}
+\item{meta}{Metadata including grouping variables.}
+\item{classification}{Well-level annotations (must include
+\code{well_summary}).}
+}}
 
-\item{value}{A numeric vector of corresponding measurements (e.g., signal
-intensity, optical density).}
+\item{curve_type}{Character string specifying which curve type to include
+(default: \code{"growing"}).}
+
+\item{n_boot}{Integer. Number of bootstrap replicates (default: 1000).}
+
+\item{spline_df}{Integer. Degrees of freedom for natural spline fitting
+(default: 4).}
+
+\item{seed}{Integer. Random seed for reproducibility (default: 123).}
+
+\item{store}{Logical. If \code{TRUE}, results are stored in
+\code{data$auc_results}.}
 }
 \value{
-A single numeric value representing the estimated area under the curve.
+A tibble or modified data object (see details).
 }
 \description{
-This function calculates the Area Under the Curve (AUC) for a set of
-time-series observations using the trapezoidal rule. The method approximates
-the integral by summing the areas of trapezoids formed between consecutive
-data points.
+Computes the Area Under the Curve (AUC) for time-series optical density (OD)
+measurements on a per-well basis using spline-based regression, followed by
+residual bootstrap to quantify uncertainty.
 }
-\details{
-The input vectors are internally ordered by time to ensure correct numerical
-integration, regardless of the original data ordering.
-
-The trapezoidal rule approximates the integral as:
-\deqn{
-AUC \approx \sum_{i=1}^{n-1} (t_{i+1} - t_i) \cdot \frac{y_i + y_{i+1}}{2}
+\examples{
+\dontrun{
+data <- compute_auc_ci(data)
+head(data$auc_results)
 }
 
-Missing values are handled via \code{na.rm = TRUE}, meaning that any segments
-containing \code{NA} values are ignored in the summation.
 }
-\keyword{internal}

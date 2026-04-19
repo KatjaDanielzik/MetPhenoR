@@ -16,8 +16,7 @@
 #' \item Accepts one or multiple annotation data frames.
 #'   \item Combines annotation tables and removes duplicate rows.
 #'   \item Merges annotation metadata into the experimental dataset
-#'         using \code{"Plate Type"}, \code{"Well"}, and \code{"Chemical"} 
-#'         as keys.
+#'         using \code{"Chemical"} as keys.
 #' }
 #'
 #' @return The input \code{data} object with an updated \code{auc_ratio}
@@ -25,6 +24,11 @@
 #'
 #' @importFrom dplyr bind_rows distinct left_join rename_with
 #' @importFrom purrr map_lgl
+#' 
+#' @examples
+#' \dontrun{
+#' 
+#' }
 #'
 #' @export
 annotate_metadata <- function(data, annotation) {
@@ -54,7 +58,7 @@ annotate_metadata <- function(data, annotation) {
     dplyr::distinct()
   
   # ---- Required columns ----
-  required_cols <- c("Plate Type", "Well", "Chemical")
+  required_cols <- "Chemical"
   
   if (!all(required_cols %in% names(annotations))) {
     stop(

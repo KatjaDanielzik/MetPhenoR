@@ -8,10 +8,16 @@
 #'   If NULL, uses \code{data$meta$variables}.
 #'
 #' @return A ggplot object.
-#' @export
 #'
 #' @importFrom dplyr filter mutate case_when group_by summarise across all_of arrange left_join
-#' @importFrom ggplot2 ggplot aes geom_errorbarh geom_point geom_vline scale_shape_manual labs theme_bw theme element_text position_dodge facet_grid
+#' @import ggplot2 
+#' 
+#' @examples
+#' \dontrun{
+#' plot_controls_tween_all_plate(data)
+#' }
+#' 
+#' @export
 plot_controls_tween_all_plate <- function(data, variables = NULL) {
   
   # ---- Step 0: Validate input ----
@@ -110,7 +116,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     )
   ) +
     
-    ggplot2::geom_errorbarh(
+    ggplot2::geom_errorbar(
       ggplot2::aes(xmin = .data$AUC_low, xmax = .data$AUC_high),
       height = 0.25,
       linewidth = 0.6,

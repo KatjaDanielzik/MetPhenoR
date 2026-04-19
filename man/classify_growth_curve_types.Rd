@@ -2,7 +2,7 @@
 % Please edit documentation in R/classify_growth_curve_types.r
 \name{classify_growth_curve_types}
 \alias{classify_growth_curve_types}
-\title{Classify Growth Curves}
+\title{Classify Growth Curve Dynamics}
 \usage{
 classify_growth_curve_types(
   data,
@@ -13,30 +13,74 @@ classify_growth_curve_types(
 )
 }
 \arguments{
-\item{data}{A list containing:
-\itemize{
-\item \code{data} A data frame of measurements
-\item \code{meta} A list containing metadata, including \code{variables}
+\item{data}{A structured list containing:
+\describe{
+\item{data}{A data frame of OD measurements in long format.}
+\item{meta}{A list containing metadata, including a character vector
+\code{variables} defining grouping columns (e.g., strain, condition).}
 }}
 
-\item{spar}{Numeric smoothing parameter passed to \code{stats::smooth.spline} (default: 0.7)}
+\item{spar}{Numeric. Smoothing parameter passed to \code{\link[stats]{smooth.spline}}.
+Controls the degree of smoothing (default: \code{0.7}).}
 
-\item{drop_threshold}{Numeric threshold for detecting negative growth drops in first derivative (default: -0.01)}
+\item{drop_threshold}{Numeric. Threshold for detecting negative growth phases
+based on the first derivative (default: \code{-0.01}).}
 
-\item{tol}{Numeric tolerance for considering growth as flat (default: 0.01)}
+\item{tol}{Numeric. Tolerance around zero for classifying flat growth
+(default: \code{0.01}).}
 
-\item{max_od_threshold}{Numeric maximum OD threshold used to define flat low curves (default: 0.1)}
+\item{max_od_threshold}{Numeric. Maximum OD value below which a curve is
+classified as low, flat signal (default: \code{0.1}).}
 }
 \value{
-A list with the same structure as input, with an additional \code{classification}
-element containing:
-\itemize{
-\item \code{derivative_data} Data frame with spline and first derivative values
-\item \code{well_summary} Summary table with curve classification per well
+A list identical in structure to the input, augmented with a
+\code{classification} element containing:
+\describe{
+\item{derivative_data}{A data frame including spline-fitted values and
+first derivatives for each observation.}
+\item{well_summary}{A summarized data frame with per-well QC metrics
+and assigned curve classifications.}
 }
 }
 \description{
-Classifies growth curve behavior based on smoothed splines and first derivatives
-of optical density (OD) measurements. The function assigns curve types such as
-growing, flat, OD_drop, or uncertain based on derivative thresholds and QC metrics.
+Classifies growth curve dynamics from optical density (OD) time-series data
+using smoothing splines and their first derivatives. Curve behavior is inferred
+based on derivative thresholds and quality control (QC) metrics, enabling
+categorization into biologically interpretable growth states.
+}
+\details{
+The classification distinguishes between actively growing, declining,
+flat (low signal), slow-growing, and uncertain curves. Uncertainty is assigned
+when data quality is insufficient or exhibits excessive noise.
+
+For each well, a smoothing spline is fitted to OD measurements over time.
+The first derivative of the fitted spline is used to quantify growth dynamics:
+\itemize{
+\item Positive derivatives indicate growth phases.
+\item Negative derivatives indicate declines in OD.
+\item Near-zero derivatives indicate stationary or flat behavior.
+}
+
+Quality control flags are applied to identify unreliable classifications:
+\itemize{
+\item Low data density (fewer than four time points).
+\item High noise, defined as a large standard deviation of derivatives
+relative to the OD range.
+}
+
+Curve classification is assigned according to the following hierarchy:
+\enumerate{
+\item \code{"uncertain"}: QC criteria not satisfied.
+\item \code{"OD_drop"}: Significant negative derivative detected.
+\item \code{"flat_low"}: Flat curve with low maximum OD.
+\item \code{"growing"}: Positive growth phase detected.
+\item \code{"slow_growing"}: Residual category for weak or inconsistent growth.
+}
+}
+\examples{
+\dontrun{
+data <- classify_growth_curve_types(data)
+head(data$classification)
+}
+
 }

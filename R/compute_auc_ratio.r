@@ -19,6 +19,13 @@
 #' Otherwise returns a tibble with AUC ratio calculations.
 #'
 #' @import dplyr
+#' 
+#' @examples
+#' \dontrun{
+#' data <- compute_auc_ratio(data)
+#' head(data$auc_ratio)
+#' }
+#' 
 #' @export
 compute_auc_ratio <- function(data,
                               control_labels = c("Negative Control", "No Chemical"),

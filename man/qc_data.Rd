@@ -2,28 +2,55 @@
 % Please edit documentation in R/qc_data.r
 \name{qc_data}
 \alias{qc_data}
-\title{Quality Control for Replicate Consistency}
+\title{Quality Control for input data after noise correction}
 \usage{
 qc_data(data)
 }
 \arguments{
-\item{data}{Result of 'read_folder()'.}
+\item{data}{A named list produced by \code{read_folder()}, containing:
+\describe{
+\item{data}{A \code{data.frame} with experimental measurements}
+\item{meta}{A list containing metadata, including a character vector
+\code{variables} specifying grouping variables}
+}}
 }
 \value{
-A named list with QC outputs:
-\describe{
-\item{qc_data}{Filtered dataset}
-\item{duplicates}{Detected duplicate rows}
-\item{qc_table}{Replicate summary table}
-\item{qc_plot}{Heatmap visualization}
-}
+A \code{ggplot2} object representing a heatmap of replicate counts
+across wells and experimental conditions.
 }
 \description{
-Performs quality control on replicate measurements by:
-\itemize{
-\item Filtering selected wells
-\item Detecting duplicate entries
-\item Summarising replicate counts
-\item Generating a QC heatmap
+The function filters the first five wells,evaluates replicate consistency
+across experimental conditions, detects duplicated entries, and visualizes
+replicate counts using a heatmap.
 }
+\details{
+The QC workflow comprises:
+\enumerate{
+\item Subsetting the dataset to first five wells
+\item Identifying duplicated measurements across grouping variables
+\item Summarising replicate counts per condition
+\item Visualizing replicate distribution as a heatmap
+}
+
+The function internally restricts analysis to a fixed set of wells
+(\code{A01–A05}). Replicate counts are computed across grouping variables
+defined by \code{data$meta$variables}, in addition to \code{"Plate Type"},
+\code{"Hour"}, and \code{"Well"}.
+
+Duplicate entries are defined as observations sharing identical values across
+all grouping variables and occurring more than once.
+
+The resulting heatmap displays the number of replicate measurements per
+condition, facilitating rapid identification of inconsistencies such as
+duplicated or missing replicates.
+}
+\examples{
+\dontrun{
+qc_plot <- qc_data(data)
+print(qc_plot)
+}
+
+}
+\seealso{
+\code{\link{read_folder}}
 }

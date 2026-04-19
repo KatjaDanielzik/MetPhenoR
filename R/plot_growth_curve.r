@@ -1,15 +1,68 @@
-#' Plot Growth Curves and Plate Layout from Processed Data Object
+#' Visualize Growth Curves and Plate Layouts from Classified Data
 #'
-#' @param data A structured list containing:
-#'   - data: raw time-series data
-#'   - meta$variables: grouping variables
-#'   - classification$well_summary
-#'   - classification$derivative_data
+#' Generates combined visualizations of growth curve classifications and
+#' corresponding raw optical density (OD) time-series data. For each experimental
+#' condition, a plate layout heatmap is displayed alongside faceted growth curves,
+#' enabling direct comparison between spatial well distribution and temporal
+#' growth dynamics.
 #'
-#' @param curve_types_to_plot Optional vector of curve types to include
-#' @param store_plots Logical; store plots inside object
+#' @param data A structured list produced by upstream processing steps, containing:
+#'   \describe{
+#'     \item{data}{A data frame of raw OD time-series measurements.}
+#'     \item{meta}{A list containing metadata, including a character vector
+#'     \code{variables} defining grouping variables (e.g., strain, condition).}
+#'     \item{classification}{A list containing outputs from
+#'     \code{\link{classify_growth_curve_types}}, including:
+#'       \describe{
+#'         \item{well_summary}{Per-well classification results.}
+#'         \item{derivative_data}{Spline and derivative data (not directly plotted).}
+#'       }
+#'     }
+#'   }
+#' @param curve_types_to_plot Optional character vector specifying which
+#'   curve types to include in the raw growth curve visualization.
+#'   If \code{NULL} (default), all detected curve types except \code{"growing"}
+#'   are included.
+#' @param store_plots Logical. If \code{TRUE} (default), generated plots are stored
+#'   within \code{data$visualization$plate_plots} and the modified object is returned.
+#'   If \code{FALSE}, only the list of plots is returned.
 #'
-#' @return list of plots
+#' @details
+#' For each unique combination of grouping variables and plate type, the function:
+#' \enumerate{
+#'   \item Constructs a plate layout heatmap (8×12 format) showing well-wise
+#'   growth classifications.
+#'   \item Overlays raw OD time-series curves, grouped by well and faceted by
+#'   curve type.
+#'   \item Combines both visualizations using \pkg{patchwork} for side-by-side
+#'   comparison.
+#' }
+#'
+#' Missing wells in the plate layout are labeled as \code{"empty"}.
+#' If no curves match the selected \code{curve_types_to_plot}, an empty panel
+#' is displayed in place of the time-series plot.
+#'
+#' @return
+#' If \code{store_plots = TRUE}, returns the input \code{data} object augmented with:
+#' \describe{
+#'   \item{visualization$plate_plots}{A named list of combined \pkg{ggplot2}
+#'   objects, one per experimental condition.}
+#' }
+#'
+#' If \code{store_plots = FALSE}, returns a named list of \pkg{ggplot2} objects.
+#'
+#' @import dplyr
+#' @import ggplot2
+#' @importFrom stats na.omit
+#'
+#' @seealso \code{\link{classify_growth_curve_types}}
+#'
+#' @examples
+#' \dontrun{
+#' data <- plot_growth_curve(data)
+#' print(data[["growth_curve_plots"]])
+#' }
+#'
 #' @export
 
 plot_growth_curve <- function(
@@ -18,10 +71,7 @@ plot_growth_curve <- function(
     store_plots = TRUE
 ) {
   
-  # ==========================================================
   # Extract from structured object
-  # ==========================================================
-  
   if (!all(c("data", "meta", "classification") %in% names(data))) {
     stop("data must contain 'data', 'meta', and 'classification'")
   }
@@ -34,10 +84,7 @@ plot_growth_curve <- function(
   well_summary <- data$classification$well_summary
   variables <- data$meta$variables
   
-  # ----------------------------------------------------------
   # Define join keys
-  # ----------------------------------------------------------
-  
   join_keys <- c(variables, "Plate Type")
   
   conditions <- well_summary %>%
@@ -46,10 +93,8 @@ plot_growth_curve <- function(
   plot_list <- vector("list", nrow(conditions))
   names(plot_list) <- apply(conditions, 1, paste, collapse = "_")
   
-  # ==========================================================
-  # LOOP OVER CONDITIONS
-  # ==========================================================
   
+  #Loop over conditions
   for (i in seq_len(nrow(conditions))) {
     
     cond <- conditions[i, ]
@@ -57,10 +102,7 @@ plot_growth_curve <- function(
     ws <- well_summary %>%
       dplyr::semi_join(cond, by = join_keys)
     
-    # ==========================================================
-    # 1️⃣  PLATE LAYOUT
-    # ==========================================================
-    
+    # Plate layout
     plate_layout <- expand.grid(
       category = LETTERS[1:8],
       number   = 1:12
@@ -113,10 +155,7 @@ plot_growth_curve <- function(
         legend.position = "bottom"
       )
     
-    # ==========================================================
-    # 2️⃣  RAW CURVES
-    # ==========================================================
-    
+    # Raw curve
     raw_subset <- raw_data %>%
       dplyr::semi_join(cond, by = join_keys) %>%
       dplyr::left_join(
@@ -137,10 +176,7 @@ plot_growth_curve <- function(
     raw_subset <- raw_subset %>%
       dplyr::filter(curve_type %in% curve_types_current)
     
-    # ----------------------------------------------------------
     # No data case
-    # ----------------------------------------------------------
-    
     if (nrow(raw_subset) == 0) {
       
       p_raw <- ggplot2::ggplot() + ggplot2::theme_void()
@@ -162,7 +198,7 @@ plot_growth_curve <- function(
       raw_subset,
       ggplot2::aes(
         x = Hour,
-        y = diff_OD_590_740,   # 🔥 fixed column name
+        y = diff_OD_590_740,
         group = Well,
         colour = Well
       )
@@ -183,22 +219,16 @@ plot_growth_curve <- function(
         legend.text = ggplot2::element_text(size = 8)
       )
     
-    # ==========================================================
-    # 3️⃣ Combine
-    # ==========================================================
-    
+    #Combine
     plot_list[[i]] <- patchwork::wrap_plots(
       p_plate, p_raw,
       widths = c(1, 1.7)
     )
   }
   
-  # ==========================================================
   # Store in object
-  # ==========================================================
-  
   if (store_plots) {
-    data$visualization$plate_plots <- plot_list
+    data$growth_curve_plots <- plot_list
     return(data)
   } else {
     return(plot_list)

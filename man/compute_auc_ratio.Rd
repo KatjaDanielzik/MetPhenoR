@@ -32,3 +32,10 @@ This function calculates normalized AUC ratios relative to control wells
 and integrates the results into the structured \code{data} object,
 consistent with \code{compute_auc_ci()}.
 }
+\examples{
+\dontrun{
+data <- compute_auc_ratio(data)
+head(data$auc_ratio)
+}
+
+}

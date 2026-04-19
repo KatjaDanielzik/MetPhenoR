@@ -52,3 +52,10 @@ Color encoding:
 \item Black: Control wells
 }
 }
+\examples{
+\dontrun{
+auc_plots <- plot_auc(data, selected_plate = "PM-M11")
+print(auc_plots)
+}
+
+}

@@ -1,61 +1,36 @@
-#' Compute Area Under the Curve (AUC) with Bootstrap Confidence Intervals
+#' Estimate Area Under the Curve (AUC) with Bootstrap Confidence Intervals
 #'
-#' This function estimates the Area Under the Curve (AUC) for time-series data
-#' on a per-well basis using spline-based smoothing, followed by residual
-#' bootstrap to derive confidence intervals. The function operates on a
-#' structured \code{data} object and integrates results back into it.
-#'
-#' A natural spline model is fitted to each well-specific trajectory, and the
-#' AUC is computed from the fitted values using trapezoidal integration.
-#' Uncertainty is quantified via residual resampling.
+#' Computes the Area Under the Curve (AUC) for time-series optical density (OD)
+#' measurements on a per-well basis using spline-based regression, followed by
+#' residual bootstrap to quantify uncertainty.
 #'
 #' @param data A structured list containing:
-#' \describe{
-#'   \item{data}{Long-format raw measurements (e.g., OD values).}
-#'   \item{meta}{Metadata including grouping variables.}
-#'   \item{classification}{Well-level annotations 
-#'          (must include \code{well_summary}).}}
-#' 
-#' @param curve_type A character string specifying which curve type to include
-#'   in the analysis (default: \code{"growing"}).
-#' @param n_boot Integer specifying the number of bootstrap replicates used
-#'   for confidence interval estimation (default: 1000).
-#' @param spline_df Integer specifying the degrees of freedom for the natural
-#'   spline used in model fitting (default: 4).
-#' @param seed Integer random seed for reproducibility (default: 123).
-#' @param store Logical; if \code{TRUE}, results are stored in
-#'   \code{data$$auc_results} (default: \code{TRUE}).
+#'   \describe{
+#'     \item{data}{A data frame of raw OD time-series measurements.}
+#'     \item{meta}{Metadata including grouping variables.}
+#'     \item{classification}{Well-level annotations (must include
+#'     \code{well_summary}).}
+#'   }
+#' @param curve_type Character string specifying which curve type to include
+#'   (default: \code{"growing"}).
+#' @param n_boot Integer. Number of bootstrap replicates (default: 1000).
+#' @param spline_df Integer. Degrees of freedom for natural spline fitting
+#'   (default: 4).
+#' @param seed Integer. Random seed for reproducibility (default: 123).
+#' @param store Logical. If \code{TRUE}, results are stored in
+#'   \code{data$auc_results}.
 #'
-#' @details The function performs the following steps for each well:
-#' \enumerate{
-#'   \item Merges raw measurements with well-level classifications.
-#'   \item Filters data based on the specified curve type.
-#'   \item Fits a linear model with a natural spline basis to capture
-#'         non-linear temporal trends.
-#'   \item Computes the AUC from fitted values using the trapezoidal rule.
-#'   \item Applies residual bootstrap by resampling model residuals and
-#'         reconstructing synthetic trajectories.
-#'   \item Derives percentile-based confidence intervals (2.5\% and 97.5\%).
-#' }
+#' @return A tibble or modified data object (see details).
 #'
-#' Wells with insufficient data points or failed model fits return \code{NA}
-#' estimates.
-#'
-#'#' @return
-#' A tibble with the following columns:
-#' \describe{
-#'   \item{AUC}{Estimated area under the fitted curve.}
-#'   \item{AUC_low}{Lower bound of the 95\% bootstrap confidence interval.}
-#'   \item{AUC_high}{Upper bound of the 95\% bootstrap confidence interval.}
-#'   \item{n_points}{Number of observations used per well.}
-#' }
-#'
-#' If \code{store = TRUE}, the results are instead added to
-#' \code{data$auc_results} and the modified \code{data} object is returned.
-#' 
 #' @import dplyr
 #' @importFrom stats lm fitted residuals quantile
 #' @importFrom splines ns
+#'
+#' @examples
+#' \dontrun{
+#' data <- compute_auc_ci(data)
+#' head(data$auc_results)
+#' }
 #'
 #' @export
 compute_auc_ci <- function(data,
@@ -80,7 +55,7 @@ compute_auc_ci <- function(data,
   well_summary <- data$classification$well_summary
   variables    <- data$meta$variables
   
-  # ---- Step 1: Join and filter ----
+  # ---- Join and filter ----
   combined_df <- dplyr::left_join(
     raw_data,
     well_summary,
@@ -93,15 +68,49 @@ compute_auc_ci <- function(data,
     stop("'Chemical' and/or 'control' not found in data$data")
   }
   
-  # ---- Step 2: Trapezoidal AUC ----
+  # ---- Global data sufficiency check ----
+  sampling_summary <- combined_df %>%
+    dplyr::group_by(
+      dplyr::across(dplyr::all_of(c("Plate Type", "Well", variables)))
+    ) %>%
+    dplyr::summarise(
+      n_points = sum(!is.na(diff_OD_590_740)),
+      .groups = "drop"
+    )
+  
+  min_points <- min(sampling_summary$n_points)
+  max_points <- max(sampling_summary$n_points)
+  
+  if (min_points < 4) {
+    warning(
+      paste0(
+        "Some wells contain fewer than 4 non-missing observations (min = ",
+        min_points,
+        "). These wells will return NA AUC estimates."
+      )
+    )
+  }
+  
+  if (min_points != max_points) {
+    warning(
+      paste0(
+        "Inconsistent sampling density detected across wells: ",
+        "min = ", min_points,
+        ", max = ", max_points,
+        ". This may affect comparability of AUC estimates."
+      )
+    )
+  }
+  
+  # ---- Trapezoidal AUC ----
   auc_trapz <- function(x, y) {
     idx <- order(x)
     x <- x[idx]
     y <- y[idx]
-    sum(diff(x) * (base::head(y, -1) + base::tail(y, -1)) / 2)
+    sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
   }
   
-  # ---- Step 3: Per-well estimation ----
+  # ---- Per-well estimation ----
   auc_results <- combined_df %>%
     dplyr::group_by(
       dplyr::across(dplyr::all_of(c("Plate Type", "Well", variables)))
@@ -110,13 +119,15 @@ compute_auc_ci <- function(data,
       
       dat <- .x
       
-      # ---- Data sufficiency ----
-      if (nrow(dat) < 4 || all(is.na(dat$diff_OD_590_740))) {
+      # ---- Data sufficiency (per well) ----
+      n_valid <- sum(!is.na(dat$diff_OD_590_740))
+      
+      if (n_valid < 4) {
         return(dplyr::tibble(
           AUC = NA_real_,
           AUC_low = NA_real_,
           AUC_high = NA_real_,
-          n_points = nrow(dat),
+          n_points = n_valid,
           Chemical = dat$Chemical[1],
           control  = dat$control[1]
         ))
@@ -136,7 +147,7 @@ compute_auc_ci <- function(data,
           AUC = NA_real_,
           AUC_low = NA_real_,
           AUC_high = NA_real_,
-          n_points = nrow(dat),
+          n_points = n_valid,
           Chemical = dat$Chemical[1],
           control  = dat$control[1]
         ))
@@ -158,7 +169,7 @@ compute_auc_ci <- function(data,
         AUC      = auc_obs,
         AUC_low  = stats::quantile(auc_boot, 0.025, na.rm = TRUE),
         AUC_high = stats::quantile(auc_boot, 0.975, na.rm = TRUE),
-        n_points = nrow(dat),
+        n_points = n_valid,
         Chemical = dat$Chemical[1],
         control  = dat$control[1]
       )

@@ -4,13 +4,15 @@
 \alias{plot_latest_timepoint}
 \title{Plot Final Time Point per Experimental Condition}
 \usage{
-plot_latest_timepoint(data, variables = data$meta$variables)
+plot_latest_timepoint(data)
 }
 \arguments{
-\item{data}{Result of 'read_folder()'.}
-
-\item{variables}{A character vector specifying the column names that define
-experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).}
+\item{data}{A named list produced by \code{read_folder()}, containing:
+\describe{
+\item{data}{A \code{data.frame} with experimental measurements}
+\item{meta}{A list containing metadata, including a character vector
+\code{variables} specifying grouping variables}
+}}
 }
 \value{
 A named list of \code{ggplot2} objects, where each element corresponds
@@ -36,4 +38,10 @@ The function performs the following steps:
 
 Color intensity reflects the magnitude of \code{diff_OD_590_740} at the final
 recorded time point.
+}
+\examples{
+\dontrun{
+latest_timepoint_plots <- plot_latest_timepoint(data)}
+
+
 }

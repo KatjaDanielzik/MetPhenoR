@@ -61,3 +61,9 @@ confidence intervals.
 This representation enables direct comparison of Tween-induced responses
 against empirically derived control variability.
 }
+\examples{
+\dontrun{
+plot_controls_tween_per_plate(data, selected_plate = "PM-M11")
+}
+
+}

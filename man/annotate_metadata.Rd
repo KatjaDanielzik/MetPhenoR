@@ -29,7 +29,12 @@ The function performs the following steps:
 \item Accepts one or multiple annotation data frames.
 \item Combines annotation tables and removes duplicate rows.
 \item Merges annotation metadata into the experimental dataset
-using \code{"Plate Type"}, \code{"Well"}, and \code{"Chemical"}
-as keys.
+using \code{"Chemical"} as keys.
 }
+}
+\examples{
+\dontrun{
+
+}
+
 }

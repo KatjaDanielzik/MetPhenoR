@@ -48,6 +48,11 @@
 #' @import magrittr
 #' @import ggplot2
 #' @importFrom stats as.formula
+#' 
+#' @examples
+#' \dontrun{
+#' plot_controls_tween_per_plate(data, selected_plate = "PM-M11")
+#' }
 #'
 #' @export
 
@@ -160,7 +165,7 @@ plot_controls_tween_per_plate <- function(
   # ---- Step 8: Plot ----
   p <- ggplot2::ggplot(plot_df, ggplot2::aes(y = .data$Chemical_label, x = .data$AUC)) +
     
-    ggplot2::geom_errorbarh(
+    ggplot2::geom_errorbar(
       ggplot2::aes(xmin = .data$AUC_low, xmax = .data$AUC_high),
       height = 0.25,
       linewidth = 0.6

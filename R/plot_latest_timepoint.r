@@ -8,9 +8,12 @@
 #' spatially arranged points, colored according to their measured value at the
 #' final time point.
 #'
-#' @param data Result of 'read_folder()'. 
-#' @param variables A character vector specifying the column names that define
-#'   experimental conditions (e.g., \code{c("cell_line", "dose", "status")}).
+#' @param data A named list produced by \code{read_folder()}, containing:
+#' \describe{
+#'   \item{data}{A \code{data.frame} with experimental measurements}
+#'   \item{meta}{A list containing metadata, including a character vector
+#'   \code{variables} specifying grouping variables}
+#' }
 #'
 #' @details
 #' The function performs the following steps:
@@ -35,11 +38,16 @@
 #' @importFrom purrr map_chr map
 #' @importFrom tidyselect all_of
 #'
+#'@examples
+#' \dontrun{
+#' latest_timepoint_plots <- plot_latest_timepoint(data)}
+#' 
+#' 
 #' @export
-plot_latest_timepoint <- function(data, 
-                                  variables = data$meta$variables) {
+plot_latest_timepoint <- function(data) {
   
   data_df <- data$data
+  variables <- data$meta$variables
   
   # ---- Input validation ----
   if (!is.data.frame(data_df)) {
@@ -121,8 +129,8 @@ plot_latest_timepoint <- function(data,
     dplyr::distinct(.data$group_id) %>%
     dplyr::pull(.data$group_id)
   
-  plots <- purrr::map(split_data, .plot_latest_point)
-  names(plots) <- plot_names
+  latest_timepoint_plots <- purrr::map(split_data, .plot_latest_point)
+  names(latest_timepoint_plots) <- plot_names
   
-  return(plots)
+  return(latest_timepoint_plots)
 }

@@ -19,3 +19,9 @@ A ggplot object.
 Similar to plot_controls_tween_per_plate but compares across all plates.
 Includes negative control reference ranges per facet.
 }
+\examples{
+\dontrun{
+plot_controls_tween_all_plate(data)
+}
+
+}
