@@ -62,8 +62,9 @@ This representation enables direct comparison of Tween-induced responses
 against empirically derived control variability.
 }
 \examples{
-\dontrun{
-plot_controls_tween_per_plate(data, selected_plate = "PM-M11")
-}
+data(processed_data)
+processed_data <- classify_growth_curve_types(processed_data)
+processed_data <- compute_auc_ci(processed_data)
+plot_controls_tween_per_plate(processed_data, selected_plate = "PM-M01")
 
 }

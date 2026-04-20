@@ -31,12 +31,15 @@
 #' @importFrom ggplot2 labs theme element_blank element_text
 #'
 #' @examples
-#' \dontrun{
-#' 
-#' }
+#' data(processed_data)
+#' processed_data <- classify_growth_curve_types(processed_data)
+#' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
+#' processed_data <- compute_auc_ci(processed_data)
+#' processed_data <- compute_auc_ratio(processed_data)
+#' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
+#' plot_auc_ratio_by_pathway(processed_data, pathway_var = "middle_hierarchy", x_var = "radiation.dose", pathway_filter = "Nucleotide metabolism")
 #'
 #' @export
-
 plot_auc_ratio_by_pathway <- function(data,
                                       pathway_var,
                                       x_var,

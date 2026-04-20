@@ -13,9 +13,10 @@
 #' @import ggplot2 
 #' 
 #' @examples
-#' \dontrun{
-#' plot_controls_tween_all_plate(data)
-#' }
+#' data(processed_data)
+#' processed_data <- classify_growth_curve_types(processed_data)
+#' processed_data <- compute_auc_ci(processed_data)
+#' plot_controls_tween_all_plate(processed_data)
 #' 
 #' @export
 plot_controls_tween_all_plate <- function(data, variables = NULL) {

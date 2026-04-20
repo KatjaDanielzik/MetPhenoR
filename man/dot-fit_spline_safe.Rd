@@ -4,7 +4,7 @@
 \alias{.fit_spline_safe}
 \title{Fit Smoothing Spline}
 \usage{
-.fit_spline_safe(df_group)
+.fit_spline_safe(df_group, spar)
 }
 \arguments{
 \item{df_group}{A data frame representing a single group of observations.

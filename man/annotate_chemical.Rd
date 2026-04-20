@@ -50,8 +50,9 @@ Column name matching is case-sensitive; ensure consistent naming across inputs.
 }
 \examples{
 \dontrun{
-data <- annotate_chemical(data, annotation = PM_M11_M14)
-head(data$data)
+data("processed_data")
+processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
+head(processed_data$data)
 }
 
 }

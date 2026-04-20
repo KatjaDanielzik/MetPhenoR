@@ -109,7 +109,7 @@ classify_growth_curve_types <- function(
     dplyr::group_by(
       dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well")))
     ) %>%
-    dplyr::group_modify(~ .fit_spline_safe(.x)) %>%
+    dplyr::group_modify(~ .fit_spline_safe(.x, spar)) %>%
     dplyr::ungroup()
   
   #Summary

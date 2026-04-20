@@ -81,7 +81,7 @@
 #' @importFrom dplyr mutate
 #' @importFrom stats smooth.spline predict
 #'
-.fit_spline_safe <- function(df_group) {
+.fit_spline_safe <- function(df_group, spar) {
   
   if (nrow(df_group) < 4 || all(is.na(df_group$diff_OD_590_740))) {
     return(dplyr::mutate(
@@ -111,3 +111,28 @@
   )
 }
 
+
+#' Compute Area Under the Curve Using Trapezoidal Rule
+#'
+#' @param x A numeric vector representing the independent variable
+#' (e.g., time points).
+#' @param y A numeric vector representing the dependent variable
+#' (e.g., measured response values).
+#'
+#' @returns A single numeric value representing the area under the curve.
+#' 
+#' @details
+#' The trapezoidal rule approximates the integral by summing the areas of
+#' trapezoids formed between consecutive points:
+#' \deqn{
+#' AUC = \sum (x_{i+1} - x_i) \cdot \frac{y_i + y_{i+1}}{2}
+#' }
+#'
+#'@keywords internal
+#'
+.auc_trapz <- function(x, y) {
+  idx <- order(x)
+  x <- x[idx]
+  y <- y[idx]
+  sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+}

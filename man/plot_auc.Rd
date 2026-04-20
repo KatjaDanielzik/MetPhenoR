@@ -12,10 +12,6 @@ plot_auc(data, selected_plate, variables = NULL, facet_variable = NULL)
 
 \item{selected_plate}{Character string specifying the plate to analyze.}
 
-\item{variables}{Character vector of grouping variables used to define
-experimental conditions. If \code{NULL}, variables are retrieved from
-\code{data$meta$variables}.}
-
 \item{facet_variable}{Character string specifying the variable used for
 faceting. Defaults to the last element of \code{variables}.}
 }
@@ -53,9 +49,9 @@ Color encoding:
 }
 }
 \examples{
-\dontrun{
-auc_plots <- plot_auc(data, selected_plate = "PM-M11")
-print(auc_plots)
-}
+data(processed_data)
+processed_data <- classify_growth_curve_types(processed_data)
+processed_data <- compute_auc_ci(processed_data)
+plot_auc(processed_data, selected_plate = "PM-M01", facet_variable = "radiation.dose")
 
 }

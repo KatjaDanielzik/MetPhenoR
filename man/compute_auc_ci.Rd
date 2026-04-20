@@ -44,9 +44,9 @@ measurements on a per-well basis using spline-based regression, followed by
 residual bootstrap to quantify uncertainty.
 }
 \examples{
-\dontrun{
-data <- compute_auc_ci(data)
-head(data$auc_results)
-}
+data(processed_data)
+processed_data <- classify_growth_curve_types(processed_data)
+processed_data <- compute_auc_ci(processed_data)
+head(processed_data$auc_results)
 
 }

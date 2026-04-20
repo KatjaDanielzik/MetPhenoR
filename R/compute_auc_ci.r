@@ -27,10 +27,10 @@
 #' @importFrom splines ns
 #'
 #' @examples
-#' \dontrun{
-#' data <- compute_auc_ci(data)
-#' head(data$auc_results)
-#' }
+#' data(processed_data)
+#' processed_data <- classify_growth_curve_types(processed_data)
+#' processed_data <- compute_auc_ci(processed_data)
+#' head(processed_data$auc_results)
 #'
 #' @export
 compute_auc_ci <- function(data,
@@ -70,44 +70,58 @@ compute_auc_ci <- function(data,
   
   #Global data sufficiency check
   sampling_summary <- combined_df %>%
-    dplyr::group_by(
-      dplyr::across(dplyr::all_of(c("Plate Type", "Well", variables)))
-    ) %>%
+    dplyr::group_by(PlateId, Well) %>%
     dplyr::summarise(
       n_points = sum(!is.na(diff_OD_590_740)),
       .groups = "drop"
     )
   
-  min_points <- min(sampling_summary$n_points)
-  max_points <- max(sampling_summary$n_points)
+  # Get Hour sets per well
+  hour_sets <- combined_df %>%
+    dplyr::group_by(PlateId, Well) %>%
+    dplyr::summarise(
+      hour_list = list(sort(unique(Hour))),
+      .groups = "drop"
+    )
   
-  if (min_points < 4) {
+  # Compare within each plate
+  hour_consistency <- hour_sets %>%
+    dplyr::group_by(PlateId) %>%
+    dplyr::summarise(
+      n_unique_hour_sets = dplyr::n_distinct(hour_list),
+      .groups = "drop"
+    )
+  
+  # Warning if inconsistencies exist
+  if (any(hour_consistency$n_unique_hour_sets > 1)) {
     warning(
       paste0(
-        "Some wells contain fewer than 4 observations (min = ",
-        min_points,
-        "). These wells will return NA AUC estimates."
+        "Within some plates, wells have inconsistent Hour values. Affected PlateIds: ",
+        paste(hour_consistency$PlateId[hour_consistency$n_unique_hour_sets > 1], collapse = ", ")
       )
     )
   }
   
-  if (min_points != max_points) {
+  # Count unique time points per plate
+  plate_timepoints <- combined_df %>%
+    dplyr::group_by(PlateId) %>%
+    dplyr::summarise(
+      n_timepoints = dplyr::n_distinct(Hour),
+      .groups = "drop"
+    )
+  
+  min_tp <- min(plate_timepoints$n_timepoints)
+  max_tp <- max(plate_timepoints$n_timepoints)
+  
+  if (min_tp != max_tp) {
     warning(
       paste0(
-        "Inconsistent number of time points detected across wells: ",
-        "min = ", min_points,
-        ", max = ", max_points,
+        "Inconsistent number of time points across plates: ",
+        "min = ", min_tp,
+        ", max = ", max_tp,
         ". This may affect comparability of AUC estimates."
       )
     )
-  }
-  
-  # ---- Trapezoidal AUC ----
-  auc_trapz <- function(x, y) {
-    idx <- order(x)
-    x <- x[idx]
-    y <- y[idx]
-    sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
   }
   
   # ---- Per-well estimation ----
@@ -157,12 +171,12 @@ compute_auc_ci <- function(data,
       residuals   <- stats::residuals(fit)
       
       # ---- Observed AUC ----
-      auc_obs <- auc_trapz(dat$Hour, fitted_vals)
+      auc_obs <- .auc_trapz(dat$Hour, fitted_vals)
       
       # ---- Bootstrap ----
       auc_boot <- replicate(n_boot, {
         y_star <- fitted_vals + sample(residuals, replace = TRUE)
-        auc_trapz(dat$Hour, y_star)
+        .auc_trapz(dat$Hour, y_star)
       })
       
       dplyr::tibble(

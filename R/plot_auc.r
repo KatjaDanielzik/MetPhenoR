@@ -11,9 +11,6 @@
 #' @param data A list containing processed analysis results. Must include
 #'   \code{auc_results} (data frame) and optionally \code{meta$variables}.
 #' @param selected_plate Character string specifying the plate to analyze.
-#' @param variables Character vector of grouping variables used to define
-#'   experimental conditions. If \code{NULL}, variables are retrieved from
-#'   \code{data$meta$variables}.
 #' @param facet_variable Character string specifying the variable used for
 #'   faceting. Defaults to the last element of \code{variables}.
 #'
@@ -45,10 +42,10 @@
 #' @importFrom rlang sym .data
 #' 
 #' @examples
-#' \dontrun{
-#' auc_plots <- plot_auc(data, selected_plate = "PM-M11")
-#' print(auc_plots)
-#' }
+#' data(processed_data)
+#' processed_data <- classify_growth_curve_types(processed_data)
+#' processed_data <- compute_auc_ci(processed_data)
+#' plot_auc(processed_data, selected_plate = "PM-M01", facet_variable = "radiation.dose")
 #' 
 #' @export
 
@@ -66,16 +63,13 @@ plot_auc <- function(data,
     stop("`selected_plate` must be a single character string.")
   }
   
-  df <- data$auc_results
-  
-  # ---- Resolve variables ----
-  if (is.null(variables)) {
-    if (!is.null(data$meta) && !is.null(data$meta$variables)) {
-      variables <- data$meta$variables
-    } else {
-      stop("`variables` must be provided or available in `data$meta$variables`.")
-    }
+  if (is.null(data$meta) || is.null(data$meta$variables)) {
+    stop("`data$meta$variables` must be available.")
   }
+  
+  df <- data$auc_results
+  variables <- data$meta$variables
+  
   
   # Ensure variables exist
   if (!all(variables %in% names(df))) {
