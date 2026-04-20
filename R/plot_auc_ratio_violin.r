@@ -32,6 +32,11 @@
 #' @import ggplot2
 #' @importFrom ggforce geom_sina
 #' @importFrom scales label_number
+#' 
+#' @examples
+#' \dontrun{
+#' plot_auc_ratio_violin(data, )
+#' }
 #'
 #' @export
 

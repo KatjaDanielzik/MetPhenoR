@@ -94,7 +94,7 @@ compute_auc_ci <- function(data,
   if (min_points != max_points) {
     warning(
       paste0(
-        "Inconsistent sampling density detected across wells: ",
+        "Inconsistent number of time points detected across wells: ",
         "min = ", min_points,
         ", max = ", max_points,
         ". This may affect comparability of AUC estimates."
