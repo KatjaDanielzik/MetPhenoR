@@ -7,6 +7,7 @@ variables = c("cell.line", "LKB1.status", "radiation.dose")
 }
 \description{
 results of read_folder() function
+processed_data <- read_folder("your data path",variables = c("cell.line","radiation.dose","inhibitior","time.h"))
 }
 \usage{data("processed_data")}
 \format{
