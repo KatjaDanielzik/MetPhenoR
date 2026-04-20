@@ -38,22 +38,20 @@
 #' @seealso \code{\link{read_folder}}
 #'
 #' @examples
-#' \dontrun{
-#' qc_plot <- qc_data(data)
-#' print(qc_plot)
-#' }
+#' data("processed_data")
+#' qc_data(processed_data)
 #'
 #' @export
 qc_data <- function(data) {
   
-  # ---- Extract data ----
+  #Extract data
   data_df <- data$data
   variables <- data$meta$variables
   
   wells <- c("A01","A02","A03","A04", "A05")
   group_vars <- c(variables, "Plate Type", "Hour", "Well")
   
-  # ---- Input validation ----
+  #Input validation
   if (!is.data.frame(data_df)) {
     stop("'data$data' must be a data.frame.")
   }
@@ -71,19 +69,19 @@ qc_data <- function(data) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
-  # ---- Filter wells ----
+  #Filter wells
   qc_data <- dplyr::filter(data_df, .data$Well %in% wells)
   
   if (nrow(qc_data) == 0) {
     stop("No data found for the specified wells.")
   }
   
-  # ---- Duplicate detection ----
+  #Duplicate detection
   duplicates <- qc_data %>%
     dplyr::count(dplyr::across(dplyr::all_of(group_vars)), name = "n") %>%
     dplyr::filter(.data$n > 1)
   
-  # ---- Replicate summary ----
+  #Replicate summary
   qc_table <- qc_data %>%
     dplyr::count(dplyr::across(dplyr::all_of(group_vars)), name = "n") %>%
     dplyr::group_by(
@@ -94,7 +92,7 @@ qc_data <- function(data) {
       .groups = "drop"
     )
   
-  # ---- QC flags ----
+  #QC flags
   qc_flags <- qc_table %>%
     dplyr::mutate(
       qc_status = dplyr::case_when(
@@ -104,7 +102,7 @@ qc_data <- function(data) {
       )
     )
   
-  # ---- Prepare plotting column (FIX for ggplot) ----
+  #Prepare plotting column
   qc_table <- qc_table %>%
     tidyr::unite(
       ".qc_y",
@@ -112,7 +110,7 @@ qc_data <- function(data) {
       remove = FALSE
     )
   
-  # ---- QC plot ----
+  #QC plot
   qc_plot <- ggplot2::ggplot(
     qc_table,
     ggplot2::aes(
@@ -135,7 +133,7 @@ qc_data <- function(data) {
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
     )
   
-  # ---- Return ----
+  #Return
   return(qc_plot)
 }
 

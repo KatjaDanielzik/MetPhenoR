@@ -45,10 +45,9 @@ condition, facilitating rapid identification of inconsistencies such as
 duplicated or missing replicates.
 }
 \examples{
-\dontrun{
-qc_plot <- qc_data(data)
+data("processed_data")
+qc_plot <- qc_data(processed_data)
 print(qc_plot)
-}
 
 }
 \seealso{

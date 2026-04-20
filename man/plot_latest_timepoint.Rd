@@ -40,8 +40,8 @@ Color intensity reflects the magnitude of \code{diff_OD_590_740} at the final
 recorded time point.
 }
 \examples{
-\dontrun{
-latest_timepoint_plots <- plot_latest_timepoint(data)}
+data("processed_data")
+latest_timepoint_plots <- plot_latest_timepoint(processed_data)
 
 
 }

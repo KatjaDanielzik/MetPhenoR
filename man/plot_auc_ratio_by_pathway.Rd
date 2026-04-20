@@ -45,3 +45,9 @@ The function performs the following steps:
 \item Facets the plot by pathway and additional experimental variables.
 }
 }
+\examples{
+\dontrun{
+
+}
+
+}

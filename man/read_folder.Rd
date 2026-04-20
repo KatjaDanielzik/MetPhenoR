@@ -42,7 +42,6 @@ files (e.g. in format cell.line, radiation.dose, time.point -> "A549_0Gy_0h")}
 \item \code{Protocol}: user specified protocol from 'PlateInfo'
 \item \code{Description}: user specified description of the experiment (or in 'Sample')
 \item \code{...}: single variable columns from 'sample_column'
-\item \code{Id}: Read Id from 'RawRead'
 \item \code{Actual Temperature Celsius}: measured temperature in Odin from 'RawRead'
 \item \code{Target Temperature Celsius}: Target temperature (should be equal to Incubation Temperature Celsius from 'PlateInfo')
 \item \code{Read At}: Time of Plate read from 'RawReads'

@@ -47,3 +47,9 @@ using \code{ggforce::geom_sina()}.
 \item Facets the plot by the hierarchy variable and additional variables.
 }
 }
+\examples{
+\dontrun{
+plot_auc_ratio_violin(data, )
+}
+
+}

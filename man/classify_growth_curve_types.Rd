@@ -78,9 +78,9 @@ Curve classification is assigned according to the following hierarchy:
 }
 }
 \examples{
-\dontrun{
-data <- classify_growth_curve_types(data)
-head(data$classification)
-}
+data("processed_data")
+processed_data <- classify_growth_curve_types(processed_data)
+head(processed_data$classification)
+
 
 }

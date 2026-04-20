@@ -40,3 +40,9 @@ The function performs the following steps:
 \item Facets the plot by plate type and additional experimental variables.
 }
 }
+\examples{
+\dontrun{
+
+}
+
+}

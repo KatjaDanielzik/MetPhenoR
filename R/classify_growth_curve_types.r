@@ -62,10 +62,10 @@
 #' @importFrom stats smooth.spline predict sd
 #'
 #' @examples
-#' \dontrun{
-#' data <- classify_growth_curve_types(data)
-#' head(data$classification)
-#' }
+#' data("processed_data")
+#' processed_data <- classify_growth_curve_types(processed_data)
+#' head(processed_data$classification)
+#' 
 #'
 #' @export
 
@@ -77,7 +77,7 @@ classify_growth_curve_types <- function(
     max_od_threshold = 0.1
 ) {
   
-  # ---- Validate structure ----
+  #Validate structure
   if (!is.list(data) || !"data" %in% names(data)) {
     stop("Input must be a list with a 'data' element")
   }
@@ -90,7 +90,7 @@ classify_growth_curve_types <- function(
   df <- data$data
   variables <- data$meta$variables
   
-  # ---- Column validation ----
+  #Column validation
   required_cols <- c(variables, "Plate Type", "Well", "Hour", "diff_OD_590_740")
   missing_cols <- setdiff(required_cols, names(df))
   
@@ -98,44 +98,13 @@ classify_growth_curve_types <- function(
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
-  # ---- Arrange ----
+  #Arrange
   df <- dplyr::arrange(
     df,
     dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well", "Hour")))
   )
   
-  # ---- Safe spline ----
-  .fit_spline_safe <- function(df_group) {
-    
-    if (nrow(df_group) < 4 || all(is.na(df_group$diff_OD_590_740))) {
-      return(dplyr::mutate(
-        df_group,
-        spline = NA_real_,
-        first_derivative = NA_real_
-      ))
-    }
-    
-    fit <- tryCatch(
-      stats::smooth.spline(x = df_group$Hour, y = df_group$diff_OD_590_740, spar = spar),
-      error = function(e) NULL
-    )
-    
-    if (is.null(fit)) {
-      return(dplyr::mutate(
-        df_group,
-        spline = NA_real_,
-        first_derivative = NA_real_
-      ))
-    }
-    
-    dplyr::mutate(
-      df_group,
-      spline = stats::predict(fit, x = df_group$Hour)$y,
-      first_derivative = stats::predict(fit, x = df_group$Hour, deriv = 1)$y
-    )
-  }
-  
-  # ---- Derivatives ----
+  #Derivatives
   deriv_data <- df %>%
     dplyr::group_by(
       dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well")))
@@ -143,7 +112,7 @@ classify_growth_curve_types <- function(
     dplyr::group_modify(~ .fit_spline_safe(.x)) %>%
     dplyr::ungroup()
   
-  # ---- Summary ----
+  #Summary
   well_summary <- deriv_data %>%
     dplyr::group_by(
       dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well")))
@@ -171,7 +140,7 @@ classify_growth_curve_types <- function(
       )
     )
   
-  # ---- Attach results back ----
+  #Attach results back
   data$classification$derivative_data <- deriv_data
   data$classification$well_summary <- well_summary
   

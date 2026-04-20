@@ -42,7 +42,7 @@ compute_auc_ci <- function(data,
   
   set.seed(seed)
   
-  # ---- Validation ----
+  #Validation
   if (!all(c("data", "meta", "classification") %in% names(data))) {
     stop("data must contain 'data', 'meta', and 'classification'")
   }
@@ -55,7 +55,7 @@ compute_auc_ci <- function(data,
   well_summary <- data$classification$well_summary
   variables    <- data$meta$variables
   
-  # ---- Join and filter ----
+  #Join and filter
   combined_df <- dplyr::left_join(
     raw_data,
     well_summary,
@@ -63,12 +63,12 @@ compute_auc_ci <- function(data,
   ) %>%
     dplyr::filter(.data$curve_type == curve_type)
   
-  # ---- Check required columns ----
+  #Check required columns
   if (!all(c("Chemical", "control") %in% colnames(combined_df))) {
     stop("'Chemical' and/or 'control' not found in data$data")
   }
   
-  # ---- Global data sufficiency check ----
+  #Global data sufficiency check
   sampling_summary <- combined_df %>%
     dplyr::group_by(
       dplyr::across(dplyr::all_of(c("Plate Type", "Well", variables)))
@@ -84,7 +84,7 @@ compute_auc_ci <- function(data,
   if (min_points < 4) {
     warning(
       paste0(
-        "Some wells contain fewer than 4 non-missing observations (min = ",
+        "Some wells contain fewer than 4 observations (min = ",
         min_points,
         "). These wells will return NA AUC estimates."
       )
