@@ -46,8 +46,7 @@ duplicated or missing replicates.
 }
 \examples{
 data("processed_data")
-qc_plot <- qc_data(processed_data)
-print(qc_plot)
+qc_data(processed_data)
 
 }
 \seealso{

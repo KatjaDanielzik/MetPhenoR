@@ -62,10 +62,10 @@ If no curves match the selected \code{curve_types_to_plot}, an empty panel
 is displayed in place of the time-series plot.
 }
 \examples{
-\dontrun{
-data <- plot_growth_curve(data)
+data("processed_data")
+processed_data <- classify_growth_curve_types(processed_data)
+plot_growth_curve(processed_data)
 print(data[["growth_curve_plots"]])
-}
 
 }
 \seealso{
