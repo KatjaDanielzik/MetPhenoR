@@ -11,6 +11,8 @@
 #'   \item{category}{Factor or character indicating row position (e.g., A–H).}
 #'   \item{diff_OD_590_740}{Numeric values representing OD differences used for coloring.}
 #'   \item{Plate Type}{Character or factor indicating the plate type.}}
+#'   
+#'  @param variables specifying grouping variables
 #'
 #' @returns A \code{\link[ggplot2]{ggplot}} object showing the plate layout
 #' with color-coded measurement values.
@@ -22,7 +24,7 @@
 #' @importFrom purrr map_chr
 #' @importFrom scales squish
 #' @importFrom rlang .data
-.plot_latest_point <- function(df) {
+.plot_latest_point <- function(df,variables) {
   
   # Construct descriptive subtitle
   var_values <- purrr::map_chr(variables, function(v) {

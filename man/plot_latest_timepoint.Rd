@@ -41,7 +41,7 @@ recorded time point.
 }
 \examples{
 data("processed_data")
-latest_timepoint_plots <- plot_latest_timepoint(processed_data)
+plot_latest_timepoint(processed_data)
 
 
 }

@@ -92,7 +92,7 @@ plot_latest_timepoint <- function(data) {
     dplyr::distinct(.data$group_id) %>%
     dplyr::pull(.data$group_id)
   
-  latest_timepoint_plots <- purrr::map(split_data, .plot_latest_point)
+  latest_timepoint_plots <- purrr::map(split_data, .plot_latest_point,variables)
   names(latest_timepoint_plots) <- plot_names
   
   return(latest_timepoint_plots)

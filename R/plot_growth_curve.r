@@ -62,7 +62,6 @@
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' plot_growth_curve(processed_data)
 #' print(data[["growth_curve_plots"]])
-#' }
 #'
 #' @export
 
