@@ -58,8 +58,9 @@
 #' @seealso \code{\link{classify_growth_curve_types}}
 #'
 #' @examples
-#' \dontrun{
-#' data <- plot_growth_curve(data)
+#' data("processed_data")
+#' processed_data <- classify_growth_curve_types(processed_data)
+#' plot_growth_curve(processed_data)
 #' print(data[["growth_curve_plots"]])
 #' }
 #'
