@@ -27,6 +27,11 @@
 #' @importFrom ggplot2 ggplot aes geom_tile facet_grid scale_fill_gradient2
 #' @importFrom ggplot2 labs theme element_blank element_text
 #'
+#' @examples
+#' \dontrun{
+#' 
+#' }
+#'
 #' @export
 plot_auc_ratio_heatmap <- function(data,
                                    plate_type,
