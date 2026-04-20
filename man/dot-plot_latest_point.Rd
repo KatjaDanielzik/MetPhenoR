@@ -2,25 +2,46 @@
 % Please edit documentation in R/utils.R
 \name{.plot_latest_point}
 \alias{.plot_latest_point}
-\title{Plot the latest time point in a 96-well plate layout}
+\title{Plot Final Time Point per Experimental Condition}
 \usage{
-.plot_latest_point(df, variables)
+.plot_latest_point(df)
 }
 \arguments{
-\item{df}{A data frame containing plate data. Must include the following columns:
+\item{data}{A named list produced by \code{read_folder()}, containing:
 \describe{
-\item{number}{Numeric column indicating well column position (1–12).}
-\item{category}{Factor or character indicating well row (e.g., A–H).}
-\item{diff_OD_590_740}{Numeric values used for color mapping.}
-\item{Plate.Type}{Plate identifier used in subtitle annotation.}
+\item{data}{A \code{data.frame} with experimental measurements}
+\item{meta}{A list containing metadata, including a character vector
+\code{variables} specifying grouping variables}
 }}
 }
 \value{
-A \code{ggplot2} object representing the 96-well plate.
+A named list of \code{ggplot2} objects, where each element corresponds
+to a unique experimental condition.
 }
 \description{
-Generates a plate-style scatter plot representing optical density (OD)
-values at the latest recorded time point. Each well is displayed as a point
-positioned according to its plate coordinates and colored by OD difference.
+This function extracts the final (latest) time point for each well across
+experimental conditions and visualizes the corresponding measurements in a
+96-well plate layout.
 }
-\keyword{internal}
+\details{
+Each plot represents a single experimental condition and displays wells as
+spatially arranged points, colored according to their measured value at the
+final time point.
+
+The function performs the following steps:
+\enumerate{
+\item Groups the data by experimental variables, plate type, and well.
+\item Extracts the latest time point per well.
+\item Converts well identifiers (e.g., "A01") into plate coordinates.
+\item Generates a separate plate-layout plot for each experimental condition.
+}
+
+Color intensity reflects the magnitude of \code{diff_OD_590_740} at the final
+recorded time point.
+}
+\examples{
+\dontrun{
+plots <- plot_latest_timepoint(data)}
+
+
+}

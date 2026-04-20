@@ -9,8 +9,7 @@
 #' comparative assessment of growth responses relative to baseline and
 #' positive controls.
 #'
-#' @param data A data frame containing annotated AUC results, typically the
-#'   output of \code{prepare_auc_annotations()}.
+#' @param data A structured list
 #' @param selected_plate A character string specifying the \code{Plate.Type}
 #'   to visualize.
 #' @param variables A character vector defining experimental grouping variables.
@@ -49,32 +48,51 @@
 #' @import magrittr
 #' @import ggplot2
 #' @importFrom stats as.formula
+#' 
+#' @examples
+#' \dontrun{
+#' plot_controls_tween_per_plate(data, selected_plate = "PM-M11")
+#' }
 #'
 #' @export
-plot_controls_tween <- function(data,
-                                selected_plate,
-                                variables,
-                                tween_labels = c("Tween 20", "Tween 40", "Tween 80")) {
+
+plot_controls_tween_per_plate <- function(
+    data,
+    selected_plate,
+    variables = NULL,
+    tween_labels = c("Tween 20", "Tween 40", "Tween 80")
+) {
   
-  # ---- Input validation ----
-  required_cols <- c("Plate.Type", "AUC", "AUC_low", "AUC_high", "Well")
-  if (!all(required_cols %in% names(data))) {
-    stop("Missing required columns in 'data'.")
+  # ---- Step 0: Extract components safely ----
+  if (!is.list(data) || is.null(data$auc_results)) {
+    stop("Input 'data' must be a list containing 'auc_results'.")
   }
   
-  if (!"control" %in% names(data)) {
-    stop("'control' column is required.")
+  # Extract variables from metadata if not provided
+  if (is.null(variables)) {
+    if (!is.null(data$meta) && !is.null(data$meta$variables)) {
+      variables <- data$meta$variables
+    } else {
+      stop("'variables' must be provided or exist in data$meta$variables.")
+    }
   }
   
-  if (!"Chemical" %in% names(data)) {
-    stop("'Chemical' column is required.")
+  df <- data$auc_results
+  
+  # ---- Step 1: Input validation ----
+  required_cols <- c("Plate Type", "AUC", "AUC_low", "AUC_high", 
+                     "Well", "Chemical", "control")
+  
+  if (!all(required_cols %in% names(df))) {
+    missing_cols <- setdiff(required_cols, names(df))
+    stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
-  if (length(variables) < 2) {
-    stop("'variables' must contain at least two elements.")
+  if (!all(variables %in% names(df))) {
+    stop("Some 'variables' are not present in the dataset.")
   }
   
-  # ---- Flexible faceting setup ----
+  # ---- Step 2: Flexible faceting ----
   row_vars <- variables[1:min(2, length(variables))]
   col_vars <- if (length(variables) > 2) variables[3:min(4, length(variables))] else NULL
   
@@ -88,10 +106,10 @@ plot_controls_tween <- function(data,
     stats::as.formula(paste(paste(row_vars, collapse = " + "), "~ ."))
   }
   
-  # ---- Step 1: Filter relevant data ----
+  # ---- Step 3: Filter relevant data ----
   plot_df <- dplyr::filter(
-    data,
-    .data$Plate.Type == selected_plate,
+    df,
+    .data$`Plate Type` == selected_plate,
     .data$control %in% c("negative", "positive") |
       .data$Chemical %in% tween_labels
   )
@@ -100,7 +118,7 @@ plot_controls_tween <- function(data,
     stop("No data available after filtering.")
   }
   
-  # ---- Step 2: Assign comparison groups ----
+  # ---- Step 4: Assign groups ----
   plot_df <- dplyr::mutate(
     plot_df,
     group_type = dplyr::case_when(
@@ -110,7 +128,7 @@ plot_controls_tween <- function(data,
     )
   )
   
-  # ---- Step 3: Compute negative control reference range ----
+  # ---- Step 5: Compute negative control reference range ----
   control_ranges <- plot_df %>%
     dplyr::filter(.data$control == "negative") %>%
     dplyr::group_by(dplyr::across(all_of(variables))) %>%
@@ -120,12 +138,21 @@ plot_controls_tween <- function(data,
       .groups = "drop"
     )
   
-  # ---- Step 4: Merge and prepare labels ----
+  # ---- Step 6: Safe join ----
+  common_vars <- intersect(variables, names(control_ranges))
+  
+  if (length(common_vars) == 0) {
+    stop("No common variables available for joining.")
+  }
+  
   plot_df <- dplyr::left_join(
     plot_df,
     control_ranges,
-    by = variables
-  ) %>%
+    by = common_vars
+  )
+  
+  # ---- Step 7: Label preparation ----
+  plot_df <- plot_df %>%
     dplyr::arrange(dplyr::across(all_of(variables)), .data$group_type, .data$Well) %>%
     dplyr::mutate(
       Chemical_label = paste0(.data$Chemical, " (", .data$Well, ")"),
@@ -135,22 +162,26 @@ plot_controls_tween <- function(data,
       )
     )
   
-  # ---- Step 5: Visualization ----
+  # ---- Step 8: Plot ----
   p <- ggplot2::ggplot(plot_df, ggplot2::aes(y = .data$Chemical_label, x = .data$AUC)) +
     
-    ggplot2::geom_errorbarh(
+    ggplot2::geom_errorbar(
       ggplot2::aes(xmin = .data$AUC_low, xmax = .data$AUC_high),
       height = 0.25,
       linewidth = 0.6
     ) +
     
-    ggplot2::geom_point(ggplot2::aes(shape = .data$group_type)) +
+    ggplot2::geom_point(
+      ggplot2::aes(shape = .data$group_type),
+      size = 2
+    ) +
     
     ggplot2::scale_shape_manual(
       name = "Group",
       values = c("negative" = 17, "positive" = 15, "Tween" = 16)
     ) +
     
+    # Negative control reference range
     ggplot2::geom_vline(
       ggplot2::aes(xintercept = .data$control_lowest),
       linetype = "dashed"
@@ -161,7 +192,25 @@ plot_controls_tween <- function(data,
       linetype = "dashed"
     ) +
     
-    ggplot2::geom_vline(xintercept = 0, color = "blue", linewidth = 0.5) +
+    # Shaded control region
+    geom_rect(
+      aes(
+        xmin = control_lowest,
+        xmax = control_highest,
+        ymin = -Inf,
+        ymax = Inf
+      ),
+      inherit.aes = FALSE,
+      fill = "black",
+      alpha = 0.05
+    ) +
+    
+    # Zero reference line
+    ggplot2::geom_vline(
+      xintercept = 0,
+      color = "blue",
+      linewidth = 0.5
+    ) +
     
     ggplot2::labs(
       title = paste("AUC Comparison: Controls vs Tween | Plate:", selected_plate),
