@@ -11,7 +11,7 @@
 #'     \item{classification}{Well-level annotations (must include
 #'     \code{well_summary}).}
 #'   }
-#' @param curve_type Character string specifying which curve type to include
+#' @param target_curve_type Character string specifying which curve type to include
 #'   (default: \code{"growing"}).
 #' @param n_boot Integer. Number of bootstrap replicates (default: 1000).
 #' @param spline_df Integer. Degrees of freedom for natural spline fitting
@@ -25,16 +25,18 @@
 #' @import dplyr
 #' @importFrom stats lm fitted residuals quantile
 #' @importFrom splines ns
+#' @importFrom rlang .data
 #'
 #' @examples
 #' data(processed_data)
+#' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' processed_data <- compute_auc_ci(processed_data)
 #' head(processed_data$auc_results)
 #'
 #' @export
 compute_auc_ci <- function(data,
-                           curve_type = "growing",
+                           target_curve_type = "growing",
                            n_boot = 1000,
                            spline_df = 4,
                            seed = 123,
@@ -51,6 +53,7 @@ compute_auc_ci <- function(data,
     stop("Run classify_growth_curve_types() first")
   }
   
+  variable <- NULL
   raw_data     <- data$data
   well_summary <- data$classification$well_summary
   variables    <- data$meta$variables
@@ -61,7 +64,7 @@ compute_auc_ci <- function(data,
     well_summary,
     by = c(variables, "Plate Type", "Well")
   ) %>%
-    dplyr::filter(.data$curve_type == curve_type)
+    dplyr::filter(.data$curve_type == target_curve_type)
   
   #Check required columns
   if (!all(c("Chemical", "control") %in% colnames(combined_df))) {
@@ -70,9 +73,9 @@ compute_auc_ci <- function(data,
   
   #Global data sufficiency check
   sampling_summary <- combined_df %>%
-    dplyr::group_by(PlateId, Well) %>%
+    dplyr::group_by(.data$PlateId, .data$Well) %>%
     dplyr::summarise(
-      n_points = sum(!is.na(diff_OD_590_740)),
+      n_points = sum(!is.na(.data$diff_OD_590_740)),
       .groups = "drop"
     )
   

@@ -2,56 +2,63 @@
 % Please edit documentation in R/plot_auc.r
 \name{plot_auc}
 \alias{plot_auc}
-\title{Plot AUC Profiles per Plate and Experimental Condition}
+\title{Plot AUC Profiles by Plate and Experimental Conditions}
 \usage{
-plot_auc(data, selected_plate, variables = NULL, facet_variable = NULL)
+plot_auc(data, selected_plate, facet_vars = NULL)
 }
 \arguments{
-\item{data}{A list containing processed analysis results. Must include
-\code{auc_results} (data frame) and optionally \code{meta$variables}.}
+\item{data}{A list containing processed results. Must include
+\code{auc_results} (data frame) and \code{meta$variables}.}
 
-\item{selected_plate}{Character string specifying the plate to analyze.}
+\item{selected_plate}{Character scalar specifying the plate to analyse.}
 
-\item{facet_variable}{Character string specifying the variable used for
-faceting. Defaults to the last element of \code{variables}.}
+\item{facet_vars}{Character vector (length \eqn{\le 2}) specifying variables
+used for faceting. Defaults to the first two variables in
+\code{data$meta$variables}.}
 }
 \value{
-Invisibly returns a named list of \code{ggplot} objects, where each
-plot corresponds to a unique combination of grouping variables.
+Invisibly returns a named list of \code{ggplot} objects, each
+corresponding to a unique combination of non-faceted grouping variables.
 }
 \description{
-Generates AUC-based visualizations for a selected plate across combinations
-of experimental grouping variables. The function highlights wells that fall
-outside control-derived reference limits and overlays these limits for
-visual comparison.
+Generates faceted visualizations of area-under-the-curve (AUC) estimates
+for a selected plate across experimental conditions. The function highlights
+wells that deviate from reference limits derived from negative controls and
+overlays these limits for visual comparison.
 }
 \details{
-Control limits are computed from negative control wells within each facet
-level, and are displayed as shaded regions and dashed boundary lines.
+Control limits are computed within each facet as the minimum and maximum
+bounds of the AUC confidence intervals from negative control wells.
 
 The function performs the following steps:
 \itemize{
-\item Filters data for the selected plate and grouping combinations.
-\item Classifies wells into control types (negative, positive, none).
-\item Computes control reference limits (min/max) from negative controls.
+\item Filters data for the selected plate.
+\item Splits data by non-faceted experimental variables.
+\item Classifies wells as negative control, positive control, or test wells.
+\item Computes facet-specific control limits from negative controls.
 \item Identifies wells outside control limits based on AUC confidence bounds.
-\item Applies special inclusion rules for predefined wells (e.g., PM-M02).
-\item Orders wells within each facet by AUC magnitude.
-\item Generates faceted plots with error bars, control overlays, and annotations.
+\item Orders wells globally by mean AUC for consistent visualization.
+\item Generates faceted \code{ggplot2} visualizations with:
+\itemize{
+\item AUC estimates and confidence intervals,
+\item shaded control regions and boundary lines,
+\item color-coded response categories.
+}
 }
 
-Color encoding:
+Response categories are encoded as:
 \itemize{
-\item Red: Below control limits
-\item Grey: Within control limits
-\item Green: Above control limits
-\item Black: Control wells
+\item \strong{Red}: below control limits
+\item \strong{Grey}: within control limits
+\item \strong{Green}: above control limits
+\item \strong{Black}: control wells
 }
 }
 \examples{
 data(processed_data)
+processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 processed_data <- classify_growth_curve_types(processed_data)
 processed_data <- compute_auc_ci(processed_data)
-plot_auc(processed_data, selected_plate = "PM-M01", facet_variable = "radiation.dose")
+plot_auc(processed_data, selected_plate = "PM-M01")
 
 }

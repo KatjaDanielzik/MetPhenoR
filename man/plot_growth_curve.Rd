@@ -64,8 +64,8 @@ is displayed in place of the time-series plot.
 \examples{
 data("processed_data")
 processed_data <- classify_growth_curve_types(processed_data)
-plot_growth_curve(processed_data)
-print(data[["growth_curve_plots"]])
+processed_data <- plot_growth_curve(processed_data)
+print(processed_data[["growth_curve_plots"]])
 
 }
 \seealso{

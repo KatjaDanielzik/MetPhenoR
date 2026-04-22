@@ -60,6 +60,7 @@
 #'
 #' @import dplyr
 #' @importFrom stats smooth.spline predict sd
+#' @importFrom rlang .data
 #'
 #' @examples
 #' data("processed_data")
@@ -68,7 +69,6 @@
 #' 
 #'
 #' @export
-
 classify_growth_curve_types <- function(
     data,
     spar = 0.7,
@@ -87,6 +87,7 @@ classify_growth_curve_types <- function(
     stop("Missing 'meta$variables' in data")
   }
   
+  variable <- NULL
   df <- data$data
   variables <- data$meta$variables
   
@@ -119,18 +120,18 @@ classify_growth_curve_types <- function(
     ) %>%
     dplyr::summarise(
       n_points = dplyr::n(),
-      has_drop = any(first_derivative < drop_threshold, na.rm = TRUE),
-      has_growth = any(first_derivative > tol, na.rm = TRUE),
-      all_flat = all(abs(first_derivative) <= tol, na.rm = TRUE),
-      max_od = max(diff_OD_590_740, na.rm = TRUE),
-      derivative_sd = stats::sd(first_derivative, na.rm = TRUE),
-      od_range = diff(range(diff_OD_590_740, na.rm = TRUE)),
+      has_drop = any(.data$first_derivative < drop_threshold, na.rm = TRUE),
+      has_growth = any(.data$first_derivative > tol, na.rm = TRUE),
+      all_flat = all(abs(.data$first_derivative) <= tol, na.rm = TRUE),
+      max_od = max(.data$diff_OD_590_740, na.rm = TRUE),
+      derivative_sd = stats::sd(.data$first_derivative, na.rm = TRUE),
+      od_range = diff(range(.data$diff_OD_590_740, na.rm = TRUE)),
       .groups = "drop"
     ) %>%
     dplyr::mutate(
-      qc_low_points = n_points < 4,
-      qc_high_noise = derivative_sd > (0.1 * od_range),
-      qc_flag = qc_low_points | qc_high_noise,
+      qc_low_points = .data$n_points < 4,
+      qc_high_noise = .data$derivative_sd > (0.1 * .data$od_range),
+      qc_flag = .data$qc_low_points | .data$qc_high_noise,
       curve_type = dplyr::case_when(
         qc_flag ~ "uncertain",
         has_drop ~ "OD_drop",

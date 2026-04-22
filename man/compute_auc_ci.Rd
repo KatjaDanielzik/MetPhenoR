@@ -6,7 +6,7 @@
 \usage{
 compute_auc_ci(
   data,
-  curve_type = "growing",
+  target_curve_type = "growing",
   n_boot = 1000,
   spline_df = 4,
   seed = 123,
@@ -22,7 +22,7 @@ compute_auc_ci(
 \code{well_summary}).}
 }}
 
-\item{curve_type}{Character string specifying which curve type to include
+\item{target_curve_type}{Character string specifying which curve type to include
 (default: \code{"growing"}).}
 
 \item{n_boot}{Integer. Number of bootstrap replicates (default: 1000).}
@@ -45,6 +45,7 @@ residual bootstrap to quantify uncertainty.
 }
 \examples{
 data(processed_data)
+processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 processed_data <- classify_growth_curve_types(processed_data)
 processed_data <- compute_auc_ci(processed_data)
 head(processed_data$auc_results)

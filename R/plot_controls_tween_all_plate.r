@@ -14,6 +14,7 @@
 #' 
 #' @examples
 #' data(processed_data)
+#' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' processed_data <- compute_auc_ci(processed_data)
 #' plot_controls_tween_all_plate(processed_data)
@@ -21,7 +22,7 @@
 #' @export
 plot_controls_tween_all_plate <- function(data, variables = NULL) {
   
-  # ---- Step 0: Validate input ----
+  # Validate input
   if (!is.list(data) || is.null(data$auc_results)) {
     stop("Input 'data' must be a list containing 'auc_results'.")
   }
@@ -34,6 +35,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     }
   }
   
+  variable <- NULL
   df <- data$auc_results
   
   required_cols <- c("AUC", "AUC_low", "AUC_high",
@@ -47,7 +49,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     stop("Some 'variables' are not present in the dataset.")
   }
   
-  # ---- Faceting setup ----
+  #Faceting setup
   row_vars <- variables[seq_len(min(2, length(variables)))]
   col_vars <- if (length(variables) > 2) variables[3:min(4, length(variables))] else NULL
   
@@ -59,7 +61,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     stats::as.formula(paste(paste(row_vars, collapse = " + "), "~ ."))
   }
   
-  # ---- Step 1: Filter ----
+  #Filter
   plot_df <- df %>%
     dplyr::filter(
       .data$control %in% c("negative", "positive") |
@@ -70,7 +72,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     stop("No data available after filtering.")
   }
   
-  # ---- Step 2: Group labels ----
+  #Group labels
   plot_df <- plot_df %>%
     dplyr::mutate(
       group_type = dplyr::case_when(
@@ -80,7 +82,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
       )
     )
   
-  # ---- Step 3: Control ranges ----
+  #Control ranges
   control_ranges <- plot_df %>%
     dplyr::filter(.data$control == "negative") %>%
     dplyr::group_by(dplyr::across(dplyr::all_of(variables))) %>%
@@ -90,10 +92,10 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
       .groups = "drop"
     )
   
-  # ---- Step 4: Join ----
+  #Join
   plot_df <- dplyr::left_join(plot_df, control_ranges, by = variables)
   
-  # ---- Step 5: Labels ----
+  #Labels
   plot_df <- plot_df %>%
     dplyr::arrange(
       dplyr::across(dplyr::all_of(variables)),
@@ -107,7 +109,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
                           levels = c("negative", "positive", "Tween"))
     )
   
-  # ---- Step 6: Plot ----
+  #Plot
   p <- ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
@@ -135,7 +137,6 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
       values = c("negative" = 17, "positive" = 15, "Tween" = 16)
     ) +
     
-    # ✅ Correct: one line per facet
     ggplot2::geom_vline(
       data = control_ranges,
       ggplot2::aes(xintercept = control_lowest),

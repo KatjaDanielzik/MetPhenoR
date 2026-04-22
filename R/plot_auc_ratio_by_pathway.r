@@ -37,7 +37,10 @@
 #' processed_data <- compute_auc_ci(processed_data)
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-#' plot_auc_ratio_by_pathway(processed_data, pathway_var = "middle_hierarchy", x_var = "radiation.dose", pathway_filter = "Nucleotide metabolism")
+#' plot_auc_ratio_by_pathway(processed_data, 
+#'                           pathway_var = "middle_hierarchy",
+#'                           x_var = "radiation.dose", 
+#'                           pathway_filter = "Nucleotide metabolism")
 #'
 #' @export
 plot_auc_ratio_by_pathway <- function(data,

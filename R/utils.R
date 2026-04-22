@@ -128,11 +128,14 @@
 #' AUC = \sum (x_{i+1} - x_i) \cdot \frac{y_i + y_{i+1}}{2}
 #' }
 #'
-#'@keywords internal
+#' @keywords internal
+#' 
+#' @importFrom utils head tail
+#'
 #'
 .auc_trapz <- function(x, y) {
   idx <- order(x)
   x <- x[idx]
   y <- y[idx]
-  sum(diff(x) * (head(y, -1) + tail(y, -1)) / 2)
+  sum(diff(x) * (utils::head(y, -1) + utils::tail(y, -1)) / 2)
 }

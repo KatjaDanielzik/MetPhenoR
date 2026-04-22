@@ -1,105 +1,89 @@
-#' Plot AUC Profiles per Plate and Experimental Condition
+#' Plot AUC Profiles by Plate and Experimental Conditions
 #'
-#' Generates AUC-based visualizations for a selected plate across combinations
-#' of experimental grouping variables. The function highlights wells that fall
-#' outside control-derived reference limits and overlays these limits for
-#' visual comparison.
+#' Generates faceted visualizations of area-under-the-curve (AUC) estimates
+#' for a selected plate across experimental conditions. The function highlights
+#' wells that deviate from reference limits derived from negative controls and
+#' overlays these limits for visual comparison.
 #'
-#' Control limits are computed from negative control wells within each facet
-#' level, and are displayed as shaded regions and dashed boundary lines.
+#' Control limits are computed within each facet as the minimum and maximum
+#' bounds of the AUC confidence intervals from negative control wells.
 #'
-#' @param data A list containing processed analysis results. Must include
-#'   \code{auc_results} (data frame) and optionally \code{meta$variables}.
-#' @param selected_plate Character string specifying the plate to analyze.
-#' @param facet_variable Character string specifying the variable used for
-#'   faceting. Defaults to the last element of \code{variables}.
+#' @param data A list containing processed results. Must include
+#'   \code{auc_results} (data frame) and \code{meta$variables}.
+#' @param selected_plate Character scalar specifying the plate to analyse.
+#' @param facet_vars Character vector (length \eqn{\le 2}) specifying variables
+#'   used for faceting. Defaults to the first two variables in
+#'   \code{data$meta$variables}.
 #'
-#' @return Invisibly returns a named list of \code{ggplot} objects, where each
-#'   plot corresponds to a unique combination of grouping variables.
+#' @return Invisibly returns a named list of \code{ggplot} objects, each
+#'   corresponding to a unique combination of non-faceted grouping variables.
 #'
 #' @details
 #' The function performs the following steps:
 #' \itemize{
-#'   \item Filters data for the selected plate and grouping combinations.
-#'   \item Classifies wells into control types (negative, positive, none).
-#'   \item Computes control reference limits (min/max) from negative controls.
+#'   \item Filters data for the selected plate.
+#'   \item Splits data by non-faceted experimental variables.
+#'   \item Classifies wells as negative control, positive control, or test wells.
+#'   \item Computes facet-specific control limits from negative controls.
 #'   \item Identifies wells outside control limits based on AUC confidence bounds.
-#'   \item Applies special inclusion rules for predefined wells (e.g., PM-M02).
-#'   \item Orders wells within each facet by AUC magnitude.
-#'   \item Generates faceted plots with error bars, control overlays, and annotations.
+#'   \item Orders wells globally by mean AUC for consistent visualization.
+#'   \item Generates faceted \code{ggplot2} visualizations with:
+#'     \itemize{
+#'       \item AUC estimates and confidence intervals,
+#'       \item shaded control regions and boundary lines,
+#'       \item color-coded response categories.
+#'     }
 #' }
 #'
-#' Color encoding:
+#' Response categories are encoded as:
 #' \itemize{
-#'   \item Red: Below control limits
-#'   \item Grey: Within control limits
-#'   \item Green: Above control limits
-#'   \item Black: Control wells
+#'   \item \strong{Red}: below control limits
+#'   \item \strong{Grey}: within control limits
+#'   \item \strong{Green}: above control limits
+#'   \item \strong{Black}: control wells
 #' }
 #'
-#' @importFrom dplyr filter mutate case_when distinct across all_of group_by summarise ungroup arrange row_number pull left_join semi_join bind_rows
+#' @import dplyr
 #' @import ggplot2
-#' @importFrom rlang sym .data
-#' 
+#' @importFrom rlang .data
+#'
 #' @examples
 #' data(processed_data)
+#' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' processed_data <- compute_auc_ci(processed_data)
-#' plot_auc(processed_data, selected_plate = "PM-M01", facet_variable = "radiation.dose")
+#' plot_auc(processed_data, selected_plate = "PM-M01")
 #' 
 #' @export
-
 plot_auc <- function(data,
                      selected_plate,
-                     variables = NULL,
-                     facet_variable = NULL) {
+                     facet_vars = NULL) {
   
-  # ---- Validate inputs ----
+  #Validate
   if (!is.list(data) || is.null(data$auc_results)) {
-    stop("`data` must be a list containing an `auc_results` data frame.")
+    stop("`data` must contain `auc_results`.")
   }
   
-  if (!is.character(selected_plate) || length(selected_plate) != 1) {
-    stop("`selected_plate` must be a single character string.")
-  }
-  
-  if (is.null(data$meta) || is.null(data$meta$variables)) {
-    stop("`data$meta$variables` must be available.")
-  }
-  
+  variable <- NULL
   df <- data$auc_results
   variables <- data$meta$variables
   
-  
-  # Ensure variables exist
-  if (!all(variables %in% names(df))) {
-    stop("Some `variables` are not present in `data$auc_results`.")
+  if (length(variables) < 2) {
+    stop("Need at least 2 variables.")
   }
   
-  # ---- Resolve facet variable ----
-  if (is.null(facet_variable)) {
-    facet_variable <- tail(variables, 1)
+  #Choose facet variables (max 2)
+  if (is.null(facet_vars)) {
+    facet_vars <- variables[1:2]
   }
   
-  if (!facet_variable %in% names(df)) {
-    stop("`facet_variable` must exist in `data$auc_results`.")
+  if (length(facet_vars) > 2) {
+    stop("Use at most 2 facet variables.")
   }
   
-  facet_sym <- rlang::sym(facet_variable)
+  split_vars <- setdiff(variables, facet_vars)
   
-  # Use up to two grouping variables
-  grouping_vars <- variables[seq_len(min(2, length(variables)))]
-  
-  # ---- Generate combinations ----
-  combinations <- df %>%
-    dplyr::filter(.data$`Plate Type` == selected_plate) %>%
-    dplyr::distinct(dplyr::across(dplyr::all_of(grouping_vars)))
-  
-  if (nrow(combinations) == 0) {
-    stop("No data available for the selected plate.")
-  }
-  
-  # ---- Color scheme ----
+  #Define colors
   color_values <- c(
     "Below control limits"  = "red",
     "Within control limits" = "gray",
@@ -107,151 +91,109 @@ plot_auc <- function(data,
     "Control wells"         = "black"
   )
   
-  auc_plots <- vector("list", nrow(combinations))
+  #Base filtering
+  df <- df %>%
+    dplyr::filter(.data$`Plate Type` == selected_plate)
   
-  # ---- Main loop ----
-  for (i in seq_len(nrow(combinations))) {
+  if (nrow(df) == 0) {
+    stop("No data for selected plate.")
+  }
+  
+  #Order by its average AUC value across all conditions/variables/facets
+  global_levels <- df %>%
+    dplyr::mutate(FacetLabel = sprintf("%s (%s)", .data$Chemical, .data$Well)) %>%
+    dplyr::group_by(FacetLabel) %>%
+    dplyr::summarise(mean_auc = mean(.data$AUC, na.rm = TRUE)) %>%
+    dplyr::arrange(mean_auc) %>%
+    dplyr::pull(FacetLabel)
+  
+  #Create combinations for splitting
+  split_combinations <- df %>%
+    dplyr::distinct(dplyr::across(dplyr::all_of(split_vars)))
+  
+  plots <- vector("list", nrow(split_combinations))
+  
+  #Loop
+  for (i in seq_len(nrow(split_combinations))) {
     
-    filter_values <- as.list(combinations[i, , drop = FALSE])
-    names(filter_values) <- grouping_vars
+    split_values <- as.list(split_combinations[i, , drop = FALSE])
+    names(split_values) <- split_vars
     
-    # ---- Subset data ----
-    filtered_data <- df %>%
-      dplyr::filter(.data$`Plate Type` == selected_plate)
+    plot_data <- df
     
-    for (var in names(filter_values)) {
-      filtered_data <- filtered_data %>%
-        dplyr::filter(.data[[var]] == filter_values[[var]])
+    for (v in split_vars) {
+      plot_data <- plot_data %>%
+        dplyr::filter(.data[[v]] == split_values[[v]])
     }
     
-    # ---- Control classification ----
-    filtered_data <- filtered_data %>%
+    #Control classification
+    plot_data <- plot_data %>%
       dplyr::mutate(
         control_type = dplyr::case_when(
-          .data$control == "negative" ~ "negative",
-          .data$control == "positive" ~ "positive",
+          control == "negative" ~ "negative",
+          control == "positive" ~ "positive",
           TRUE ~ "none"
         )
       )
     
-    # ---- Compute control limits ----
-    control_limits <- filtered_data %>%
-      dplyr::filter(.data$control_type == "negative") %>%
-      dplyr::group_by(!!facet_sym) %>%
+    #Control limits
+    control_limits <- plot_data %>%
+      dplyr::filter(control_type == "negative") %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(facet_vars))) %>%
       dplyr::summarise(
-        control_lowest  = if (all(is.na(.data$AUC_low))) NA_real_ else min(.data$AUC_low, na.rm = TRUE),
-        control_highest = if (all(is.na(.data$AUC_high))) NA_real_ else max(.data$AUC_high, na.rm = TRUE),
+        control_lowest  = min(AUC_low, na.rm = TRUE),
+        control_highest = max(AUC_high, na.rm = TRUE),
         .groups = "drop"
       )
     
-    filtered_data <- dplyr::left_join(filtered_data, control_limits, by = facet_variable)
+    plot_data <- dplyr::left_join(plot_data, control_limits, by = facet_vars)
     
-    # ---- Identify relevant wells ----
-    auc_filtered <- filtered_data %>%
-      dplyr::filter(
-        .data$control_type != "none" |
-          (!is.na(.data$AUC_high) & !is.na(.data$control_lowest)  & .data$AUC_high < .data$control_lowest) |
-          (!is.na(.data$AUC_low)  & !is.na(.data$control_highest) & .data$AUC_low  > .data$control_highest)
-      )
-    
-    # ---- Special-case inclusion (PM-M02) ----
-    special_wells <- c("A04", "A05", "A06")
-    
-    special_keys <- filtered_data %>%
-      dplyr::filter(.data$`Plate Type` == "PM-M02", .data$Well %in% special_wells) %>%
-      dplyr::distinct(.data$Well)
-    
-    keep_keys <- auc_filtered %>%
-      dplyr::distinct(.data$Well) %>%
-      dplyr::bind_rows(special_keys) %>%
-      dplyr::distinct()
-    
-    plot_data <- filtered_data %>%
-      dplyr::semi_join(keep_keys, by = "Well")
-    
-    # ---- Assign color categories ----
+    #Color categories
     plot_data <- plot_data %>%
       dplyr::mutate(
         color_label = dplyr::case_when(
-          .data$control_type != "none" ~ "Control wells",
-          !is.na(.data$AUC_low)  & !is.na(.data$control_highest) & .data$AUC_low  > .data$control_highest ~ "Above control limits",
-          !is.na(.data$AUC_high) & !is.na(.data$control_lowest)  & .data$AUC_high < .data$control_lowest  ~ "Below control limits",
+          control_type != "none" ~ "Control wells",
+          !is.na(AUC_low)  & !is.na(control_highest) & AUC_low  > control_highest ~ "Above control limits",
+          !is.na(AUC_high) & !is.na(control_lowest)  & AUC_high < control_lowest  ~ "Below control limits",
           TRUE ~ "Within control limits"
         )
       )
     
-    # ---- Ordering within facets ----
-    plot_data <- plot_data %>%
-      dplyr::group_by(!!facet_sym) %>%
-      dplyr::arrange(.data$AUC, .by_group = TRUE) %>%
-      dplyr::mutate(order_rank = dplyr::row_number()) %>%
-      dplyr::ungroup()
-    
-    # ---- Labels ----
+    #Enforce color factor
     plot_data <- plot_data %>%
       dplyr::mutate(
-        FacetLabel = sprintf("%s (%s)", .data$Chemical, .data$Well)
+        color_label = factor(color_label, levels = names(color_values))
       )
     
-    levels_vec <- plot_data %>%
-      dplyr::arrange(!!facet_sym, .data$order_rank) %>%
-      dplyr::pull(.data$FacetLabel) %>%
-      unique()
-    
+    #Labels with GLOBAL ORDER
     plot_data <- plot_data %>%
-      dplyr::mutate(FacetLabel = factor(.data$FacetLabel, levels = levels_vec))
+      dplyr::mutate(
+        FacetLabel = sprintf("%s (%s)", Chemical, Well),
+        FacetLabel = factor(FacetLabel, levels = global_levels)
+      )
     
+    #Limits data
     limits_data <- plot_data %>%
-      dplyr::distinct(.data[[facet_variable]], .data$control_lowest, .data$control_highest)
+      dplyr::distinct(
+        dplyr::across(dplyr::all_of(facet_vars)),
+        control_lowest,
+        control_highest
+      )
     
-    facet_formula <- stats::as.formula(paste("~", facet_variable))
+    #Subtitle
+    subtitle_text <- paste(
+      paste(names(split_values), split_values, sep = "="),
+      collapse = " | "
+    )
     
-    # ---- Plot ----
-    p <- ggplot2::ggplot(plot_data, ggplot2::aes(y = .data$FacetLabel, x = .data$AUC)) +
-      ggplot2::geom_errorbar(
-        ggplot2::aes(xmin = .data$AUC_low, xmax = .data$AUC_high, color = .data$color_label),
-        height = 0.25, linewidth = 0.6, na.rm = TRUE
-      ) +
-      ggplot2::geom_point(
-        ggplot2::aes(color = .data$color_label, shape = .data$control_type),
-        size = 2, na.rm = TRUE
-      ) +
-      ggplot2::scale_color_manual(values = color_values) +
-      ggplot2::scale_shape_manual(values = c("none" = 16, "negative" = 17, "positive" = 15)) +
-      ggplot2::labs(
-        title = "AUC response",
-        subtitle = paste(
-          "Plate:", selected_plate,
-          "|",
-          paste(names(filter_values), filter_values, sep = "=", collapse = " | ")
-        ),
-        x = "AUC estimate",
-        y = NULL
-      ) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(
-        axis.text.y = ggplot2::element_text(size = 6),
-        plot.title  = ggplot2::element_text(hjust = 0.5, face = "bold"),
-        plot.subtitle = ggplot2::element_text(hjust = 0.5)
-      ) +
-      ggplot2::facet_wrap(facet_formula, scales = "free_y") +
-      ggplot2::geom_vline(
-        data = limits_data,
-        ggplot2::aes(xintercept = .data$control_lowest),
-        linetype = "dashed",
-        inherit.aes = FALSE
-      ) +
-      ggplot2::geom_vline(
-        data = limits_data,
-        ggplot2::aes(xintercept = .data$control_highest),
-        linetype = "dashed",
-        inherit.aes = FALSE
-      ) +
+    #Plot
+    p <- ggplot2::ggplot(aes(x = .data$AUC, y = .data$FacetLabel)) +
+      
       ggplot2::geom_rect(
         data = limits_data,
         ggplot2::aes(
-          xmin = .data$control_lowest,
-          xmax = .data$control_highest,
+          xmin = control_lowest,
+          xmax = control_highest,
           ymin = -Inf,
           ymax = Inf
         ),
@@ -259,11 +201,73 @@ plot_auc <- function(data,
         fill = "black",
         alpha = 0.05
       ) +
-      ggplot2::geom_vline(xintercept = 0, color = "blue", linewidth = 0.5)
+      
+      ggplot2::geom_vline(
+        data = limits_data,
+        ggplot2::aes(xintercept = control_lowest),
+        linetype = "dashed",
+        inherit.aes = FALSE
+      ) +
+      
+      ggplot2::geom_vline(
+        data = limits_data,
+        ggplot2::aes(xintercept = control_highest),
+        linetype = "dashed",
+        inherit.aes = FALSE
+      ) +
+      
+      ggplot2::geom_errorbar(
+        ggplot2::aes(
+          xmin = .data$AUC_low,
+          xmax = .data$AUC_high,
+          color = color_label
+        ),
+        height = 0.25
+      ) +
+      
+      ggplot2::geom_point(
+        ggplot2::aes(
+          color = color_label,
+          shape = control_type
+        ),
+        size = 2
+      ) +
+      
+      ggplot2::scale_y_discrete(drop = FALSE) +
+      
+      ggplot2::scale_color_manual(
+        values = color_values,
+        drop = FALSE
+      ) +
+      
+      ggplot2::scale_shape_manual(
+        values = c("none" = 16, "negative" = 17, "positive" = 15)
+      ) +
+      
+      ggplot2::facet_grid(
+        stats::as.formula(paste(facet_vars[1], "~", facet_vars[2])),
+        scales = "free_y"
+      ) +
+      
+      ggplot2::geom_vline(xintercept = 0, color = "blue", linewidth = 0.5) +
+      
+      ggplot2::labs(
+        title = "AUC response",
+        subtitle = paste("Plate:", selected_plate, "|", subtitle_text),
+        x = "AUC estimate",
+        y = NULL,
+        color = "Response category"
+      ) +
+      
+      ggplot2::theme_bw() +
+      ggplot2::theme(
+        axis.text.y = ggplot2::element_text(size = 6),
+        plot.title = ggplot2::element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = ggplot2::element_text(hjust = 0.5)
+      )
     
-    auc_plots[[i]] <- p
+    plots[[i]] <- p
   }
   
-  return(auc_plots)
+  return(plots)
 }
-

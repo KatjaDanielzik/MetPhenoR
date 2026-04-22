@@ -32,6 +32,8 @@
 #' @import ggplot2
 #' @importFrom ggforce geom_sina
 #' @importFrom scales label_number
+#' @importFrom rlang .data
+#' 
 #' 
 #' @examples
 #' processed_data <- classify_growth_curve_types(processed_data)
@@ -39,7 +41,10 @@
 #' processed_data <- compute_auc_ci(processed_data)
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-#' plot_auc_ratio_violin(processed_data, pathway_var = "middle_hierarchy", pathway_filter = "Nucleotide metabolism", color_var = "radiation.dose")
+#' plot_auc_ratio_violin(processed_data, 
+#'                       pathway_var = "middle_hierarchy", 
+#'                       pathway_filter = "Nucleotide metabolism", 
+#'                       color_var = "radiation.dose")
 #'
 #' @export
 
@@ -54,6 +59,7 @@ plot_auc_ratio_violin <- function(data,
     stop("'data' must contain an 'auc_ratio' element.")
   }
   
+  variable <- NULL
   data_df <- data$auc_ratio
   
   if (!is.data.frame(data_df)) {
@@ -118,7 +124,7 @@ plot_auc_ratio_violin <- function(data,
   p <- ggplot(
     data_filtered,
     aes(
-      x = AUC_ratio_plot,
+      x = .data$AUC_ratio_plot,
       y = !!pathway_sym,
       color = !!color_sym,
       fill  = !!color_sym

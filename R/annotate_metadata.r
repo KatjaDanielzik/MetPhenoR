@@ -22,21 +22,22 @@
 #' @return The input \code{data} object with an updated \code{auc_ratio}
 #'   element that includes annotation columns.
 #'
-#' @importFrom dplyr bind_rows distinct left_join rename_with
+#' @importFrom dplyr bind_rows distinct left_join rename_with select
 #' @importFrom purrr map_lgl
+#' @importFrom rlang .data
 #' 
 #' @examples
 #' data("processed_data")
+#' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' processed_data <- compute_auc_ci(processed_data)
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-#' head(processed_data$data)
 #'
 #' @export
 annotate_metadata <- function(data, annotation) {
   
-  # ---- Validate input structure ----
+  #Validate input structure
   if (!("auc_ratio" %in% names(data))) {
     stop("'data' must contain an 'auc_ratio' element.")
   }
@@ -47,7 +48,7 @@ annotate_metadata <- function(data, annotation) {
     stop("'data$auc_ratio' must be a data.frame.")
   }
   
-  # ---- Handle annotation input ----
+  #Handle annotation input
   if (is.data.frame(annotation)) {
     annotations_list <- list(annotation)
   } else if (is.list(annotation) && all(purrr::map_lgl(annotation, is.data.frame))) {
@@ -56,11 +57,14 @@ annotate_metadata <- function(data, annotation) {
     stop("'annotation' must be a data.frame or a list of data.frames.")
   }
   
-  # ---- Combine annotations ----
+  #Combine annotations
   annotations <- dplyr::bind_rows(annotations_list) %>%
     dplyr::distinct()
   
-  # ---- Required columns ----
+  #Required columns
+  data_df <- data_df %>%
+    dplyr::select(-.data[["Plate Type"]], -.data[["Well"]]) %>%
+    dplyr::distinct()
   
   required_cols <- c("Chemical")
   
@@ -78,14 +82,14 @@ annotate_metadata <- function(data, annotation) {
     )
   }
   
-  # ---- Merge ----
+  #Merge
   data_df <- dplyr::left_join(
     data_df,
     annotations,
     by = required_cols
   )
   
-  # ---- Return ----
+  #Return
   data$auc_ratio <- data_df
   return(data)
 }
