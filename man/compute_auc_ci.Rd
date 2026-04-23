@@ -9,7 +9,6 @@ compute_auc_ci(
   target_curve_type = "growing",
   n_boot = 1000,
   spline_df = 4,
-  seed = 123,
   store = TRUE
 )
 }
@@ -29,8 +28,6 @@ compute_auc_ci(
 
 \item{spline_df}{Integer. Degrees of freedom for natural spline fitting
 (default: 4).}
-
-\item{seed}{Integer. Random seed for reproducibility (default: 123).}
 
 \item{store}{Logical. If \code{TRUE}, results are stored in
 \code{data$auc_results}.}

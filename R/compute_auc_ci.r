@@ -16,7 +16,6 @@
 #' @param n_boot Integer. Number of bootstrap replicates (default: 1000).
 #' @param spline_df Integer. Degrees of freedom for natural spline fitting
 #'   (default: 4).
-#' @param seed Integer. Random seed for reproducibility (default: 123).
 #' @param store Logical. If \code{TRUE}, results are stored in
 #'   \code{data$auc_results}.
 #'
@@ -39,10 +38,8 @@ compute_auc_ci <- function(data,
                            target_curve_type = "growing",
                            n_boot = 1000,
                            spline_df = 4,
-                           seed = 123,
                            store = TRUE) {
   
-  set.seed(seed)
   
   #Validation
   if (!all(c("data", "meta", "classification") %in% names(data))) {
@@ -53,7 +50,7 @@ compute_auc_ci <- function(data,
     stop("Run classify_growth_curve_types() first")
   }
   
-  variable <- NULL
+  variables <- NULL
   raw_data     <- data$data
   well_summary <- data$classification$well_summary
   variables    <- data$meta$variables
@@ -81,17 +78,17 @@ compute_auc_ci <- function(data,
   
   # Get Hour sets per well
   hour_sets <- combined_df %>%
-    dplyr::group_by(PlateId, Well) %>%
+    dplyr::group_by(.data$PlateId, .data$Well) %>%
     dplyr::summarise(
-      hour_list = list(sort(unique(Hour))),
+      hour_list = list(sort(unique(.data$Hour))),
       .groups = "drop"
     )
   
   # Compare within each plate
   hour_consistency <- hour_sets %>%
-    dplyr::group_by(PlateId) %>%
+    dplyr::group_by(.data$PlateId) %>%
     dplyr::summarise(
-      n_unique_hour_sets = dplyr::n_distinct(hour_list),
+      n_unique_hour_sets = dplyr::n_distinct(.data$hour_list),
       .groups = "drop"
     )
   
@@ -107,9 +104,9 @@ compute_auc_ci <- function(data,
   
   # Count unique time points per plate
   plate_timepoints <- combined_df %>%
-    dplyr::group_by(PlateId) %>%
+    dplyr::group_by(.data$PlateId) %>%
     dplyr::summarise(
-      n_timepoints = dplyr::n_distinct(Hour),
+      n_timepoints = dplyr::n_distinct(.data$Hour),
       .groups = "drop"
     )
   

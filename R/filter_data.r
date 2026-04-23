@@ -3,16 +3,23 @@
 #' Filters a dataset by Plate.Type and additional user-defined conditions.
 #'
 #' @param data A data frame.
-#' @param plate_type Character vector of Plate.Type values to keep.
+#' @param plate_type Character vector of Plate Type values to keep.
 #' @param filters Named list of filtering conditions.
 #'
 #' @return Filtered data frame.
 #' 
 #' @import magrittr
 #' @importFrom dplyr filter
+#' @importFrom rlang .data
+#' 
+#' @examples
+#' data("processed_data")
+#' processed_data <- filter_data(processed_data, plate_type = "PM-M01")
 #' 
 #' @export
 filter_data <- function(data, plate_type, filters = list()) {
+  
+  data <- data$data
   
   # ---- Input validation ----
   if (!is.data.frame(data)) {
@@ -23,7 +30,7 @@ filter_data <- function(data, plate_type, filters = list()) {
     stop("'plate_type' must be a non-empty character vector.")
   }
   
-  if (!"Plate.Type" %in% names(data)) {
+  if (!"Plate Type" %in% names(data)) {
     stop("'Plate Type' column not found in data.")
   }
   
@@ -31,13 +38,13 @@ filter_data <- function(data, plate_type, filters = list()) {
     stop("'filters' must be a named list.")
   }
   
-  # ---- Step 1: Filter by Plate.Type ----
+  # Filter by Plate Type ----
   filtered_data <- dplyr::filter(
     data,
-    .data$Plate.Type %in% plate_type
+    .data$`Plate Type` %in% plate_type
   )
   
-  # ---- Step 2: Apply dynamic filters ----
+  #Apply dynamic filters ----
   if (length(filters) > 0) {
     
     for (var_name in names(filters)) {

@@ -58,7 +58,6 @@
 #' plot_controls_tween_per_plate(processed_data, selected_plate = "PM-M01")
 #'
 #' @export
-
 plot_controls_tween_per_plate <- function(
     data,
     selected_plate,
@@ -80,7 +79,6 @@ plot_controls_tween_per_plate <- function(
     }
   }
   
-  variable <- NULL
   df <- data$auc_results
   
   #Input validation
@@ -196,12 +194,12 @@ plot_controls_tween_per_plate <- function(
     # Negative control reference range
   ggplot2::geom_vline(
     data = ref_df,
-    ggplot2::aes(xintercept = control_lowest),
+    ggplot2::aes(xintercept = .data$control_lowest),
     linetype = "dashed"
   ) +
     ggplot2::geom_vline(
       data = ref_df,
-      ggplot2::aes(xintercept = control_highest),
+      ggplot2::aes(xintercept = .data$control_highest),
       linetype = "dashed"
     ) +
     

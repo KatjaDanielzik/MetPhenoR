@@ -64,7 +64,7 @@ plot_auc <- function(data,
     stop("`data` must contain `auc_results`.")
   }
   
-  variable <- NULL
+  variables <- NULL
   df <- data$auc_results
   variables <- data$meta$variables
   
@@ -130,8 +130,8 @@ plot_auc <- function(data,
     plot_data <- plot_data %>%
       dplyr::mutate(
         control_type = dplyr::case_when(
-          control == "negative" ~ "negative",
-          control == "positive" ~ "positive",
+          .data$control == "negative" ~ "negative",
+          .data$control == "positive" ~ "positive",
           TRUE ~ "none"
         )
       )
@@ -152,9 +152,9 @@ plot_auc <- function(data,
     plot_data <- plot_data %>%
       dplyr::mutate(
         color_label = dplyr::case_when(
-          control_type != "none" ~ "Control wells",
-          !is.na(AUC_low)  & !is.na(control_highest) & AUC_low  > control_highest ~ "Above control limits",
-          !is.na(AUC_high) & !is.na(control_lowest)  & AUC_high < control_lowest  ~ "Below control limits",
+          .data$control_type != "none" ~ "Control wells",
+          !is.na(.data$AUC_low)  & !is.na(.data$control_highest) & .data$AUC_low  > .data$control_highest ~ "Above control limits",
+          !is.na(.data$AUC_high) & !is.na(.data$control_lowest)  & .data$AUC_high < .data$control_lowest  ~ "Below control limits",
           TRUE ~ "Within control limits"
         )
       )
@@ -168,16 +168,16 @@ plot_auc <- function(data,
     #Labels with GLOBAL ORDER
     plot_data <- plot_data %>%
       dplyr::mutate(
-        FacetLabel = sprintf("%s (%s)", Chemical, Well),
-        FacetLabel = factor(FacetLabel, levels = global_levels)
+        FacetLabel = sprintf("%s (%s)", .data$Chemical, .data$Well),
+        FacetLabel = factor(.data$FacetLabel, levels = global_levels)
       )
     
     #Limits data
     limits_data <- plot_data %>%
       dplyr::distinct(
         dplyr::across(dplyr::all_of(facet_vars)),
-        control_lowest,
-        control_highest
+        .data$control_lowest,
+        .data$control_highest
       )
     
     #Subtitle
@@ -187,7 +187,8 @@ plot_auc <- function(data,
     )
     
     #Plot
-    p <- ggplot2::ggplot(aes(x = .data$AUC, y = .data$FacetLabel)) +
+    p <- ggplot2::ggplot(plot_data, 
+                         ggplot2::aes(x = .data$AUC, y = .data$FacetLabel)) +
       
       ggplot2::geom_rect(
         data = limits_data,

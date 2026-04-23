@@ -34,6 +34,10 @@
 #'
 #' @return A \code{ggplot2} object representing a heatmap of replicate counts
 #' across wells and experimental conditions.
+#' 
+#' @import dplyr
+#' @import ggplot2
+#' @importFrom rlang .data
 #'
 #' @seealso \code{\link{read_folder}}
 #'
@@ -44,14 +48,15 @@
 #' @export
 qc_data <- function(data) {
   
-  #Extract data
+  # Extract data
   data_df <- data$data
   variables <- data$meta$variables
   
   wells <- c("A01","A02","A03","A04", "A05")
-  group_vars <- c(variables, "Plate Type", "Hour", "Well")
   
-  #Input validation
+  group_vars <- c(variables, "Hour", "Well")
+  
+  # Input validation
   if (!is.data.frame(data_df)) {
     stop("'data$data' must be a data.frame.")
   }
@@ -69,30 +74,34 @@ qc_data <- function(data) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
-  #Filter wells
+  # Filter wells
   qc_data <- dplyr::filter(data_df, .data$Well %in% wells)
   
   if (nrow(qc_data) == 0) {
     stop("No data found for the specified wells.")
   }
   
-  #Duplicate detection
+  # Duplicate detection
   duplicates <- qc_data %>%
-    dplyr::count(dplyr::across(dplyr::all_of(group_vars)), name = "n") %>%
+    dplyr::count(dplyr::across(dplyr::all_of(c(group_vars, "Plate Type"))), name = "n") %>%
     dplyr::filter(.data$n > 1)
   
-  #Replicate summary
+  # Replicate summary
   qc_table <- qc_data %>%
-    dplyr::count(dplyr::across(dplyr::all_of(group_vars)), name = "n") %>%
+    dplyr::count(
+      dplyr::across(dplyr::all_of(c(group_vars, "Plate Type"))),
+      name = "n"
+    ) %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(setdiff(group_vars, "Hour")))
+      dplyr::across(dplyr::all_of(setdiff(c(group_vars, "Plate Type"), "Hour")))
     ) %>%
     dplyr::summarise(
       n_entries = max(.data$n),
+      Plate_Type = dplyr::first(.data$`Plate Type`),
       .groups = "drop"
     )
   
-  #QC flags
+  # QC flags
   qc_flags <- qc_table %>%
     dplyr::mutate(
       qc_status = dplyr::case_when(
@@ -102,7 +111,7 @@ qc_data <- function(data) {
       )
     )
   
-  #Prepare plotting column
+  # Prepare plotting column
   qc_table <- qc_table %>%
     tidyr::unite(
       ".qc_y",
@@ -110,7 +119,7 @@ qc_data <- function(data) {
       remove = FALSE
     )
   
-  #QC plot
+  # QC plot
   qc_plot <- ggplot2::ggplot(
     qc_table,
     ggplot2::aes(
@@ -120,7 +129,7 @@ qc_data <- function(data) {
     )
   ) +
     ggplot2::geom_tile(color = "grey70") +
-    ggplot2::facet_wrap(~`Plate Type`, scales = "free_x") +
+    ggplot2::facet_wrap(~Plate_Type, scales = "free_x") +
     ggplot2::scale_fill_gradient(name = "Replicates") +
     ggplot2::labs(
       title = "QC heatmap: Number of replicates = 1?",
@@ -133,8 +142,5 @@ qc_data <- function(data) {
       axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
     )
   
-  #Return
   return(qc_plot)
 }
-
-

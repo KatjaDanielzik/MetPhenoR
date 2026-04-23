@@ -37,6 +37,7 @@
 #' @importFrom stringr str_extract
 #' @importFrom purrr map_chr map
 #' @importFrom tidyselect all_of
+#' @importFrom rlang .data
 #'
 #' @examples
 #' data("processed_data")
