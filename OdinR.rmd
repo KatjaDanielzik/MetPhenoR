@@ -34,7 +34,7 @@ head(processed_data$classification)
 ```
 
 #plot_growth_curve
-```{r, fig.width=12, fig.height=6}
+```{r, fig.width=15, fig.height=7}
 processed_data <- plot_growth_curve(processed_data)
 print(processed_data[["growth_curve_plots"]])
 ```

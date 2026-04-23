@@ -11,6 +11,8 @@
 #'
 #' @importFrom dplyr filter mutate case_when group_by summarise across all_of arrange left_join
 #' @import ggplot2 
+#' @importFrom rlang .data
+#' 
 #' 
 #' @examples
 #' data(processed_data)
@@ -35,7 +37,6 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     }
   }
   
-  variable <- NULL
   df <- data$auc_results
   
   required_cols <- c("AUC", "AUC_low", "AUC_high",
@@ -139,13 +140,13 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     
     ggplot2::geom_vline(
       data = control_ranges,
-      ggplot2::aes(xintercept = control_lowest),
+      ggplot2::aes(xintercept = .data$control_lowest),
       linetype = "dashed"
     ) +
     
     ggplot2::geom_vline(
       data = control_ranges,
-      ggplot2::aes(xintercept = control_highest),
+      ggplot2::aes(xintercept = .data$control_highest),
       linetype = "dashed"
     ) +
     

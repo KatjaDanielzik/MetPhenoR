@@ -9,7 +9,7 @@ filter_data(data, plate_type, filters = list())
 \arguments{
 \item{data}{A data frame.}
 
-\item{plate_type}{Character vector of Plate.Type values to keep.}
+\item{plate_type}{Character vector of Plate Type values to keep.}
 
 \item{filters}{Named list of filtering conditions.}
 }
@@ -18,4 +18,9 @@ Filtered data frame.
 }
 \description{
 Filters a dataset by Plate.Type and additional user-defined conditions.
+}
+\examples{
+data("processed_data")
+processed_data <- filter_data(processed_data, plate_type = "PM-M01")
+
 }

@@ -37,12 +37,10 @@
 #' @importFrom rlang expr
 #'
 #' @examples
-#' \dontrun{
 #' data("processed_data")
 #' data("PM_M01_M02")
 #' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 #' head(processed_data$data)
-#' }
 #' 
 #' @export
 annotate_chemical <- function(

@@ -19,6 +19,7 @@
 #' Otherwise returns a tibble with AUC ratio calculations.
 #'
 #' @import dplyr
+#' @importFrom rlang .data
 #' 
 #' @examples
 #' data(processed_data)

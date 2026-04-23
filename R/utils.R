@@ -24,7 +24,7 @@
 #' @importFrom purrr map_chr
 #' @importFrom scales squish
 #' @importFrom rlang .data
-.plot_latest_point <- function(df,variables) {
+.plot_latest_point <- function(df, variables) {
   
   # Construct descriptive subtitle
   var_values <- purrr::map_chr(variables, function(v) {
@@ -33,7 +33,7 @@
   
   subtitle_text <- paste(
     paste(var_values, collapse = " | "),
-    paste("Plate:", unique(df$"Plate Type")),
+    paste("Plate:", unique(df$`Plate Type`)),
     sep = " | "
   )
   
@@ -47,7 +47,9 @@
     ggplot2::scale_color_gradient(
       low = "white",
       high = "purple",
-      oob = scales::squish
+      limits = c(0, 3.2),            
+      breaks = seq(0, 3.2, by = 0.8), 
+      oob = scales::squish           
     ) +
     ggplot2::coord_fixed() +
     ggplot2::labs(

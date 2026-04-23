@@ -54,6 +54,7 @@
 #' @import dplyr
 #' @import ggplot2
 #' @importFrom stats na.omit
+#' @importFrom rlang .data
 #'
 #' @seealso \code{\link{classify_growth_curve_types}}
 #'
@@ -64,14 +65,13 @@
 #' print(processed_data[["growth_curve_plots"]])
 #'
 #' @export
-
 plot_growth_curve <- function(
     data,
     curve_types_to_plot = NULL,
     store_plots = TRUE
 ) {
   
-  # Extract from structured object
+  # Checks
   if (!all(c("data", "meta", "classification") %in% names(data))) {
     stop("data must contain 'data', 'meta', and 'classification'")
   }
@@ -80,12 +80,24 @@ plot_growth_curve <- function(
     stop("Run classify_growth_curve_types() first")
   }
   
-  variable <- NULL
+  # Shared color palette
+  curve_colors <- c(
+    "OD_drop"      = "red",
+    "flat_low"     = "blue",
+    "growing"      = "darkgreen",
+    "slow_growing" = "orange",
+    "uncertain"    = "grey50",
+    "empty"        = "grey95"
+  )
+  
+  curve_levels <- names(curve_colors)
+  
+  # Extract data
+  variables <- NULL
   raw_data <- data$data
   well_summary <- data$classification$well_summary
   variables <- data$meta$variables
   
-  # Define join keys
   join_keys <- c(variables, "Plate Type")
   
   conditions <- well_summary %>%
@@ -94,8 +106,7 @@ plot_growth_curve <- function(
   plot_list <- vector("list", nrow(conditions))
   names(plot_list) <- apply(conditions, 1, paste, collapse = "_")
   
-  
-  #Loop over conditions
+  # Loop over conditions
   for (i in seq_len(nrow(conditions))) {
     
     cond <- conditions[i, ]
@@ -111,37 +122,37 @@ plot_growth_curve <- function(
     
     ws_plate <- ws %>%
       dplyr::mutate(
-        category = stringr::str_extract(Well, "^[A-H]"),
-        number   = as.numeric(stringr::str_extract(Well, "\\d+"))
+        category = stringr::str_extract(.data$Well, "^[A-H]"),
+        number   = as.numeric(stringr::str_extract(.data$Well, "\\d+"))
       )
     
     plate_df <- plate_layout %>%
       dplyr::left_join(
-        dplyr::select(ws_plate, category, number, curve_type),
+        dplyr::select(ws_plate, .data$category, .data$number, .data$curve_type),
         by = c("category", "number")
       ) %>%
       dplyr::mutate(
         curve_type = tidyr::replace_na(curve_type, "empty"),
-        category  = factor(category, levels = LETTERS[8:1])
+        curve_type = factor(curve_type, levels = curve_levels),
+        category   = factor(category, levels = LETTERS[8:1])
       )
     
     title_text <- paste(cond, collapse = " | ")
     
-    p_plate <- ggplot2::ggplot(plate_df,
-                               ggplot2::aes(x = number, y = category)) +
-      ggplot2::geom_tile(ggplot2::aes(fill = curve_type), color = "white") +
+    p_plate <- ggplot2::ggplot(
+      plate_df,
+      ggplot2::aes(x = number, y = category)
+    ) +
+      ggplot2::geom_tile(
+        ggplot2::aes(fill = curve_type),
+        color = "white"
+      ) +
       ggplot2::coord_fixed() +
       ggplot2::scale_x_continuous(breaks = 1:12, expand = c(0, 0)) +
       ggplot2::scale_y_discrete(expand = c(0, 0)) +
       ggplot2::scale_fill_manual(
-        values = c(
-          "OD_drop"      = "red",
-          "flat_low"     = "blue",
-          "growing"      = "darkgreen",
-          "slow_growing" = "orange",
-          "uncertain"    = "grey50",
-          "empty"        = "grey95"
-        )
+        values = curve_colors,
+        drop = FALSE
       ) +
       ggplot2::labs(
         title = title_text,
@@ -156,7 +167,7 @@ plot_growth_curve <- function(
         legend.position = "bottom"
       )
     
-    # Raw curve
+    # Raw curve data
     raw_subset <- raw_data %>%
       dplyr::semi_join(cond, by = join_keys) %>%
       dplyr::left_join(
@@ -164,6 +175,7 @@ plot_growth_curve <- function(
         by = c(join_keys, "Well")
       )
     
+    # Determine which curve types to plot
     if (is.null(curve_types_to_plot)) {
       curve_types_current <- raw_subset %>%
         dplyr::pull(curve_type) %>%
@@ -177,7 +189,7 @@ plot_growth_curve <- function(
     raw_subset <- raw_subset %>%
       dplyr::filter(curve_type %in% curve_types_current)
     
-    # No data case
+    # Handle empty case
     if (nrow(raw_subset) == 0) {
       
       p_raw <- ggplot2::ggplot() + ggplot2::theme_void()
@@ -192,24 +204,29 @@ plot_growth_curve <- function(
     
     raw_subset <- raw_subset %>%
       dplyr::mutate(
-        curve_type = factor(curve_type, levels = curve_types_current)
+        curve_type = factor(curve_type, levels = curve_levels)
       )
     
+    # Raw curve plot
     p_raw <- ggplot2::ggplot(
       raw_subset,
       ggplot2::aes(
-        x = Hour,
-        y = diff_OD_590_740,
-        group = Well,
-        colour = Well
+        x = .data$Hour,
+        y = .data$diff_OD_590_740,
+        group = .data$Well,
+        colour = .data$curve_type
       )
     ) +
       ggplot2::geom_line(linewidth = 0.8, alpha = 0.9) +
       ggplot2::facet_wrap(~ curve_type, scales = "free_y", drop = TRUE) +
+      ggplot2::scale_color_manual(
+        values = curve_colors,
+        drop = FALSE
+      ) +
       ggplot2::labs(
         x = "Hour",
         y = "Raw OD",
-        colour = "Well"
+        colour = "curve_type"
       ) +
       ggplot2::theme_bw(base_size = 13) +
       ggplot2::theme(
@@ -220,14 +237,14 @@ plot_growth_curve <- function(
         legend.text = ggplot2::element_text(size = 8)
       )
     
-    #Combine
+    # Combine plots
     plot_list[[i]] <- patchwork::wrap_plots(
       p_plate, p_raw,
       widths = c(1, 1.7)
     )
   }
   
-  # Store in object
+  # Return
   if (store_plots) {
     data$growth_curve_plots <- plot_list
     return(data)
