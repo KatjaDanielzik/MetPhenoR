@@ -140,8 +140,6 @@ The qc_data() function returns a ggplot object (i.e. a plot) with:
 - panels: all distinct Plate Types in the read in folder
 - color: number of distinct OD curves per well 
 
-!!! change Replicates -> n_OD_curves
-
 ```{r}
 qc_data(processed_data) # execute function qc_data() on read in data stored in object "processed_data" to create plot
 ```
@@ -158,8 +156,6 @@ Odin read) in 96-well format. These plots should roughly represent how your
 Odin plate looks like after the OD recording. In the title the specific experiment
 is automatically labelled and one plot is created per distinct 96-well plate
 in the read in data:
-
-!!! Change Measurement -> OD
 
 ```{r, fig.width=8, fig.height=6}
 plot_latest_timepoint(processed_data)
@@ -239,6 +235,8 @@ creates one plot per 96-well plate:
 plot_growth_curve(processed_data)
 ```
 
+!!! growth curves colored by well not by growth curve type
+
 On the left side of the plot is an overview of the 96-well plate where the color
 per well indicates the curve type. On the right is one panel with the individual
 OD curves that fall in one of the categories that is not "growing" in which color
@@ -272,11 +270,10 @@ If we have filtered our data we can proceed with computing the AUCs per Well.
 The compute_auc_ci() function may run for a couple seconds depending on the size
 of your dataset and stores the results in the element *auc_results* in object
 *processed_data*. 
-!!! target_curve_type -> change to character vector %in% target_curve_type
 
 Depending on your inspection of the curve types and after potentially omitting
 complete plates from analysis you can decide which curve types to keep.
-In our example dataset I demonstrate how to omit the curves with OD drops.
+In our example data set I demonstrate how to omit the curves with OD drops.
 
 ```{r}
 processed_data <- compute_auc_ci(processed_data, 
@@ -434,8 +431,6 @@ We now have the AUC ratio on the x-axis and every point represents one metabolit
 associated with the group on the y-axis. We can choose the variable that will be color
 coded and all other experimental variables are displayed in the x-axis facets.
 We can also again switch from natural to log-scale.
-
-!!! scale=count for violins
 
 ```{r}
 plot_auc_ratio_violin(processed_data, 

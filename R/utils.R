@@ -53,7 +53,7 @@
     ) +
     ggplot2::coord_fixed() +
     ggplot2::labs(
-      title = "Measurement at Final Time Point",
+      title = "OD at Final Time Point",
       subtitle = subtitle_text,
       x = NULL,
       y = NULL,

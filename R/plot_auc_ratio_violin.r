@@ -132,7 +132,7 @@ plot_auc_ratio_violin <- function(data,
   ) +
     geom_violin(
       trim = FALSE,
-      scale = "width",
+      scale = "count",
       linewidth = 0.3,
       alpha = 0.25
     ) +
