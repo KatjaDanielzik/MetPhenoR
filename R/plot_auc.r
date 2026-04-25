@@ -59,12 +59,11 @@ plot_auc <- function(data,
                      selected_plate,
                      facet_vars = NULL) {
   
-  #Validate
+  # Validate
   if (!is.list(data) || is.null(data$auc_results)) {
     stop("`data` must contain `auc_results`.")
   }
   
-  variables <- NULL
   df <- data$auc_results
   variables <- data$meta$variables
   
@@ -72,7 +71,7 @@ plot_auc <- function(data,
     stop("Need at least 2 variables.")
   }
   
-  #Choose facet variables (max 2)
+  # Choose facet variables (max 2)
   if (is.null(facet_vars)) {
     facet_vars <- variables[1:2]
   }
@@ -83,7 +82,7 @@ plot_auc <- function(data,
   
   split_vars <- setdiff(variables, facet_vars)
   
-  #Define colors
+  # Colors
   color_values <- c(
     "Below control limits"  = "red",
     "Within control limits" = "gray",
@@ -91,7 +90,7 @@ plot_auc <- function(data,
     "Control wells"         = "black"
   )
   
-  #Base filtering
+  # Filter
   df <- df %>%
     dplyr::filter(.data$`Plate Type` == selected_plate)
   
@@ -99,21 +98,26 @@ plot_auc <- function(data,
     stop("No data for selected plate.")
   }
   
-  #Order by its average AUC value across all conditions/variables/facets
+  # Global ordering
   global_levels <- df %>%
-    dplyr::mutate(FacetLabel = sprintf("%s (%s)", .data$Chemical, .data$Well)) %>%
-    dplyr::group_by(FacetLabel) %>%
-    dplyr::summarise(mean_auc = mean(.data$AUC, na.rm = TRUE)) %>%
-    dplyr::arrange(mean_auc) %>%
-    dplyr::pull(FacetLabel)
+    dplyr::mutate(
+      FacetLabel = sprintf("%s (%s)", .data$Chemical, .data$Well)
+    ) %>%
+    dplyr::group_by(.data$FacetLabel) %>%
+    dplyr::summarise(
+      mean_auc = mean(.data$AUC, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    dplyr::arrange(.data$mean_auc) %>%
+    dplyr::pull(.data$FacetLabel)
   
-  #Create combinations for splitting
+  # Split combinations
   split_combinations <- df %>%
     dplyr::distinct(dplyr::across(dplyr::all_of(split_vars)))
   
   plots <- vector("list", nrow(split_combinations))
   
-  #Loop
+  # Loop
   for (i in seq_len(nrow(split_combinations))) {
     
     split_values <- as.list(split_combinations[i, , drop = FALSE])
@@ -126,7 +130,7 @@ plot_auc <- function(data,
         dplyr::filter(.data[[v]] == split_values[[v]])
     }
     
-    #Control classification
+    # Control classification
     plot_data <- plot_data %>%
       dplyr::mutate(
         control_type = dplyr::case_when(
@@ -136,19 +140,19 @@ plot_auc <- function(data,
         )
       )
     
-    #Control limits
+    # Control limits
     control_limits <- plot_data %>%
-      dplyr::filter(control_type == "negative") %>%
+      dplyr::filter(.data$control_type == "negative") %>%
       dplyr::group_by(dplyr::across(dplyr::all_of(facet_vars))) %>%
       dplyr::summarise(
-        control_lowest  = min(AUC_low, na.rm = TRUE),
-        control_highest = max(AUC_high, na.rm = TRUE),
+        control_lowest  = min(.data$AUC_low, na.rm = TRUE),
+        control_highest = max(.data$AUC_high, na.rm = TRUE),
         .groups = "drop"
       )
     
     plot_data <- dplyr::left_join(plot_data, control_limits, by = facet_vars)
     
-    #Color categories
+    # Color categories
     plot_data <- plot_data %>%
       dplyr::mutate(
         color_label = dplyr::case_when(
@@ -156,23 +160,18 @@ plot_auc <- function(data,
           !is.na(.data$AUC_low)  & !is.na(.data$control_highest) & .data$AUC_low  > .data$control_highest ~ "Above control limits",
           !is.na(.data$AUC_high) & !is.na(.data$control_lowest)  & .data$AUC_high < .data$control_lowest  ~ "Below control limits",
           TRUE ~ "Within control limits"
-        )
+        ),
+        color_label = factor(.data$color_label, levels = names(color_values))
       )
     
-    #Enforce color factor
-    plot_data <- plot_data %>%
-      dplyr::mutate(
-        color_label = factor(color_label, levels = names(color_values))
-      )
-    
-    #Labels with GLOBAL ORDER
+    # Labels
     plot_data <- plot_data %>%
       dplyr::mutate(
         FacetLabel = sprintf("%s (%s)", .data$Chemical, .data$Well),
         FacetLabel = factor(.data$FacetLabel, levels = global_levels)
       )
     
-    #Limits data
+    # Limits data (clean reference dataset)
     limits_data <- plot_data %>%
       dplyr::distinct(
         dplyr::across(dplyr::all_of(facet_vars)),
@@ -180,21 +179,24 @@ plot_auc <- function(data,
         .data$control_highest
       )
     
-    #Subtitle
+    # Subtitle
     subtitle_text <- paste(
       paste(names(split_values), split_values, sep = "="),
       collapse = " | "
     )
     
-    #Plot
-    p <- ggplot2::ggplot(plot_data, 
-                         ggplot2::aes(x = .data$AUC, y = .data$FacetLabel)) +
+    # Plot
+    p <- ggplot2::ggplot(
+      plot_data,
+      ggplot2::aes(x = .data$AUC, y = .data$FacetLabel)
+    ) +
       
+      # Shaded control region
       ggplot2::geom_rect(
         data = limits_data,
         ggplot2::aes(
-          xmin = control_lowest,
-          xmax = control_highest,
+          xmin = .data$control_lowest,
+          xmax = .data$control_highest,
           ymin = -Inf,
           ymax = Inf
         ),
@@ -203,33 +205,35 @@ plot_auc <- function(data,
         alpha = 0.05
       ) +
       
+      # Control lines
       ggplot2::geom_vline(
         data = limits_data,
-        ggplot2::aes(xintercept = control_lowest),
+        ggplot2::aes(xintercept = .data$control_lowest),
         linetype = "dashed",
         inherit.aes = FALSE
       ) +
       
       ggplot2::geom_vline(
         data = limits_data,
-        ggplot2::aes(xintercept = control_highest),
+        ggplot2::aes(xintercept = .data$control_highest),
         linetype = "dashed",
         inherit.aes = FALSE
       ) +
       
+      # Data
       ggplot2::geom_errorbar(
         ggplot2::aes(
           xmin = .data$AUC_low,
           xmax = .data$AUC_high,
-          color = color_label
+          color = .data$color_label
         ),
         height = 0.25
       ) +
       
       ggplot2::geom_point(
         ggplot2::aes(
-          color = color_label,
-          shape = control_type
+          color = .data$color_label,
+          shape = .data$control_type
         ),
         size = 2
       ) +

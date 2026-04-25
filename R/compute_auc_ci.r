@@ -40,7 +40,6 @@ compute_auc_ci <- function(data,
                            spline_df = 4,
                            store = TRUE) {
   
-  
   #Validation
   if (!all(c("data", "meta", "classification") %in% names(data))) {
     stop("data must contain 'data', 'meta', and 'classification'")

@@ -132,7 +132,7 @@ qc_data <- function(data) {
     ggplot2::facet_wrap(~Plate_Type, scales = "free_x") +
     ggplot2::scale_fill_gradient(name = "Replicates") +
     ggplot2::labs(
-      title = "QC heatmap: Number of replicates = 1?",
+      title = "QC data: Number of replicates = 1?",
       subtitle = "raw_value entries of the first 5 wells",
       x = "Well",
       y = "Condition"

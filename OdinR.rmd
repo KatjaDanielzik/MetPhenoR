@@ -39,6 +39,11 @@ processed_data <- plot_growth_curve(processed_data)
 print(processed_data[["growth_curve_plots"]])
 ```
 
+#(optional)filter_data
+```{r}
+processed_data <- filter_data(processed_data, plate_type = "PM-M01")
+```
+
 #compute_auc_ci
 ```{r}
 processed_data <- compute_auc_ci(processed_data)
@@ -58,7 +63,7 @@ plot_controls_tween_all_plate(processed_data)
 
 #plot_auc
 ```{r,fig.width=15, fig.height=20}
-plot_auc(processed_data, selected_plate = "PM-M01", facet_vars = c("radiation.dose"))
+plot_auc(processed_data, selected_plate = "PM-M01", facet_vars = c("radiation.dose","inhibitor"))
 ```
 
 #compute_auc_ratio

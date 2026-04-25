@@ -58,6 +58,7 @@
 #' plot_controls_tween_per_plate(processed_data, selected_plate = "PM-M01")
 #'
 #' @export
+
 plot_controls_tween_per_plate <- function(
     data,
     selected_plate,
@@ -133,7 +134,7 @@ plot_controls_tween_per_plate <- function(
   #Compute negative control reference range
   control_ranges <- plot_df %>%
     dplyr::filter(.data$control == "negative") %>%
-    dplyr::group_by(dplyr::across(all_of(variables))) %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(variables))) %>%
     dplyr::summarise(
       control_lowest  = min(.data$AUC_low, na.rm = TRUE),
       control_highest = max(.data$AUC_high, na.rm = TRUE),
@@ -155,7 +156,7 @@ plot_controls_tween_per_plate <- function(
   
   #Label preparation
   plot_df <- plot_df %>%
-    dplyr::arrange(dplyr::across(all_of(variables)), .data$group_type, .data$Well) %>%
+    dplyr::arrange(dplyr::across(dplyr::all_of(variables)), .data$group_type, .data$Well) %>%
     dplyr::mutate(
       Chemical_label = paste0(.data$Chemical, " (", .data$Well, ")"),
       group_type = factor(
@@ -167,9 +168,9 @@ plot_controls_tween_per_plate <- function(
   #unique reference values
   ref_df <- dplyr::distinct(
     plot_df,
-    dplyr::across(all_of(variables)),
-    control_lowest,
-    control_highest
+    dplyr::across(dplyr::all_of(variables)),
+    .data$control_lowest,
+    .data$control_highest
   )
   
   #Plot
@@ -191,23 +192,23 @@ plot_controls_tween_per_plate <- function(
       values = c("negative" = 17, "positive" = 15, "Tween" = 16)
     ) +
     
-    # Negative control reference range
-  ggplot2::geom_vline(
-    data = ref_df,
-    ggplot2::aes(xintercept = .data$control_lowest),
-    linetype = "dashed"
-  ) +
+    ggplot2::geom_vline(
+      data = ref_df,
+      ggplot2::aes(xintercept = .data$control_lowest),
+      linetype = "dashed"
+    ) +
+    
     ggplot2::geom_vline(
       data = ref_df,
       ggplot2::aes(xintercept = .data$control_highest),
       linetype = "dashed"
     ) +
     
-    # Shaded control region
-    geom_rect(
-      aes(
-        xmin = control_lowest,
-        xmax = control_highest,
+    ggplot2::geom_rect(
+      data = ref_df,
+      ggplot2::aes(
+        xmin = .data$control_lowest,
+        xmax = .data$control_highest,
         ymin = -Inf,
         ymax = Inf
       ),
@@ -216,7 +217,6 @@ plot_controls_tween_per_plate <- function(
       alpha = 0.05
     ) +
     
-    # Zero reference line
     ggplot2::geom_vline(
       xintercept = 0,
       color = "blue",
