@@ -130,9 +130,13 @@ qc_data <- function(data) {
   ) +
     ggplot2::geom_tile(color = "grey70") +
     ggplot2::facet_wrap(~Plate_Type, scales = "free_x") +
-    ggplot2::scale_fill_gradient(name = "Replicates") +
+    ggplot2::scale_fill_gradient(name = "n observations") +
     ggplot2::labs(
+<<<<<<< HEAD
       title = "QC data: Number of replicates = 1?",
+=======
+      title = "QC heatmap: Number of observations = 1?",
+>>>>>>> 4922297b68876cf225c3389cefdd6cb0a77a88da
       subtitle = "raw_value entries of the first 5 wells",
       x = "Well",
       y = "Condition"

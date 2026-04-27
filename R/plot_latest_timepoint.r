@@ -5,7 +5,7 @@
 #' 96-well plate layout.
 #'
 #' Each plot represents a single experimental condition and displays wells as
-#' spatially arranged points, colored according to their measured value at the
+#' spatially arranged points, colored according to their measured OD at the
 #' final time point.
 #'
 #' @param data A named list produced by \code{read_folder()}, containing:

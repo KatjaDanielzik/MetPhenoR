@@ -11,7 +11,7 @@
 #'     \item{classification}{Well-level annotations (must include
 #'     \code{well_summary}).}
 #'   }
-#' @param target_curve_type Character string specifying which curve type to include
+#' @param target_curve_type Character vector specifying which curve types to include
 #'   (default: \code{"growing"}).
 #' @param n_boot Integer. Number of bootstrap replicates (default: 1000).
 #' @param spline_df Integer. Degrees of freedom for natural spline fitting
@@ -38,11 +38,19 @@ compute_auc_ci <- function(data,
                            target_curve_type = "growing",
                            n_boot = 1000,
                            spline_df = 4,
+<<<<<<< HEAD
                            store = TRUE) {
+=======
+                           store = TRUE){
+>>>>>>> 4922297b68876cf225c3389cefdd6cb0a77a88da
   
   #Validation
   if (!all(c("data", "meta", "classification") %in% names(data))) {
     stop("data must contain 'data', 'meta', and 'classification'")
+  }
+  
+  if (!all(target_curve_type %in% c("growing","OD_drop","slow_growing","flat_low"))) {
+    stop("target_curve_type can only be 'growing', 'OD_drop', 'slow_growing' or 'flat_low' or a combination of these")
   }
   
   if (!"well_summary" %in% names(data$classification)) {
@@ -60,7 +68,7 @@ compute_auc_ci <- function(data,
     well_summary,
     by = c(variables, "Plate Type", "Well")
   ) %>%
-    dplyr::filter(.data$curve_type == target_curve_type)
+    dplyr::filter(.data$curve_type %in% target_curve_type)
   
   #Check required columns
   if (!all(c("Chemical", "control") %in% colnames(combined_df))) {

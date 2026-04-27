@@ -1,7 +1,7 @@
 ---
 title: "OdinR"
-author: "willson"
-date: "2026-04-21"
+author: "Katja Danielzik"
+date: "2026-04-23"
 output: html_document
 ---
 
@@ -9,96 +9,450 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#qc_data
+!!! scale color viridis
+
+# Aim of this package
+The application of high-throughput metabolic phenotyping with Odin Biolog to 
+mammalian cell cultures is still new. Therefore, it is still for example unclear 
+what the implications of the results are, what influences the medium and handling 
+might have, and if and how cell growth has to be taken into account in the 
+interpretation of the results.
+
+This package aims to provide:
+- a simple read in of Odin *RawReads* and corresponding *PlateInfo* files into R with noise correction of OD at 590nm with OD at 740nm as advised by Biolog for mammalian phenotyping (under the assumption of adherent cell cultures the OD at 740nm does not provide information about the cell growth)
+- quality control plots to facilitate identification of unexpected optical density (OD) curves
+- filtering of specific curve types or 96-well plates before further analysis
+- calculation of Area under Curve (AUC) as one summary metric of a curve
+- normalization of Area under Curve to the mean of the control wells on the same 96-well plate
+- different visualizations of AUC and normalized AUC to provide and idea about variation
+- annotation of Chemicals and additional information (e.g. KEGG information for metabolic plates)
+to Well and PlateTypes 
+- Annotated heatmaps and summary visualizations of normalized AUC values
+
+What this package **can not do**:
+- be applied to metabolic phenotyping of bacteria. In suspension cell cultures
+the OD at 740nm can provide information about cell growth. 
+- Accounting for different curve types in analysis. Very different OD curves can
+have the same AUC
+- Taking cell growth into account
+- provide interpretation of results, i.e. many "hits" in one metabolic module
+do not imply that this module is especially active, is just says the the optical
+density was overall higher or lower in these wells than in the mean of the control wells.
+
+# Important to know
+The *read_folder* function will read **all** files in this folder and all subdirectories
+of the specified folder.
+
+- Explain dye
+
+# Workflow
+## Preparation
+OdinR is able to analyze Raw Reads from different experiments together. Up to 
+four different variables (e.g. cell line, radiation dose, inhibitor treatment, time points)
+are relatively easy to visualize. More variables still can be analyzed but some
+visualizations may be harder to interpret at a glance.
+
+To prepare your data for read in :
+- copy all your RawReads.csv and corresponding PlateInfo.csv files to one (new) folder
+- pick one column (or create a new one) in PlateInfo (e.g. the "Description") and enter your variable
+information in this format "variable1_variable2_variable3" (i.e H460_CT_2h)
+if this was not already done in the setup of the Odin runs. Make sure **all
+PlateInfo files have the same order of variables** and that there are **no spaces in this column**.
+Additionally R is **case sensitive**, meaning *a* and *A* are not the same and
+will lead to problems.
+
+## Data read with read_folder() function
+
+Needed user information:
+- path: the location of your folder on your machine (for windows in this format "C:\Folder", for Linux "~/Folder)
+- variables: the order and name of your variables in your experiment
+- sample_column: the column name you stored your experiment information in (e.g H460_0Gy_RMC2363_2h) in the PlateInfo files
+
+What follows next is the R code and the corresponding output.
+We included example data in this package to be able to demonstrate the workflow.
+Everything following a "#" in code are comments that should help understand what
+the code does. 
+
 ```{r}
-data("processed_data")
-qc_data(processed_data)
+data("RawRead") # load example RawRead file stored in OdinR
 ```
 
-#plot_latest_timepoint
+If you are using RStudio an object (data frame) should now be loaded to the 
+Environment tab. You can click on it's name to inspect the dataframe or type
+
+```{r}
+head(RawRead) 
+```
+
+which prints the first rows of the dataframe to your console.
+
+Let's look at the corresponding example PlateInfo.csv file.
+
+```{r}
+data("PlateInfo") # loads PlateInfo example file from OdinR
+head(PlateInfo) # shows first few rows of PlateInfo dataframe
+```
+
+In this example file the column *Sample* contains the experimental information.
+
+```{r}
+head(PlateInfo$Sample) # shows first few rows of column storing experimental information
+```
+
+
+In the next I show an example code to load you data from a folder named "Odin" on drive A:
+and assign it to an object called *data*. 
+
+```{r}
+# data <- read_folder(data_path = "A:/Odin", # folder path
+#                    sample_column = "Sample", # which column in PlateInfo contains experimental information
+#                    variables = c("cell.line","condition","time.h") # sets the variable names for the following workflow)
+```
+
+This function does five things:
+- Read all RawRead and PlateInfo files
+- annotation (i.e. joining the information) the experimental condition from PlateInfo to RawReads
+- conduct noise correction: calculate OD at 590nm - OD at 740nm and store result in column "diff_OD_590_740"
+- create a list of dataframes that are combined in one object with elements: *data* containing the processed RawReads and PlateInfo files, and *meta* containing the provided user information about original file path, variable names and original column name containing experimental information.
+
+Let's load an example of multiple processed RawReads and PlateInfo files and look
+at the different elements:
+
+```{r}
+data("processed_data") # load example output of read_folder() function
+
+head(processed_data$data) # show first lines of element "data" in object "processed_data"
+```
+You will find that you set *variables* are now not only stored in your *sample_column*
+but also separate variables. This comes in especially handy for custom analysis
+and visualization. 
+
+```{r}
+processed_data$meta  # display meta information: folder path, sample column, variables
+```
+
+Now that our data is read in let's check if we read in the data correctly.
+
+## Check data read in with qc_data() function
+The qc_data() function returns a ggplot object (i.e. a plot) with:
+-  x-axis: the first four Wells (metabolic plates have three, anti-cancer drug plates four control Wells) of the 96-Well plate
+- y-axis: all distinct entries in the user provided *sample_column*
+- panels: all distinct Plate Types in the read in folder
+- color: number of distinct OD curves per well 
+
+```{r}
+qc_data(processed_data) # execute function qc_data() on read in data stored in object "processed_data" to create plot
+```
+
+In this plot you cannot only spot if the noise correction worked correctly (we expect 1 "Replicate" if noise correction of 590nm-740nm went correctly, otherwise: >1) but also see if the
+read in data contains everything that we expect it to do:
+- y-axis: Do we have all expected combinations of experimental variables (and only these without duplicates e.g. caused by spaces)
+- panels: Do we see all expected PlateTypes?
+- color: are all expected fields blue? Grey color would (e.g. in PM-M02 in one row) indicate no corresponding entries. You might have missed RawReads or PlateInfo files or there is a problem in your variable specifications. 
+
+## Get a first overview of you experiment: plot_latest_timepoint()
+To get a first overview we first visualize the lastest time point (i.e. end of 
+Odin read) in 96-well format. These plots should roughly represent how your
+Odin plate looks like after the OD recording. In the title the specific experiment
+is automatically labelled and one plot is created per distinct 96-well plate
+in the read in data:
+
 ```{r, fig.width=8, fig.height=6}
 plot_latest_timepoint(processed_data)
 ```
 
-#annotate_chemical
+## Annotate Chemicals to PlateType and Well with annotate_chemical()
+To be able to conduct custom analysis and for the following steps of the workflow
+we need to assing the name of the Chemical to the corresponding PlateType and Well.
+This package contains the annotations for metabolic plates PM-M01 and PM-M02 (data("PM_M01_M02")) and
+anti-cancer drug plates PM-M11 to PM-M14 (data("PM_M11_M14")). 
+
 ```{r}
-data("PM_M01_M02")
-processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
-head(processed_data$data)
+data("PM_M01_M02") # load annotation file for PM-M01 and PM-M02
+head(PM_M01_M02) # inspect for few rows
+processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02) # annotate Chemical Information
+head(processed_data$data) 
 ```
 
-#classify_growth_curve_types
+Two columns were added: *Chemical* and *control*. *Chemical* is the metabolite or anti-cancer drug name
+and *control* is the automatic classification for metabolic and anti-cancer-drug plates if the Chemical is
+a control Well or not: negative = "Negative Control" or "No Chemical", 
+                      positive = "a-D-Glucose" or "D-(+)-Glucose"  (we expect high metabolic activity with Glucose)
+                      
+If you want your annotated data at this point e.g. for further analysis with other
+software you can write a csv file with:
+
 ```{r}
-processed_data <- classify_growth_curve_types(processed_data)
+# write.csv(processed_data$data,  # just stores the dataframe but not meta information about original file path
+#          file = "A:\results")  # your file path
+```
+
+If you want to store your complete object to keep the meta information (i.e. original folder path, ...)
+you can store as an .RData object that only can be read by R.
+```{r}
+# save(processed_data$data,
+#     file = "A:\results")
+```
+                      
+### Custom annotation files
+If you custom Odin plates or use other plate types than incorporated in this package
+you can also create and use your custom annotation.
+For this create a .csv file (in Excel with "Export as") with at least three columns
+names *Plate Type*, *Well* and *Chemical*. Make sure you are using exactly these
+names (upper case, no additional blanks).
+
+```{r}
+# instal needed package
+# if (!require("readr", quietly = TRUE)) {
+#  install.packages("readr")
+# }
+
+# load custom annotation
+# custom <- read_csv("A:/myfile.csv")
+# processed_data <- annotate_chemical(processed_data, annotation = custom)
+```
+
+
+## Quality control of OD curves
+In previous experiments we have observed unexpected curve types like drops in OD
+after an initial OD increase, and wells we nearly to no increase of OD over time at all. 
+The classify_growth_curve_types() functions aims to facilitate and over view of the OD curves and enable the
+user to make an informed decision whether to omit a complete 96-well plate and/or
+certain curve types from further analysis. 
+
+Classify_growth_curves() adds an element *classification* to the our object
+*processed_data*. The classification of OD curves can be tweek with parameters.
+For details type ?classify_growth_curve_types in R or
+click on the function name and press F1, which opens the help page.
+```{r}
+processed_data <- classify_growth_curve_types(processed_data) # classify growth curves
 head(processed_data$classification)
 ```
 
-#plot_growth_curve
-```{r, fig.width=15, fig.height=7}
-processed_data <- plot_growth_curve(processed_data)
-print(processed_data[["growth_curve_plots"]])
+The classification can visualized with the plot_growth_curve() function, that 
+creates one plot per 96-well plate:
+```{r}
+plot_growth_curve(processed_data)
 ```
 
+<<<<<<< HEAD
 #(optional)filter_data
 ```{r}
 processed_data <- filter_data(processed_data, plate_type = "PM-M01")
 ```
 
 #compute_auc_ci
+=======
+!!! growth curves colored by well not by growth curve type
+
+On the left side of the plot is an overview of the 96-well plate where the color
+per well indicates the curve type. On the right is one panel with the individual
+OD curves that fall in one of the categories that is not "growing" in which color
+indicates the Well.
+
+You can choose to store these plots in your "processed_data" object (for 
+documentation) by setting assigning the results to your object. This creates a
+new element in *processed_data* called *growth_curve_plots*, in which every
+distinct plate is stored seperately with it corresponding name compounded of 
+the experimental variables and the plate type.
+
+>>>>>>> 4922297b68876cf225c3389cefdd6cb0a77a88da
 ```{r}
-processed_data <- compute_auc_ci(processed_data)
+processed_data <- plot_growth_curve(processed_data) # store plots 
+processed_data$growth_curve_plots$`74158M4_0Gy_RMC6236_2h_PM-M01` # just show one plot
+```
+
+If you make the decision to omit a complete 96-well plate (e.g. due to flat_low
+OD curves in the control Well, unexplainable OD drops) the function filter_data()
+can remove one plate from processed_data
+
+!!! check if function does what is does and adapt documentation to which plates
+to omit
+
+```{r}
+#!!!processed_data <- filter_data(processed_data)
+```
+
+
+## Summarize curves to Area under Curve (AUC)
+If we have filtered our data we can proceed with computing the AUCs per Well.
+The compute_auc_ci() function may run for a couple seconds depending on the size
+of your dataset and stores the results in the element *auc_results* in object
+*processed_data*. 
+
+Depending on your inspection of the curve types and after potentially omitting
+complete plates from analysis you can decide which curve types to keep.
+In our example data set I demonstrate how to omit the curves with OD drops.
+
+```{r}
+processed_data <- compute_auc_ci(processed_data, 
+                                 target_curve_type = c("growing","flat_low","slow_growing")) # keep these curve types for AUC calculation
 head(processed_data$auc_results)
 ```
 
+The column *AUC* contains the Area under Curve per Well, AUC_low and AUC_high
+correspond to the 95% confidence interval of the AUC, derived from bootstrapping 
+the AUC algorithm.
 
-#plot_controls_tween_per_plate
+This result can again be exported to csv for analysis or visualization with 
+other software.
+
 ```{r}
-plot_controls_tween_per_plate(processed_data, selected_plate = "PM-M01")
+# write.csv(processed_data$auc_results,file="A:\results")
 ```
 
-#plot_controls_tween_all_plate
+## Overview visualizations of AUC results in control wells
+To get an idea about the variance of control wells (and wells containing Tween) of the same biological condition
+between different 96-well plates (e.g. Control wells on PM-M01 and PM-M02) 
+we can employ the function plot_controls_tween_all_plate(). In case of anti-cancer-drug plates only the control wells are displayed. If you used custom annotation and labelled your control wells
+as either "Negative Control" or "No Chemical" they will be displayed here.
+
 ```{r}
 plot_controls_tween_all_plate(processed_data)
 ```
 
+<<<<<<< HEAD
 #plot_auc
 ```{r,fig.width=15, fig.height=20}
 plot_auc(processed_data, selected_plate = "PM-M01", facet_vars = c("radiation.dose","inhibitor"))
+=======
+This returns a plot with:
+- x-axis: AUC per Well
+- y-axis: Control wells or wells containing Glucose or Tween, in case of anti-cancer drug plates: only control wells
+- x-axis panels: experimental conditions
+- y-axis panels: experimental conditions
+- symbol of points: type of control Well
+- color of points: Plate Type
+- dashed vertical lines: range between minimum OD of *Negative Control* or *No Chemical* over all measured wells and maximum OD
+
+In the upper right panel in this case we can spot that the variance between control
+wells of different plates is higher for 0Gy 2h RMC6236 than in the other biological
+conditions. This is also true for variance in AUC of the Glucose Wells in this panel on PM-M01 (red squares)
+
+If we want to get a first glimpse on how the AUCs of different biological conditions
+compare on the same plate we can use the plot_control_tween_per_plate() function.
+
+```{r}
+plot_controls_tween_per_plate(processed_data, 
+                              selected_plate = "PM-M01") # which Plate Type to compare
+>>>>>>> 4922297b68876cf225c3389cefdd6cb0a77a88da
 ```
 
-#compute_auc_ratio
+In the above plot we can e.g. see that the variance of control wells is comparably
+small in all biological conditions, but that the AUCs in Wells containing Glucose
+differ between conditions (low for none, 2h, 5Gy and high for RMC6236, 2h, 0Gy).
+
+## Visualization of AUC per plate
+After we inspected the variance of the control Wells we can proceed with visualizing
+all Wells on one plate type in all biological conditions:
+
+!!! This should work differently: if only provided one variable it goes on x-axis panels
+
+```{r,fig.width=15, fig.height=20}
+plot_auc(processed_data, 
+         selected_plate = "PM-M01",
+         facet_vars = c("radiation.dose","inhibitor")) # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
+```
+
+## Normalize AUC to AUC ratios
+The above visualization quickly does not scale efficiently anymore. One way to
+facilitate comparison of more conditions it to normalize the AUC to the mean
+of the control wells of the respective 96-well plate.
+We can do this with the function processed_data(). The results are stored in
+element *auc_ratio* results of *processed_data*
+
 ```{r}
 processed_data <- compute_auc_ratio(processed_data)
 head(processed_data$auc_ratio)
 ```
 
-#annotate_metadata
+The AUC ratios can of course be exported for to a csv file with:
+```{r}
+# write.csv(processed_data$auc_ratio)
+```
+
+We can visualize the AUC ratios as a heatmap with plot_auc_ratio_heatmap().
+Depending on which biological conditions you want to compare you can set the
+*x_var* argument to the variable that should be displayed on the x-axis.
+
+```{r, fig.width=8, fig.height=12}
+plot_auc_ratio_heatmap(processed_data, 
+                       plate_type = "PM-M01", # which plate type to visualize
+                       x_var = "radiation.dose") # which variable should go on x-axis, all other go in x-axis panels
+```
+
+Missing values due to filtering or dropping of OD curve types will be displayes in grey.
+
+In some cases, e.g. very strong signal from Glucose making distinction of other Wells impossioble, it might be helpful to display the AUC ratio on the log-scale. Please not that
+this distorts your perception of results with higher visual emphasis on small AUC ratios compared to natural scale.
+
+```{r}
+plot_auc_ratio_heatmap(processed_data, 
+                       plate_type = "PM-M01", 
+                       x_var = "radiation.dose",
+                       scale_type = "log10" # switch from natural to log10 scale
+                       ) 
+```
+
+
+## Annotation of metadata
+If we do not only want to visualize per plate type but leverage the fact that
+metabolite or drugs on different plates might belong to the same group we can
+annotate metadata. In case of the metabolic plates PM-M01 and PM-M02 OdinR
+contains the annotation of metabolites to different hierarchies (module_name = pathway plus different hierarchical orders of pathways) of the KEGG database. 
+
+```{r}
+head(PM_M01_M02)
+```
+
+In case of plates PM-M11 to PM-14 it contains various information from *Affected Pathway to Clinical Status*.
+
+We can annotate the metadata with:
 ```{r}
 processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
 ```
 
-#plot_auc_ratio_heatmap
-```{r, fig.width=8, fig.height=12}
-plot_auc_ratio_heatmap(processed_data, 
-                       plate_type = "PM-M01", 
-                       x_var = "radiation.dose")
-```
+This adds additional columns to the element *auc_ratio* of *processed_data*, which
+can be exported as previously shown.
+In case of custom annotation you just need a dataframe with one column named *Chemical*
+and as many columns containg information on the Chemicals as needed.
 
-#plot_auc_ratio_by_pathway
+## Grouped heatmap per group
+!!! change pathway -> group, pathway_var -> group_var, pathway_filter -> group_filter
+We can now group or heatmap by any column of the metadata that we find suitable.
+In case of many distinct entries in our chosen column it might be helpfull to 
+only display certain entries in one specific plot. We can again choose the x-axis variable
+and whether we want to display the AUC ratio on the natural or log10 scale.
+
 ```{r}
 plot_auc_ratio_by_pathway(processed_data, 
-                          pathway_var = "middle_hierarchy", 
-                          x_var = "radiation.dose", 
-                          pathway_filter = "Nucleotide metabolism")
+                          pathway_var = "middle_hierarchy", # column in metadata
+                          x_var = "radiation.dose",
+                          pathway_filter = "Nucleotide metabolism") # which entries in pathway_var to display
 ```
 
-#plot_auc_ratio_violin
+Another summary visualization are violin plots implemented in function
+plot_auc_ratio_violin() which makes comparisons of AUC ratios of many groups at the same time
+possible. In this plot we use the information which metabolite or drug belongs to 
+which point in the violin, but for detailed inspection the heatmaps are available.
+
 ```{r}
 plot_auc_ratio_violin(processed_data, 
                       pathway_var = "middle_hierarchy", 
-                      pathway_filter = "Nucleotide metabolism", 
-                      color_var = "radiation.dose")
+                      color_var = "radiation.dose") # which variable should be displayed on color scale
 ```
 
+We now have the AUC ratio on the x-axis and every point represents one metabolite/drug
+associated with the group on the y-axis. We can choose the variable that will be color
+coded and all other experimental variables are displayed in the x-axis facets.
+We can also again switch from natural to log-scale.
+
+```{r}
+plot_auc_ratio_violin(processed_data, 
+                      pathway_var = "middle_hierarchy", 
+                      color_var = "inhibitor",
+                      scale_type = "log10"
+                      ) # which variable should be displayed on color scale
+```
 
 
