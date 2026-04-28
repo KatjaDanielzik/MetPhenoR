@@ -13,3 +13,4 @@ doc/*
 *.Rproj
 Meta/*
 /doc/
+inst/doc

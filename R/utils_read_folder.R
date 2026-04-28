@@ -72,6 +72,7 @@
   OD <- NULL
   `590` <- NULL
   `740` <- NULL
+  Id <- NULL
   
   # store all ID variables
   temp <- x%>%dplyr::select(-c(Wavelength,A01:H12,Id))%>%

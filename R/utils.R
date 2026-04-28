@@ -48,6 +48,7 @@
       low = "white",
       high = "purple",
       limits = c(0, 3.2),            
+      breaks = seq(0, 3.2, by = 0.8), 
       oob = scales::squish           
     ) +
     ggplot2::coord_fixed() +

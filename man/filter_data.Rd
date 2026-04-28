@@ -2,25 +2,39 @@
 % Please edit documentation in R/filter_data.r
 \name{filter_data}
 \alias{filter_data}
-\title{Filter Combined Experimental Data}
+\title{Exclude 96-well plate}
 \usage{
-filter_data(data, plate_type, filters = list())
+filter_data(data, plate_type, filters = NULL)
 }
 \arguments{
-\item{data}{A data frame.}
+\item{data}{A structured list containing:
+\describe{
+\item{data}{A data frame of raw OD time-series measurements.}
+\item{meta}{Metadata including grouping variables.}
+\item{classification}{Well-level annotations (must include
+\code{well_summary}).}
+}}
 
-\item{plate_type}{Character vector of Plate Type values to keep.}
+\item{plate_type}{Character vector of Plate Type to exclude in combination with filters}
 
-\item{filters}{Named list of filtering conditions.}
+\item{filters}{Named list of filtering conditions that should be excluded in plates with 'plate_type'.
+E.g. list(radiation.dose="0Gy",time.h="2h"),
+were list elements have to be the user provided 'variables' \code{\link[=read_folder]{read_folder()}}}
 }
 \value{
-Filtered data frame.
+Filtered data$data element.
 }
 \description{
-Filters a dataset by Plate.Type and additional user-defined conditions.
+Excludes one 96-well plate specified by plate_type and filters from data$data.
 }
 \examples{
 data("processed_data")
-processed_data <- filter_data(processed_data, plate_type = "PM-M01")
+#before filtering
+qc_data(processed_data)
+processed_data <- filter_data(processed_data, plate_type = "PM-M01",
+filters = list(cell.line="74158M4",
+radiation.dose="0Gy",inhibitor="RMC6236",time.h="2h"))
+# after filtering
+qc_data(processed_data)
 
 }
