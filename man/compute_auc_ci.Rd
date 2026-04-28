@@ -21,7 +21,7 @@ compute_auc_ci(
 \code{well_summary}).}
 }}
 
-\item{target_curve_type}{Character string specifying which curve type to include
+\item{target_curve_type}{Character vector specifying which curve types to include
 (default: \code{"growing"}).}
 
 \item{n_boot}{Integer. Number of bootstrap replicates (default: 1000).}

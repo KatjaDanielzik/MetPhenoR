@@ -7,7 +7,7 @@ bacteria cultures (i.e. tracking growth), for these cases this packages is not
 applicable
 
 Can read folders with subfolder structures but will read all files in this
-folder and analyze together
+folder and analyze together.
 
 <!-- badges: start -->
 <!-- badges: end -->

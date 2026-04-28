@@ -25,7 +25,7 @@ experimental conditions and visualizes the corresponding measurements in a
 }
 \details{
 Each plot represents a single experimental condition and displays wells as
-spatially arranged points, colored according to their measured value at the
+spatially arranged points, colored according to their measured OD at the
 final time point.
 
 The function performs the following steps:
