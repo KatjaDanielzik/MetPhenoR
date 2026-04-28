@@ -93,12 +93,7 @@ data("PlateInfo")
 |------|----------|
 | `No data in qc_data()` | Check for spaces in `Sample` column; ensure all files are in the folder. |
 | `Filtering didn’t work` | Double-check `plate_type` and `filters` spelling. |
-| `Plot is blank` | Check if `processed_data` contains data after filtering. |
-| `Package not found` | Ensure GitLab URL is correct and you have internet access. |
-
-email: **katja.danielzik@uni-due.de**
-
-
+| `Plot is blank` | Check if `processed_data` contains data after filtering. 
 
 ## Contact
 
