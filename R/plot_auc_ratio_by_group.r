@@ -1,15 +1,15 @@
-#' Plot AUC ratio heatmap by pathway
+#' Plot AUC ratio heatmap by group
 #'
-#' Generates a heatmap of AUC ratios grouped by a specified pathway variable,
-#' allowing visualization of treatment effects across biological pathways.
+#' Generates a heatmap of AUC ratios grouped by a specified column in annotation,
+#' allowing visualization of treatment effects across groups (e.g. pathways, drug targets).
 #'
 #' @param data A list containing a data frame element \code{auc_ratio}.
 #'   The data frame must include columns \code{"Plate.Type"}, \code{"Well"},
 #'   \code{"Chemical"}, \code{"AUC_ratio"}, and the specified pathway variable.
-#' @param pathway_var Character string specifying the column used to define pathways.
+#' @param group_var Character string specifying the column to define groups.
 #' @param x_var Character string indicating the column to be mapped to the x-axis.
-#' @param pathway_filter Optional character vector specifying pathway values
-#'   to include. If \code{NULL}, all pathways are retained.
+#' @param group_filter Optional character vector specifying group values
+#'   to include. If \code{NULL}, all groups are retained.
 #' @param scale_type Character string specifying the transformation applied to
 #'   AUC ratios. Must be one of \code{"natural"} or \code{"log10"}.
 #'
@@ -38,16 +38,16 @@
 #' processed_data <- compute_auc_ci(processed_data)
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-#' plot_auc_ratio_by_pathway(processed_data, 
-#'                           pathway_var = "middle_hierarchy",
+#' plot_auc_ratio_by_group(processed_data, 
+#'                           group_var = "middle_hierarchy",
 #'                           x_var = "radiation.dose", 
-#'                           pathway_filter = "Nucleotide metabolism")
+#'                           group_filter = "Nucleotide metabolism")
 #'
 #' @export
-plot_auc_ratio_by_pathway <- function(data,
-                                      pathway_var,
+plot_auc_ratio_by_group <- function(data,
+                                      group_var,
                                       x_var,
-                                      pathway_filter = NULL,
+                                      group_filter = NULL,
                                       scale_type = c("natural", "log10")) {
   
   
@@ -69,14 +69,14 @@ plot_auc_ratio_by_pathway <- function(data,
   column_vars <- setdiff(variables, x_var)
   
   # Convert to symbols (handles spaces safely)
-  pathway_sym <- sym(pathway_var)
+  pathway_sym <- sym(group_var)
   x_sym       <- sym(x_var)
   column_syms <- syms(column_vars)
   
   # ---- Optional pathway filtering ----
-  if (!is.null(pathway_filter)) {
+  if (!is.null(group_filter)) {
     data_df <- data_df %>%
-      dplyr::filter(!!pathway_sym %in% pathway_filter)
+      dplyr::filter(!!pathway_sym %in% group_filter)
   }
   
   # ---- Data cleaning ----
@@ -156,7 +156,7 @@ plot_auc_ratio_by_pathway <- function(data,
     ggplot2::labs(
       x = x_var,
       y = "Plate_Well_Chemical",
-      title = paste0("AUC Ratio by ", pathway_var,
+      title = paste0("AUC Ratio by ", group_var,
                      " (", scale_type, " scale)"),
       subtitle = paste0(
         "AUC ratio = AUC[well] / mean(AUC[control on plate])",

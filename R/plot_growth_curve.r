@@ -86,9 +86,7 @@ plot_growth_curve <- function(
     "OD_drop"      = "red",
     "flat_low"     = "blue",
     "growing"      = "darkgreen",
-    "slow_growing" = "orange",
-    "uncertain"    = "grey50",
-    "empty"        = "grey95"
+    "slow_growing" = "orange"
   )
   
   curve_levels <- names(curve_colors)

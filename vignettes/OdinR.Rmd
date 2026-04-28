@@ -3,7 +3,7 @@ title: "OdinR"
 author: Katja Danielzik (katja.danielzik@uni-due.de)
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{BayesVolcano}
+  %\VignetteIndexEntry{OdinR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -23,6 +23,7 @@ might have, and if and how cell growth has to be taken into account in the
 interpretation of the results.
 
 This package aims to provide:
+
 - a simple read in of Odin *RawReads* and corresponding *PlateInfo* files into R with noise correction of OD at 590nm with OD at 740nm as advised by Biolog for mammalian phenotyping (under the assumption of adherent cell cultures the OD at 740nm does not provide information about the cell growth)
 - quality control plots to facilitate identification of unexpected optical density (OD) curves
 - filtering of specific curve types or 96-well plates before further analysis
@@ -34,6 +35,7 @@ to Well and PlateTypes
 - Annotated heatmaps and summary visualizations of normalized AUC values
 
 What this package **can not do**:
+
 - be applied to metabolic phenotyping of bacteria. In suspension cell cultures
 the OD at 740nm can provide information about cell growth. 
 - Accounting for different curve types in analysis. Very different OD curves can
@@ -47,8 +49,6 @@ density was overall higher or lower in these wells than in the mean of the contr
 The *read_folder* function will read **all** files in this folder and all subdirectories
 of the specified folder.
 
-- Explain dye
-
 # Workflow
 ## Preparation
 OdinR is able to analyze Raw Reads from different experiments together. Up to 
@@ -56,7 +56,8 @@ four different variables (e.g. cell line, radiation dose, inhibitor treatment, t
 are relatively easy to visualize. More variables still can be analyzed but some
 visualizations may be harder to interpret at a glance.
 
-To prepare your data for read in :
+To prepare your data for read in:
+
 - copy all your RawReads.csv and corresponding PlateInfo.csv files to one (new) folder
 - pick one column (or create a new one) in PlateInfo (e.g. the "Description") and enter your variable
 information in this format "variable1_variable2_variable3" (i.e H460_CT_2h)
@@ -68,6 +69,7 @@ will lead to problems.
 ## Data read with read_folder() function
 
 Needed user information:
+
 - path: the location of your folder on your machine (for windows in this format "C:\Folder", for Linux "~/Folder)
 - variables: the order and name of your variables in your experiment
 - sample_column: the column name you stored your experiment information in (e.g H460_0Gy_RMC2363_2h) in the PlateInfo files
@@ -78,6 +80,7 @@ Everything following a "#" in code are comments that should help understand what
 the code does. 
 
 ```{r}
+library(OdinR)
 data("RawRead") # load example RawRead file stored in OdinR
 ```
 
@@ -103,7 +106,6 @@ In this example file the column *Sample* contains the experimental information.
 head(PlateInfo$Sample) # shows first few rows of column storing experimental information
 ```
 
-
 In the next I show an example code to load you data from a folder named "Odin" on drive A:
 and assign it to an object called *data*. 
 
@@ -114,6 +116,7 @@ and assign it to an object called *data*.
 ```
 
 This function does five things:
+
 - Read all RawRead and PlateInfo files
 - annotation (i.e. joining the information) the experimental condition from PlateInfo to RawReads
 - conduct noise correction: calculate OD at 590nm - OD at 740nm and store result in column "diff_OD_590_740"
@@ -144,7 +147,7 @@ The qc_data() function returns a ggplot object (i.e. a plot) with:
 - panels: all distinct Plate Types in the read in folder
 - color: number of distinct OD curves per well 
 
-```{r}
+```{r,fig.width=8,fig.height=4}
 qc_data(processed_data) # execute function qc_data() on read in data stored in object "processed_data" to create plot
 ```
 
@@ -216,7 +219,6 @@ names (upper case, no additional blanks).
 # processed_data <- annotate_chemical(processed_data, annotation = custom)
 ```
 
-
 ## Quality control of OD curves
 In previous experiments we have observed unexpected curve types like drops in OD
 after an initial OD increase, and wells we nearly to no increase of OD over time at all. 
@@ -228,6 +230,7 @@ Classify_growth_curves() adds an element *classification* to the our object
 *processed_data*. The classification of OD curves can be tweek with parameters.
 For details type ?classify_growth_curve_types in R or
 click on the function name and press F1, which opens the help page.
+
 ```{r}
 processed_data <- classify_growth_curve_types(processed_data) # classify growth curves
 head(processed_data$classification)
@@ -235,7 +238,7 @@ head(processed_data$classification)
 
 The classification can visualized with the plot_growth_curve() function, that 
 creates one plot per 96-well plate:
-```{r}
+```{r,fig.width=8,fig.height=6}
 plot_growth_curve(processed_data)
 ```
 
@@ -250,7 +253,7 @@ new element in *processed_data* called *growth_curve_plots*, in which every
 distinct plate is stored seperately with it corresponding name compounded of 
 the experimental variables and the plate type.
 
-```{r}
+```{r,fig.width=8,fig.height=6}
 processed_data <- plot_growth_curve(processed_data) # store plots 
 processed_data$growth_curve_plots$`74158M4_0Gy_RMC6236_2h_PM-M01` # just show one plot
 ```
@@ -261,7 +264,7 @@ can remove one plate from processed_data.
 
 Let's first recapitulate which conditions we have:
 
-```{r}
+```{r,fig.width=8,fig.height=4}
 # qc_plot for overview of plate types
 qc_data(processed_data)
 ```
@@ -281,7 +284,7 @@ processed_data <- filter_data(processed_data,
 
 We can re-use the qc_data function to check if we omitted the correct plate:
 
-```{r}
+```{r,fig.width=8,fig.height=4}
 # qc_plot for overview of plate types
 qc_data(processed_data)
 ```
@@ -321,11 +324,12 @@ between different 96-well plates (e.g. Control wells on PM-M01 and PM-M02)
 we can employ the function plot_controls_tween_all_plate(). In case of anti-cancer-drug plates only the control wells are displayed. If you used custom annotation and labelled your control wells
 as either "Negative Control" or "No Chemical" they will be displayed here.
 
-```{r}
+```{r,fig.width=8,fig.height=8}
 plot_controls_tween_all_plate(processed_data)
 ```
 
 This returns a plot with:
+
 - x-axis: AUC per Well
 - y-axis: Control wells or wells containing Glucose or Tween, in case of anti-cancer drug plates: only control wells
 - x-axis panels: experimental conditions
@@ -381,7 +385,7 @@ We can visualize the AUC ratios as a heatmap with plot_auc_ratio_heatmap().
 Depending on which biological conditions you want to compare you can set the
 *x_var* argument to the variable that should be displayed on the x-axis.
 
-```{r, fig.width=8, fig.height=12}
+```{r}
 plot_auc_ratio_heatmap(processed_data, 
                        plate_type = "PM-M01", # which plate type to visualize
                        x_var = "radiation.dose") # which variable should go on x-axis, all other go in x-axis panels
@@ -413,7 +417,7 @@ contains the annotation of metabolites to different hierarchies (module_name = p
 head(PM_M01_M02)
 ```
 
-In case of plates PM-M11 to PM-14 it contains various information from *Affected Pathway to Clinical Status*.
+In case of plates PM-M11 to PM-14 it contains various information from 'Affected Pathway' to 'Clinical Status'.
 
 We can annotate the metadata with:
 ```{r}
@@ -423,20 +427,19 @@ processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
 This adds additional columns to the element *auc_ratio* of *processed_data*, which
 can be exported as previously shown.
 In case of custom annotation you just need a dataframe with one column named *Chemical*
-and as many columns containg information on the Chemicals as needed.
+and as many columns containing information on the Chemicals as needed.
 
 ## Grouped heatmap per group
-!!! change pathway -> group, pathway_var -> group_var, pathway_filter -> group_filter
 We can now group or heatmap by any column of the metadata that we find suitable.
 In case of many distinct entries in our chosen column it might be helpfull to 
 only display certain entries in one specific plot. We can again choose the x-axis variable
 and whether we want to display the AUC ratio on the natural or log10 scale.
 
 ```{r}
-plot_auc_ratio_by_pathway(processed_data, 
-                          pathway_var = "middle_hierarchy", # column in metadata
-                          x_var = "radiation.dose",
-                          pathway_filter = "Nucleotide metabolism") # which entries in pathway_var to display
+plot_auc_ratio_by_group(processed_data, 
+                        group_var = "middle_hierarchy", # column in metadata
+                        x_var = "radiation.dose",
+                        group_filter = "Nucleotide metabolism") # which entries in pathway_var to display
 ```
 
 Another summary visualization are violin plots implemented in function
