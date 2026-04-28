@@ -148,13 +148,14 @@ processed_data$meta  # display meta information: folder path, sample column, var
 Now that our data is read in let's check if we read in the data correctly.
 
 ## Step3: Check your data with qc_data() function
-Now that the data is in, let’s **inspect it carefully**. 
+Now that the data is in, let’s **inspect it**. 
 
 ```{r,fig.width=8,fig.height=4}
 qc_data(processed_data) # execute function qc_data() on read in data stored in object "processed_data" to create plot
 ```
 
 This plot shows:
+
 - **X-axis**: First 5 wells (controls).
 - **Y-axis**: All combinations of your experimental variables.
 - **Panels**: All distinct plate types.
@@ -188,6 +189,7 @@ plot_latest_timepoint(processed_data)
 To make sense of your data, you need to know **what chemical is in each well**.
 
 The package includes built-in annotations for:
+
 - Metabolic plates: PM-M01, PM-M02 data("PM_M01-M02")
 - Anti-cancer drug plates: PM-M11 to PM-M14 data("PM_M11_M14")
 
@@ -203,8 +205,8 @@ Now you’ll see two new columns:
 - `Chemical`: e.g., "Glucose", "Lactate", "Acetate"
 - `control`: "Negative Control", "No Chemical", "positive" (Glucose)
                       
-If you want your annotated data at this point e.g. for further analysis with other
-software you can write a csv file with:
+If you want to save your annotated data at this point, e.g. for further analysis with other
+software, you can write a csv file with:
 
 ```{r}
 # write.csv(processed_data$data,  # just stores the dataframe but not meta information about original file path
@@ -221,7 +223,7 @@ you can store as an .RData object that only can be read by R.
 ### Custom annotation files
 **Want to use your own plate annotation?**  
 
-- Create a CSV with columns: `Plate Type`, `Well`, `Chemical`.  
+- Create a CSV file with columns: `Plate Type`, `Well`, `Chemical`.  
 - Use `read_csv()` and pass it to `annotate_chemical()`.
 
 ```{r}
@@ -237,6 +239,7 @@ you can store as an .RData object that only can be read by R.
 
 ## Step 6: Quality control of OD curves
 In real experiments, we’ve seen:
+
 - Unexpected OD drops after an initial rise.
 - Wells with no increase at all.
 - Flat or noisy curves.
@@ -244,7 +247,7 @@ In real experiments, we’ve seen:
 This step helps you **identify and filter** problematic curves.
 
 Classify_growth_curves() adds an element *classification* to the our object
-*processed_data*. The classification of OD curves can be tweek with parameters.
+*processed_data*. The classification of OD curves can be tweeked with parameters.
 For details type ?classify_growth_curve_types in R or
 click on the function name and press F1, which opens the help page.
 
@@ -269,7 +272,7 @@ new element in *processed_data* called *growth_curve_plots*, in which every
 distinct plate is stored separately with it corresponding name compounded of 
 the experimental variables and the plate type.
 
-*Limitation*
+**Limitation**
 As we only saw the before mentioned growth types OdinR is also only able to detect
 these. 
 
@@ -381,7 +384,7 @@ differr between conditions (low for none, 2h, 5Gy and high for RMC6236, 2h, 0Gy)
 After we inspected the variance of the control Wells we can proceed with visualizing
 all Wells on one plate type in all biological conditions:
 
-```{r,fig.width=15, fig.height=20}
+```{r,fig.width=10, fig.height=12}
 plot_auc(processed_data, 
          selected_plate = "PM-M02",
          facet_vars = c("radiation.dose")) # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
@@ -465,11 +468,12 @@ In case of many distinct entries in our chosen column it might be helpful to
 only display certain entries in one specific plot. We can again choose the x-axis variable
 and whether we want to display the AUC ratio on the natural or log10 scale.
 
-```{r,fig.width=6,fig.height=6}
+```{r,fig.width=10,fig.height=10}
 plot_auc_ratio_by_group(processed_data, 
                         group_var = "middle_hierarchy", # column in metadata
                         x_var = "radiation.dose",
-                        group_filter = "Nucleotide metabolism") # which entries in pathway_var to display
+                        group_filter = c("Nucleotide metabolism", #  which entries in 'group_var' to display
+                                         "Amino acid metabolism"))
 ```
 
 Another summary visualization are violin plots implemented in function

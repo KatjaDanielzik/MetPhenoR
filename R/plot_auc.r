@@ -250,7 +250,7 @@ plot_auc <- function(data,
       ) +
       
       ggplot2::facet_grid(
-        stats::as.formula(paste(facet_vars[1], "~", facet_vars[2])),
+        stats::as.formula(paste(facet_vars[2], "~", facet_vars[1])),
         scales = "free_y"
       ) +
       
