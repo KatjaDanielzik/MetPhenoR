@@ -139,7 +139,8 @@ plot_auc_ratio_violin <- function(data,
     ggforce::geom_sina(
       size = 0.6,
       alpha = 0.6,
-      maxwidth = 0.7
+      maxwidth = 0.7,
+      scale = "count",
     ) +
     geom_vline(
       xintercept = ifelse(scale_type == "log10", 0, 1),

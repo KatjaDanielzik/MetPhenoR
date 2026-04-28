@@ -1,6 +1,7 @@
 # OdinR
 
-The **complete workflow** including examples can be found in vignettes/OdinR.html
+The **complete workflow** including examples can be found in vignettes/OdinR.html.
+A flowchart of the package can be found in man/figures/OdinR_workflow_flowchart.png
 
 ## Installation from GitLab
 
