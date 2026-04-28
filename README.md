@@ -13,9 +13,9 @@ if (!require("remotes", quietly = TRUE)) {
 }
 
 # Install OdinR from GitLab
-remotes::install_gitlab(
-  "ada697e/odin_package",
-  ref = "final_check"  # or specify a branch/tag (e.g., "v1.0.0")
+remotes::install_git(
+    "https://git.uni-due.de/ada697e/odin_package",
+    ref = "final_check"  # or specify a branch/tag (e.g., "v1.0.0")
 )
 ```
 
