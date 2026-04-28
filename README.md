@@ -1,4 +1,6 @@
-# OdinR: 
+# OdinR
+
+The **complete workflow** including examples can be found in vignettes/OdinR.html
 
 ## Installation from GitLab
 

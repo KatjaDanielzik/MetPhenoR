@@ -12,6 +12,5 @@ src/*.h
 doc/*
 *.Rproj
 Meta/*
-/doc/
 inst/doc
 /Meta/
