@@ -38,11 +38,7 @@ compute_auc_ci <- function(data,
                            target_curve_type = "growing",
                            n_boot = 1000,
                            spline_df = 4,
-<<<<<<< HEAD
-                           store = TRUE) {
-=======
                            store = TRUE){
->>>>>>> 4922297b68876cf225c3389cefdd6cb0a77a88da
   
   #Validation
   if (!all(c("data", "meta", "classification") %in% names(data))) {
