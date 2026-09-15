@@ -8,10 +8,10 @@ read_folder(data_path, sample_column = "Description", variables)
 }
 \arguments{
 \item{data_path}{Character. Path to directory containing CSV files. At least
-one file, which name ends on "_PlateInfo.csv" containing the metadata with at
-least a column 'PlateId' and a column 'Description'
+one file, which name ends on "PlateInfo.csv" containing the metadata with at
+least a column 'PlateId' and the 'sample_column' containing the description of the experiment.
 and at least one file containing the raw Odin reads, which name end on
-"_RawReads.csv" and have at least one column 'PlateId' and columns 'A01' to
+"RawReads.csv" and have at least one column 'PlateId' and columns 'A01' to
 'H12' representing the wells of a 96-well plate.}
 
 \item{sample_column}{Character. Which column in '_PlateInfo.csv' contains the
