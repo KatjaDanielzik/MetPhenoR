@@ -24,3 +24,4 @@ wells
 - create a docker container for the package
 - publish on bioconductor (needs at least SummarizedExperiment for Integration) or CRAN?
 - include Julia's data (anonymized)
+- add NEWS file
