@@ -21,7 +21,7 @@ test_that("read_folder warns about excluded PlateIds with correct info", {
     expect_warning(read_folder(data_path = non_dir , 
                           sample_column = "Sample", 
                           variables = c("cell.line", "radiation.dose", "time.point")),
-                 "The following 'sample_column' were found in either '_PlateInfo.csv' or '_RawReads.csv' files but not in both, and were excluded:
+                 "The following 'sample_column' were found in either 'PlateInfo.csv' or 'RawReads.csv' files but not in both, and were excluded:
   - H460_CT_0Gy
   - H460_CT_4Gy
 Proceeding with only the overlapping PlateIds.") 
@@ -46,7 +46,7 @@ test_that("read_folder fails when sample_column is not in PlateInfo", {
   test_dir <-file.path(test_path(), "data", "matching")
   non_dir <- file.path(test_path(), "data", "non_matching")
   expect_error(read_folder(data_path = test_dir, sample_column = "NonExistent", variables = c("a", "b")),
-               "'sample_column' must be a column in '_PlateInfo.csv' files")
+               "'sample_column' must be a column in 'PlateInfo.csv' files")
 })
 
 test_that("read_folder fails when variables is not character", {

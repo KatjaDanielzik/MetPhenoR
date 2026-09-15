@@ -66,10 +66,11 @@ Before you can analyze anything, you need to organize your files properly.
 2. Copy **all** your `RawRead.csv` and `PlateInfo.csv` files into this folder.
 3. Open each `PlateInfo.csv` file in Excel or a text editor.
 4. Choose **one column** (e.g., `Description`, `Sample`) to store your experimental conditions.
-5. Enter your experimental conditions in this format:  
-   `H460_CT_2h`  
-   `74158M4_0Gy_RMC6236_2h`  
+5. Enter your experimental conditions in this format:
+   `variable1_variable2_variable3`
+   e.g. `H460_control_2h`  
    → Use **underscores**, **no spaces**, and **consistent capitalization**.
+   Keep a **consistent** order of the variables 
 
 Why? Because `read_folder()` splits this column into separate variables (e.g., `cell.line`, `condition`, `time.h`) — and if the format is inconsistent, it will fail or create duplicates.
 
