@@ -1,3 +1,44 @@
+#' Read "PlaateInfo" and "RawReads" file robustly for "," and ";" separated
+#'
+#' @param x file name
+#' @param sample_column Character. Which column in 'PlateInfo.csv' contains the
+#' 'Description' (i.e. the Character vector that should be split according to 'variables')
+#' 
+#' @returns returns a read in file
+#' @keywords internal
+#' @importFrom readr read_delim
+.read_with_fallback_delimiter_with_warning <- function(x,...) {
+    # Try reading with comma delimiter
+    data_comma <- tryCatch({
+      readr::read_delim(x, delim = ",", col_names = TRUE,...)
+    }, error = function(e) NULL)
+    
+    # Check if comma reading succeeded and column exists
+    if (!is.null(data_comma) && "PlateId" %in% names(data_comma)) {
+      file <- data_comma
+    }
+    
+    # Try semicolon delimiter
+    data_semicolon <- tryCatch({
+      readr::read_delim(x, delim = ";", col_names = TRUE,...)
+    }, error = function(e) NULL)
+    
+    # Check if semicolon reading succeeded and column exists
+    if (!is.null(data_semicolon) && "PlateId" %in% names(data_semicolon)) {
+      file <- data_semicolon
+    }
+    
+    # If both fail, issue a warning
+    if(!is.data.frame(file)){
+    warning(paste0("File '", x, "' was not successfully read. ",
+                   "Please ensure the file is either comma- or semicolon-separated."))
+    }
+    
+    return(file)
+}
+
+
+
 #' Align timestamps 'Read At' between 590 nm and 740 nm
 #' 
 #' Takes timestamps from Wavelength == 590 and writes them to the corresponding 740nm entries

@@ -7,10 +7,10 @@
 #' calculates '590 nm' - '740 nm' for noise correction as advised by Biolog.
 #'
 #' @param data_path Character. Path to directory containing CSV files. At least 
-#' one file, which name ends on "_PlateInfo.csv" containing the metadata with at
-#' least a column 'PlateId' and a column 'Description'
+#' one file, which name ends on "PlateInfo.csv" containing the metadata with at
+#' least a column 'PlateId' and the 'sample_column' containing the description of the experiment.
 #' and at least one file containing the raw Odin reads, which name end on 
-#' "_RawReads.csv" and have at least one column 'PlateId' and columns 'A01' to
+#' "RawReads.csv" and have at least one column 'PlateId' and columns 'A01' to
 #' 'H12' representing the wells of a 96-well plate.
 #' @param sample_column Character. Which column in '_PlateInfo.csv' contains the
 #' 'Description' (i.e. the Character vector that should be split according to 'variables')
@@ -100,18 +100,29 @@ read_folder <- function(data_path, sample_column = "Description", variables) {
                       recursive = TRUE,
                       full.names = TRUE)
   # detect metadata in PlateInfo files
-  PlateInfo <-   files[stringr::str_detect(string = files, pattern = "_PlateInfo.csv")]
+  PlateInfo <-   files[stringr::str_detect(string = files, pattern = "PlateInfo.csv")]
   # read in Plate Info files
-  PlateInfo <- lapply(PlateInfo,readr::read_csv)
+  PlateInfo <- lapply(PlateInfo,.read_with_fallback_delimiter_with_warning,
+                      trim_ws = TRUE)
+  
+  # check if any PlateInfo column is double
+  PlateInfo <- lapply(PlateInfo, function(df) {
+    # Convert all numeric columns (including double) to character
+      if (is.double(df$Sample)) {
+        df$Sample <- as.character(df$Sample)
+      }
+    return(df)
+  })
+  
   PlateInfo <- purrr::list_rbind(PlateInfo)
   
   if (!sample_column %in% names(PlateInfo)) {
-    stop("'sample_column' must be a column in '_PlateInfo.csv' files")
+    stop("'sample_column' must be a column in 'PlateInfo.csv' files")
   }
   
   # detect raw 
-  RawReads <- files[stringr::str_detect(string = files, pattern ="_RawReads.csv")]
-  RawReads <- lapply(RawReads,readr::read_csv)
+  RawReads <- files[stringr::str_detect(string = files, pattern ="RawReads.csv")]
+  RawReads <- lapply(RawReads,.read_with_fallback_delimiter_with_warning)
 
   # align time stamps, calculate delta starttime and noise correct OD
   RawReads <- lapply(RawReads,.adjust_timestamp)
@@ -141,7 +152,7 @@ read_folder <- function(data_path, sample_column = "Description", variables) {
       dplyr::arrange(PlateId)
     
     warning(
-      "The following 'sample_column' were found in either '_PlateInfo.csv' or '_RawReads.csv' files but not in both, and were excluded:\n",
+      "The following 'sample_column' were found in either 'PlateInfo.csv' or 'RawReads.csv' files but not in both, and were excluded:\n",
       paste0("  - ", paste(paste0(unique(excluded_info[[sample_column]], ")")), collapse = "\n  - ")),
       "\nProceeding with only the overlapping PlateIds."
     )

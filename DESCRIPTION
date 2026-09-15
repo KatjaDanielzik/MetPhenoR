@@ -1,6 +1,6 @@
 Package: OdinR
 Title: Quality Control and AUC visualizations of Phenotype Microarray Data created by Odin Biolog
-Version: 0.0.0.001
+Version: 0.0.0.2
 Authors@R: 
   c(person(given="Katja",family= "Danielzik", email="katja.danielzik@uni-due.de", 
            role = c("aut", "ctb"),
