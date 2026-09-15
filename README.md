@@ -36,33 +36,7 @@ Before analyzing your data:
 
 ---
 
-## Quick Start: Your First Analysis
-
-```r
-# Load the package
-library(OdinR)
-
-# Load example data (to test the workflow)
-data("RawRead")
-data("PlateInfo")
-
-# Read your data (replace path with your own)
-# data <- read_folder(
-#   data_path = "A:/Odin_Analysis",
-#   sample_column = "Sample",
-#   variables = c("cell.line", "condition", "time.h")
-# )
-
-# Run the full workflow:
-# 1. QC: qc_data(data)
-# 2. Plot final timepoint: plot_latest_timepoint(data)
-# 3. Annotate chemicals: processed_data <- annotate_chemical(data, annotation = PM_M01_M02)
-# 4. Classify curves: processed_data <- classify_growth_curve_types(processed_data)
-# 5. Filter bad plates: processed_data <- filter_data(processed_data, plate_type = "PM-M01", filters = list(...))
-# 6. Compute AUC: processed_data <- compute_auc_ci(processed_data)
-# 7. Normalize: processed_data <- compute_auc_ratio(processed_data)
-# 8. Visualize: plot_auc_ratio_heatmap(processed_data, plate_type = "PM-M01", x_var = "condition")
-```
+## Quick Start: For your first workflow please refer to the Vignette 
 
 **All functions are documented** — type `?function_name` in R to see help pages.
 
