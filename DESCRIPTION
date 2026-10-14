@@ -1,6 +1,6 @@
 Package: OdinR
 Title: A Transparent Analysis Pipeline for Mammalian Odin Biolog Data
-Version: 0.0.0.2
+Version: 0.0.0.3
 Authors@R: 
   c(person(given="Katja",family= "Danielzik", email="katja.danielzik@uni-due.de", 
            role = c("aut", "cre"),
