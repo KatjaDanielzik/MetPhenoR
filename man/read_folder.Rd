@@ -4,7 +4,7 @@
 \alias{read_folder}
 \title{Process CSV Plate Data stored in folder into data frame in long format}
 \usage{
-read_folder(data_path, sample_column = "Description", variables)
+read_folder(data_path, sample_column, variables)
 }
 \arguments{
 \item{data_path}{Character. Path to directory containing CSV files. At least

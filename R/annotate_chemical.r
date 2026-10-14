@@ -49,6 +49,8 @@ annotate_chemical <- function(
     control_map = list( negative = c("Negative Control", "No Chemical"), 
                         positive = c("a-D-Glucose", "D-(+)-Glucose") ) ) {
   
+  Chemical <- NULL
+  
   # ---- Validate input structure ----
   if (!("data" %in% names(data))) {
     stop("'data' must contain a 'data' element.")

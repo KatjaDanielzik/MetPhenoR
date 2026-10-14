@@ -8,9 +8,6 @@
 }
 \arguments{
 \item{x}{file name}
-
-\item{sample_column}{Character. Which column in 'PlateInfo.csv' contains the
-'Description' (i.e. the Character vector that should be split according to 'variables')}
 }
 \value{
 returns a read in file

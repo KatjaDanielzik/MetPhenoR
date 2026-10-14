@@ -25,8 +25,8 @@
 #' #before filtering
 #' qc_data(processed_data)
 #' processed_data <- filter_data(processed_data, plate_type = "PM-M01",
-#' filters = list(cell.line="74158M4",
-#' radiation.dose="0Gy",inhibitor="RMC6236",time.h="2h"))
+#' filters = list(cell.line="A",
+#' treatment="treatment",inhibitor="inhibitor",time="2h"))
 #' # after filtering
 #' qc_data(processed_data)
 #' 

@@ -1,9 +1,6 @@
 #' Read "PlaateInfo" and "RawReads" file robustly for "," and ";" separated
 #'
 #' @param x file name
-#' @param sample_column Character. Which column in 'PlateInfo.csv' contains the
-#' 'Description' (i.e. the Character vector that should be split according to 'variables')
-#' 
 #' @returns returns a read in file
 #' @keywords internal
 #' @importFrom readr read_delim
