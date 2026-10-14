@@ -1,8 +1,3 @@
-# bug report by Rohit
-cannot read in data -> implement robust read in of all separators via
-read_delim
-solved in 0.0.2
-
 # annotate_chemical
 add warning message if nothing was annotated (e.g. wrong annotation file)
 
@@ -31,4 +26,3 @@ wells
 - create a docker container for the package
 - publish on CRAN?
 - announce package in GRK, announce doi to co-authors and add doi to ORCID
--

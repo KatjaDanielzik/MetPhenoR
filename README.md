@@ -14,10 +14,7 @@ if (!require("remotes", quietly = TRUE)) {
 }
 
 # Install OdinR from GitLab
-remotes::install_git(
-    "https://git.uni-due.de/ada697e/odin_package",
-    ref = "final_check"  # or specify a branch/tag (e.g., "v1.0.0")
-)
+remotes::install_github(KatjaDanielzik/OdinR)
 ```
 
 ## Data Preparation (Before You Run Any Code)
@@ -78,8 +75,8 @@ Email: [katja.danielzik@uni-due.de](mailto:katja.danielzik@uni-due.de)
 
 ## Final Tip
 
-> **Always check `qc_data()` after reading your data.**  
-> A few minutes of inspection now can save days of confusion later.
+**Always check `qc_data()` after reading your data.**  
+A few minutes of inspection now can save hours of confusion later.
 
 
 

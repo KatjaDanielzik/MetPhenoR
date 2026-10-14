@@ -17,7 +17,8 @@ knitr::opts_chunk$set(
 ```
 
 # Aim of this package
-High-throughput metabolic phenotyping using Odin Biolog is still relatively new in mammalian cell culture research. As such, many questions remain:
+High-throughput metabolic phenotyping using Odin Biolog is still relatively new 
+in mammalian cell culture research. As such, many questions remain:
 
 - What do the results actually mean?
 - How do medium composition or handling affect OD readings?
@@ -26,7 +27,7 @@ High-throughput metabolic phenotyping using Odin Biolog is still relatively new 
 
 This package aims to provide:
 
-- Simple reading of `RawRead.csv` and `PlateInfo.csv` files into R.
+- Simple reading of multiple `RawRead.csv` and `PlateInfo.csv` files into R.
 - Noise correction: OD₅₉₀ – OD₇₄₀ (as recommended by Biolog for mammalian cells).
 - Quality control plots to spot odd or problematic OD curves.
 - Filtering of entire plates or specific curve types before analysis.
@@ -60,27 +61,27 @@ This can cause missing data or errors later — so be careful!
 
 # Workflow
 ## Step 1: Prepare your Data
-Before you can analyze anything, you need to organize your files properly.
+Before you can analyze, you need to organize your files properly.
 
 1. Create a new folder (e.g., `Odin_Analysis`).
 2. Copy **all** your `RawRead.csv` and `PlateInfo.csv` files into this folder.
 3. Open each `PlateInfo.csv` file in Excel or a text editor.
-4. Choose **one column** (e.g., `Description`, `Sample`) to store your experimental conditions.
+4. Choose **one consistent column** (e.g., `Description`, `Sample`) to store your experimental conditions.
 5. Enter your experimental conditions in this format:
    `variable1_variable2_variable3`
-   e.g. `H460_control_2h`  
-   → Use **underscores**, **no spaces**, and **consistent capitalization**.
+   e.g. `H460_ctrl_2h`  
+   → Use **underscores**, **no spaces**, and **consistent capitalization** to separate the variables
    Keep a **consistent** order of the variables 
 
-Why? Because `read_folder()` splits this column into separate variables (e.g., `cell.line`, `condition`, `time.h`) — and if the format is inconsistent, it will fail or create duplicates.
+Why? Because `read_folder()` splits this column into separate variables (e.g., `cell.line`, `condition`, `time.h`). If the format is inconsistent, it will fail or create duplicates.
 
 ## Step 2: Read your Data with read_folder() function
 
-Needed user information:
+Arguments of read_folder():
 
 - path: the location of your folder on your machine (for windows in this format "C:\Folder", for Linux "~/Folder)
 - variables: the order and name of your variables in your experiment
-- sample_column: the column name you stored your experiment information in (e.g H460_0Gy_RMC2363_2h) the PlateInfo files in Step 1
+- sample_column: the column name you stored your experiment information in (e.g H460_ctrl_2h) the PlateInfo files in Step 1
 
 What follows next is the R code and the corresponding output.
 We included example data in this package to be able to demonstrate the workflow.
@@ -126,9 +127,9 @@ and assign it to an object called *data*.
 This function does five things:
 
 - Read all RawRead and PlateInfo files
-- annotation (i.e. joining the information) the experimental condition from PlateInfo to RawReads
+- annotation (i.e. joining the information) of the experimental condition from PlateInfo to RawReads
 - conduct noise correction: calculate OD at 590nm - OD at 740nm and store result in column "diff_OD_590_740"
-- create a list of dataframes that are combined in one object with elements: *data* containing the processed RawReads and PlateInfo files, and *meta* containing the provided user information about original file path, variable names and original column name containing experimental information.
+- create a list of data frames that are combined in one object with elements: *data* containing the processed RawReads and PlateInfo files, and *meta* containing the provided user information about original file path, variable names and original column name containing experimental information.
 
 Let's load an example of multiple processed RawReads and PlateInfo files and look
 at the different elements:
@@ -176,7 +177,7 @@ If you see multiple replicates or grey wells, check:
 - Are there spaces or typos?
 
 ## Step 4 (Optional): Visualize the Final Timepoint: plot_latest_timepoint()
-To get a first overview we first visualize the lastest time point (i.e. end of 
+To get a first overview we first visualize the latest time point (i.e. end of 
 Odin read) in 96-well format. These plots should roughly represent how your
 Odin plate looks like after the OD recording. In the title the specific experiment
 is automatically labelled and one plot is created per distinct 96-well plate
@@ -191,7 +192,7 @@ To make sense of your data, you need to know **what chemical is in each well**.
 
 The package includes built-in annotations for:
 
-- Metabolic plates: PM-M01, PM-M02 data("PM_M01-M02")
+- Metabolic plates: PM-M01, PM-M02 data ("PM_M01-M02")
 - Anti-cancer drug plates: PM-M11 to PM-M14 data("PM_M11_M14")
 
 ```{r}
@@ -204,7 +205,7 @@ head(processed_data$data)
 Now you’ll see two new columns:
 
 - `Chemical`: e.g., "Glucose", "Lactate", "Acetate"
-- `control`: "Negative Control", "No Chemical", "positive" (Glucose)
+- `control`: "negative" (e.g. No Chemical in well or Tween), "positive" (e.g. Glucose) or NA (all other metabolites and chemical)
                       
 If you want to save your annotated data at this point, e.g. for further analysis with other
 software, you can write a csv file with:
@@ -224,7 +225,7 @@ you can store as an .RData object that only can be read by R.
 ### Custom annotation files
 **Want to use your own plate annotation?**  
 
-- Create a CSV file with columns: `Plate Type`, `Well`, `Chemical`.  
+- Create a CSV file with columns: `Plate Type`, `Well`, `Chemical`  and `control`. 
 - Use `read_csv()` and pass it to `annotate_chemical()`.
 
 ```{r}
@@ -241,14 +242,14 @@ you can store as an .RData object that only can be read by R.
 ## Step 6: Quality control of OD curves
 In real experiments, we’ve seen:
 
-- Unexpected OD drops after an initial rise.
+- Unexpected OD drops after an initial rise (in theory the dye provided by Odin Biolog is irreversible in physiological pH ranges).
 - Wells with no increase at all.
 - Flat or noisy curves.
 
 This step helps you **identify and filter** problematic curves.
 
 Classify_growth_curves() adds an element *classification* to the our object
-*processed_data*. The classification of OD curves can be tweeked with parameters.
+*processed_data*. The classification of OD curves can be tweaked with parameters.
 For details type ?classify_growth_curve_types in R or
 click on the function name and press F1, which opens the help page.
 
@@ -294,7 +295,7 @@ qc_data(processed_data)
 ```
 
 If we made the decision that the 96-well plate with plate type "PM-M01" in cell
-line 74158M4, at radiation dose 0Gy and inhibitor RMC6236 and at time point 2h
+line A, at treatment "treatment" and inhibitor "inhibitor" and at time point 2h
 is not suited for further analysis we can omit this plate with:
 
 ```{r}
@@ -342,8 +343,8 @@ Export for external analysis:
 ```
 
 ## Step 9: Check Control Well Variability wells
-To get an idea about the variance of control wells (and wells containing Tween) of the same biological condition
-between different 96-well plates (e.g. Control wells on PM-M01 and PM-M02) 
+To get an idea about the variance of control wells (and wells containing Tween)
+of the same biological condition between different 96-well plates (e.g. Control wells on PM-M01 and PM-M02) 
 we can employ the function plot_controls_tween_all_plate(). In case of anti-cancer-drug plates only the control wells are displayed. If you used custom annotation and labelled your control wells
 as either "Negative Control" or "No Chemical" they will be displayed here.
 
@@ -354,7 +355,7 @@ plot_controls_tween_all_plate(processed_data)
 This returns a plot with:
 
 - x-axis: AUC per Well
-- y-axis: Control wells or wells containing Glucose or Tween, in case of anti-cancer drug plates: only control wells
+- y-axis: Control wells (anti-cancer drug plates) or wells containing Glucose or Tween, in case of anti-cancer drug plates: only control wells
 - x-axis panels: experimental conditions
 - y-axis panels: experimental conditions
 - symbol of points: type of control Well
@@ -362,11 +363,11 @@ This returns a plot with:
 - dashed vertical lines: range between minimum OD of *Negative Control* or *No Chemical* over all measured wells and maximum OD
 
 In the upper plot in this case we can spot that the variance between control
-wells of different plates is higher for 0Gy 2h RMC6236 (upper right panel)
-than in the other biological conditions. We can also get an idea about the variance
-in the positive control of Wells containing Glucose (Glucose = red squares).
+wells of different plates is pretty low. We can also get an idea about the variance
+in the positive control of Wells containing Glucose (Glucose = red squares). In the upper
+case the variance is low in the lower-left plot and high in the upper right plot.
 
-**Look for high variability**, e.g., if `0Gy_2h_RMC6236` shows large spread, you
+**Look for high variability**, e.g., if `0Gy_treatment_inhibitor` shows large spread, you
 may need to re-evaluate that condition.
 
 If we want to get a first glimpse on how the AUCs of different biological conditions
@@ -379,7 +380,7 @@ plot_controls_tween_per_plate(processed_data,
 
 In the above plot we can e.g. see that the variance of control wells is comparably
 small in all biological conditions, but that the AUCs in Wells containing Glucose
-differr between conditions (low for none, 2h, 5Gy and high for RMC6236, 2h, 0Gy).
+differ between conditions.
 
 ## Step 10: Compare Controls Per Plate
 After we inspected the variance of the control Wells we can proceed with visualizing
@@ -396,7 +397,8 @@ all conditions which results in ordering from highest to lowest along the y-axis
 while still preserving the ability to easily compare metabolites between conditions.
 
 ## Step 11: Normalize AUC to AUC ratios and visualize
-The above visualization quickly does not scale efficiently anymore. One way to
+The above visualization does not scale for comparison between multiple experimental
+conditions. One way to
 facilitate comparison of more conditions it to normalize the AUC to the mean
 of the control wells of the respective 96-well plate.
 We can do this with the function compute_auc_ratio(). The results are stored in
@@ -427,7 +429,7 @@ in grey.
 
 In some cases, e.g. very strong signal from Glucose making distinction of other 
 Wells impossible, it might be helpful to display the AUC ratio on the log-scale. 
-Please not that this distorts your perception of results with higher visual 
+Please note that **this distorts your perception of results** with higher visual 
 emphasis on small AUC ratios compared to natural scale.
 
 ```{r,fig.width=10,fig.height=12}
