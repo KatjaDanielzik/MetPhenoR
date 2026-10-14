@@ -73,6 +73,12 @@ annotate_chemical <- function(
   annotations <- dplyr::bind_rows(annotations_list) %>%
     dplyr::distinct()
   
+  # ---- Check if annotations are empty ----
+  if (nrow(annotations) == 0) {
+    warning("No annotation data was provided or all annotation rows were duplicates. ",
+            "No chemical identities will be assigned to wells.")
+  }
+  
   # ---- Required columns ----
   required_cols <- c("Plate Type", "Well")
   
@@ -92,8 +98,42 @@ annotate_chemical <- function(
     by = c("Plate Type", "Well")
   )
   
+  
   # ---- Control classification ----
   if (!is.null(control_map) && "Chemical" %in% names(data_df)) {
+    
+    # ---- Warn if any wells have NA in Chemical after merge ----
+    n_annotated <- sum(!is.na(data_df$Chemical))
+    n_total <- nrow(data_df)
+    
+    if (n_annotated == 0) {
+      warning("No chemical annotations were successfully merged. ",
+              "All wells have NA in 'Chemical'. Check that 'Plate Type' and 'Well' ",
+              "match between the data and annotation tables.")
+    } else if (n_annotated < n_total) {
+      # Find the missing wells (those with NA in Chemical)
+      missing_wells <- data_df %>%
+        dplyr::filter(is.na(Chemical)) %>%
+        dplyr::select("Plate Type", "Well") %>%
+        dplyr::distinct() %>%
+        dplyr::arrange("Plate Type", "Well") %>%
+        dplyr::pull(paste0("Plate Type", "_", "Well"))
+      
+      # Format the list nicely
+      if (length(missing_wells) <= 10) {
+        warning("Only ", n_annotated, " out of ", n_total, " wells were annotated. ",
+                "The following ", length(missing_wells), " wells were not matched: ",
+                paste(missing_wells, collapse = ", "), ".",
+                "This may indicate missing or mismatched 'Plate Type' or 'Well' values.")
+      } else {
+        warning("Only ", n_annotated, " out of ", n_total, " wells were annotated. ",
+                "The following ", length(missing_wells), " wells were not matched: ",
+                paste(head(missing_wells, 5), collapse = ", "), "... (and ", 
+                length(missing_wells) - 5, " more).",
+                "Check 'Plate Type' and 'Well' values for mismatches.")
+      }
+    }
+    
     
     data_df <- dplyr::mutate(
       data_df,

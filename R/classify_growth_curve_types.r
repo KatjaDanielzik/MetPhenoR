@@ -142,8 +142,10 @@ classify_growth_curve_types <- function(
     )
   
   #Attach results back
-  data$classification$derivative_data <- deriv_data
-  data$classification$well_summary <- well_summary
+  data$classification <- list(
+    derivative_data = deriv_data,
+    well_summary = well_summary
+  )
   
   return(data)
 }

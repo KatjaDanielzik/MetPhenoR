@@ -82,12 +82,38 @@ annotate_metadata <- function(data, annotation) {
     )
   }
   
+  # ---- Warn if 'Chemical' is empty or all NA ----
+  n_chemicals <- sum(!is.na(data_df$Chemical))
+  if (n_chemicals == 0) {
+    warning("The 'Chemical' column in 'data$auc_ratio' contains no valid values. ",
+            "No metadata can be merged. Check that 'Chemical' is not empty.")
+  }
+  
   #Merge
   data_df <- dplyr::left_join(
     data_df,
     annotations,
     by = required_cols
   )
+  
+  # Warnings
+  data_chemicals <- unique(data_df$Chemical[!is.na(data_df$Chemical)])
+  annot_chemicals <- unique(annotation$Chemical[!is.na(annotation$Chemical)])
+  
+  missing_chemicals <- setdiff(data_chemicals, annot_chemicals)
+  
+  if (length(missing_chemicals) > 0) {
+    if (length(missing_chemicals) <= 10) {
+      warning("The following chemicals were not found in the annotation table: ",
+              paste(missing_chemicals, collapse = ", "),
+              ". No metadata will be assigned to wells with these chemicals.")
+    } else {
+      warning("The following ", length(missing_chemicals), " chemicals were not found in the annotation table: ",
+              paste(head(missing_chemicals, 5), collapse = ", "), "... (and ", 
+              length(missing_chemicals) - 5, " more).",
+              " No metadata will be assigned to wells with these chemicals.")
+    }
+  }
   
   #Return
   data$auc_ratio <- data_df
