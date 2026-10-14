@@ -5,3 +5,4 @@
 ^Meta$
 ^\.positai$
 ^\.claude$
+^cran-comments\.md$

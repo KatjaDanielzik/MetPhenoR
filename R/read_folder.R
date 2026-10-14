@@ -74,7 +74,7 @@
 #' # resulting data frame 'data' from read_folder
 #' data("processed_data")
 #' head(processed_data$data)
-read_folder <- function(data_path, sample_column = "Description", variables) {
+read_folder <- function(data_path, sample_column, variables) {
   
   if (!dir.exists(data_path)) {
     stop("data_path does not exist or is not a valid directory")

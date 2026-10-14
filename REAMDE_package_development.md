@@ -19,11 +19,16 @@ default -> first of variables
 check why control wells have different AUC ratios ! -> do not display control
 wells
 
+# classify_growth_curve_types
+- do not plot "New names:"
+
 # TODO
 - authors (Willson author but not maintainer): done
 - one paragraph description: done
 - include licence: done
 - include Julia's data (anonymized)
-- transfer to github: done, add to project: 
+- transfer to github: done, add to project: done
 - create a docker container for the package
-- publish on bioconductor (needs at least SummarizedExperiment for Integration) or CRAN?
+- publish on CRAN?
+- announce package in GRK, announce doi to co-authors and add doi to ORCID
+-

@@ -279,7 +279,7 @@ these.
 
 ```{r,fig.width=8,fig.height=6}
 processed_data <- plot_growth_curve(processed_data) # store plots 
-processed_data$growth_curve_plots$`74158M4_0Gy_RMC6236_2h_PM-M01` # just show one plot
+processed_data$growth_curve_plots$`A_treatment_inhibitor_2h_PM-M01` # just show one plot
 ```
 
 If you make the decision to omit a complete 96-well plate (e.g. due to flat_low
@@ -300,10 +300,10 @@ is not suited for further analysis we can omit this plate with:
 ```{r}
 processed_data <- filter_data(processed_data,
                               plate_type = "PM-M01",
-                              filters = list(cell.line="74158M4",
-                                             radiation.dose="0Gy",
-                                             inhibitor="RMC6236",
-                                             time.h="2h"))
+                              filters = list(cell.line="A",
+                                             treatment="treatment",
+                                             inhibitor="inhibitor",
+                                             time="2h"))
 ```
 
 We can re-use the qc_data function to check if we omitted the correct plate:
@@ -388,7 +388,7 @@ all Wells on one plate type in all biological conditions:
 ```{r,fig.width=10, fig.height=12}
 plot_auc(processed_data, 
          selected_plate = "PM-M02",
-         facet_vars = c("radiation.dose")) # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
+         facet_vars = c("treatment")) # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
 ```
 
 In the resulting plots the metabolites are ordered by their mean AUC across
@@ -419,7 +419,7 @@ Depending on which biological conditions you want to compare you can set the
 ```{r,fig.width=10,fig.height=12}
 plot_auc_ratio_heatmap(processed_data, 
                        plate_type = "PM-M01", # which plate type to visualize
-                       x_var = "radiation.dose") # which variable should go on x-axis, all other go in x-axis panels
+                       x_var = "treatment") # which variable should go on x-axis, all other go in x-axis panels
 ```
 
 Missing values due to filtering or dropping of OD curve types will be displayed 
@@ -433,7 +433,7 @@ emphasis on small AUC ratios compared to natural scale.
 ```{r,fig.width=10,fig.height=12}
 plot_auc_ratio_heatmap(processed_data, 
                        plate_type = "PM-M01", 
-                       x_var = "radiation.dose",
+                       x_var = "treatment",
                        scale_type = "log10" # switch from natural to log10 scale
                        ) 
 ```
@@ -472,7 +472,7 @@ and whether we want to display the AUC ratio on the natural or log10 scale.
 ```{r,fig.width=10,fig.height=10}
 plot_auc_ratio_by_group(processed_data, 
                         group_var = "middle_hierarchy", # column in metadata
-                        x_var = "radiation.dose",
+                        x_var = "treatment",
                         group_filter = c("Nucleotide metabolism", #  which entries in 'group_var' to display
                                          "Amino acid metabolism"))
 ```
@@ -485,7 +485,7 @@ which point in the violin, but for detailed inspection the heat maps are availab
 ```{r,fig.width=10,fig.height=10}
 plot_auc_ratio_violin(processed_data, 
                       pathway_var = "middle_hierarchy", 
-                      color_var = "radiation.dose") # which variable should be displayed on color scale
+                      color_var = "treatment") # which variable should be displayed on color scale
 ```
 
 We now have the AUC ratio on the x-axis and every point represents one metabolite/drug
