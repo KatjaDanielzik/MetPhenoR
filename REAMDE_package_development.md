@@ -20,8 +20,10 @@ check why control wells have different AUC ratios ! -> do not display control
 wells
 
 # TODO
+- authors (Willson author but not maintainer): done
+- one paragraph description: done
+- include licence: done
 - include Julia's data (anonymized)
-- transfer to github
+- transfer to github: done, add to project: 
 - create a docker container for the package
 - publish on bioconductor (needs at least SummarizedExperiment for Integration) or CRAN?
-- include Julia's data (anonymized)
