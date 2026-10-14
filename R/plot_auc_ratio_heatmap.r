@@ -35,7 +35,7 @@
 #' processed_data <- compute_auc_ci(processed_data)
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-#' plot_auc_ratio_heatmap(processed_data, plate_type = "PM-M01", x_var = "radiation.dose")
+#' plot_auc_ratio_heatmap(processed_data, plate_type = "PM-M01", x_var = "treatment")
 #'
 #'
 #' @export
