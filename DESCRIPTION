@@ -1,9 +1,9 @@
 Package: OdinR
 Title: A Transparent Analysis Pipeline for Mammalian Odin Biolog Data
-Version: 0.0.0.3
+Version: 0.0.3
 Authors@R: 
   c(person(given="Katja",family= "Danielzik", email="katja.danielzik@uni-due.de", 
-           role = c("aut", "cre"),
+           role = c("aut", "cre", "cph",
            comment=c(ORCID="0009-0007-5021-6212")),
     person(given="Willson",family = "Tjioe",
             role = "aut",
@@ -53,3 +53,5 @@ Config/testthat/edition: 3
 LazyData: true
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.1.0
+URL: https://github.com/KatjaDanielzik/OdinR
+BugReports: https://github.com/KatjaDanielzik/OdinR/issues
