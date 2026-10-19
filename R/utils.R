@@ -10,7 +10,7 @@
 #'   \item{number}{Numeric or integer indicating column position (e.g., 1–12).}
 #'   \item{category}{Factor or character indicating row position (e.g., A–H).}
 #'   \item{diff_OD_590_740}{Numeric values representing OD differences used for coloring.}
-#'   \item{Plate Type}{Character or factor indicating the plate type.}}
+#'   \item{Plate.Type}{Character or factor indicating the Plate.Type.}}
 #'   
 #'  @param variables specifying grouping variables
 #'
@@ -33,7 +33,7 @@
   
   subtitle_text <- paste(
     paste(var_values, collapse = " | "),
-    paste("Plate:", unique(df$`Plate Type`)),
+    paste("Plate:", unique(df$Plate.Type)),
     sep = " | "
   )
   
