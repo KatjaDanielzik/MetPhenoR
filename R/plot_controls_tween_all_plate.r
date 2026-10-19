@@ -24,32 +24,53 @@
 #' @export
 plot_controls_tween_all_plate <- function(data, variables = NULL) {
   
-  # Validate input
-  if (!is.list(data) || is.null(data$auc_results)) {
-    stop("Input 'data' must be a list containing 'auc_results'.")
+  # ---- Validate top-level data structure ----
+  if (!is.list(data) || is.data.frame(data) ||
+      !"auc_results" %in% names(data)) {
+    stop("'data' must be a named list containing 'auc_results',
+          as produced by compute_auc_ci().")
   }
   
+  # ---- Validate data$meta when variables not supplied ----
   if (is.null(variables)) {
-    if (!is.null(data$meta) && !is.null(data$meta$variables)) {
-      variables <- data$meta$variables
-    } else {
-      stop("'variables' must be provided or exist in data$meta$variables.")
+    if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+      stop("'variables' must be provided or exist in 'data$meta$variables'.")
     }
+    variables <- data$meta$variables
+  }
+  
+  # ---- Validate variables ----
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate auc_results ----
+  if (!is.data.frame(data$auc_results)) {
+    stop("'data$auc_results' must be a data.frame.")
+  }
+  
+  if (nrow(data$auc_results) == 0) {
+    stop("'data$auc_results' must contain at least one row.")
+  }
+  
+  # ---- Validate required columns in auc_results ----
+  required_cols <- c("AUC", "AUC_low", "AUC_high",
+                     "Well", "Chemical", "control", "Plate.Type")
+  missing_cols  <- setdiff(required_cols, names(data$auc_results))
+  if (length(missing_cols) > 0) {
+    stop(paste("'data$auc_results' is missing required columns:",
+               paste(missing_cols, collapse = ", ")))
+  }
+  
+  # ---- Validate variables exist in auc_results ----
+  missing_vars <- setdiff(variables, names(data$auc_results))
+  if (length(missing_vars) > 0) {
+    stop(paste("The following 'variables' are not present in 'data$auc_results':",
+               paste(missing_vars, collapse = ", ")))
   }
   
   df <- data$auc_results
-  
-  required_cols <- c("AUC", "AUC_low", "AUC_high",
-                     "Well", "Chemical", "control", "Plate Type")
-  
-  if (!all(required_cols %in% names(df))) {
-    stop("Missing required columns in 'auc_results'.")
-  }
-  
-  if (!all(variables %in% names(df))) {
-    stop("Some 'variables' are not present in the dataset.")
-  }
-  
+
   #Faceting setup
   row_vars <- variables[seq_len(min(2, length(variables)))]
   col_vars <- if (length(variables) > 2) variables[3:min(4, length(variables))] else NULL
@@ -100,7 +121,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
   plot_df <- plot_df %>%
     dplyr::arrange(
       dplyr::across(dplyr::all_of(variables)),
-      .data$`Plate Type`,
+      .data$Plate.Type,
       .data$group_type,
       .data$Well
     ) %>%
@@ -116,7 +137,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
     ggplot2::aes(
       y = .data$Chemical_label,
       x = .data$AUC,
-      color = .data$`Plate Type`
+      color = .data$Plate.Type
     )
   ) +
     
