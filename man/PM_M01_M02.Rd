@@ -11,7 +11,7 @@ Mapping metabolic plate wells to corresponding Chemical and KEGG annotations
 \format{
   A data frame with 201 observations on the following 11 variables.
   \describe{
-    \item{\samp{Plate Type}}{Odin Plate Type}
+    \item{\samp{Plate.Type}}{Odin Plate Type}
     \item{\code{Well}}{Well ID on plate}
     \item{\code{Chemical}}{Chemical plated in 'Well' in 'PlateType'}
     \item{\samp{Kegg Link}}{Link to KEGG database}

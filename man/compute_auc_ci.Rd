@@ -7,7 +7,7 @@
 compute_auc_ci(
   data,
   target_curve_type = "growing",
-  n_boot = 1000,
+  n_boot = 100,
   spline_df = 4,
   store = TRUE
 )
@@ -44,7 +44,7 @@ residual bootstrap to quantify uncertainty.
 data(processed_data)
 processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 processed_data <- classify_growth_curve_types(processed_data)
-processed_data <- compute_auc_ci(processed_data)
+processed_data <- compute_auc_ci(processed_data, n_boot = 10)
 head(processed_data$auc_results)
 
 }

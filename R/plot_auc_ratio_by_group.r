@@ -36,111 +36,115 @@
 #' data(processed_data)
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
-#' processed_data <- compute_auc_ci(processed_data)
+#' processed_data <- compute_auc_ci(processed_data, n_boot = 10)
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-#' plot_auc_ratio_by_group(processed_data, 
-#'                           group_var = "middle_hierarchy",
-#'                           x_var = "treatment", 
-#'                           group_filter = "Nucleotide metabolism")
+#' plot_auc_ratio_by_group(processed_data,
+#'   group_var = "middle_hierarchy",
+#'   x_var = "treatment",
+#'   group_filter = "Nucleotide metabolism"
+#' )
 #'
 #' @export
 plot_auc_ratio_by_group <- function(data,
-                                      group_var,
-                                      x_var,
-                                      group_filter = NULL,
-                                      scale_type = c("natural", "log10")) {
-  
-  
+                                    group_var,
+                                    x_var,
+                                    group_filter = NULL,
+                                    scale_type = c("natural", "log10")) {
   # ---- Validate input ----
   if (!("auc_ratio" %in% names(data))) {
     stop("'data' must contain an 'auc_ratio' element. Run and check output of function 'compute_auc_ratio()'.")
   }
-  
+
   data_df <- data$auc_ratio
-  
+
   if (!is.data.frame(data_df)) {
     stop("'data$auc_ratio' must be a data.frame.")
   }
-  
+
   scale_type <- match.arg(scale_type)
-  
+
   # ---- Auto-select x_var if NULL ----
   if (is.null(x_var)) {
     if (is.null(data$meta$variables) || length(data$meta$variables) == 0) {
-      stop("No 'variables' found in 'data$meta'. Cannot auto-select 'x_var'.",
-           " Please provide a valid 'x_var'.")
+      stop(
+        "No 'variables' found in 'data$meta'. Cannot auto-select 'x_var'.",
+        " Please provide a valid 'x_var'."
+      )
     }
-    
+
     # Use the first entry
     x_var <- data$meta$variables[1]
     message("Using '", x_var, "' as default 'x_var' (first entry 'data$meta$variables').")
   }
-  
+
   # ---- Validate group_var exists ----
   if (!group_var %in% names(data_df)) {
-    stop("Column '", group_var, "' not found in 'data$auc_ratio'.",
-         " Available columns: ", paste(names(data_df), collapse = ", "))
+    stop(
+      "Column '", group_var, "' not found in 'data$auc_ratio'.",
+      " Available columns: ", paste(names(data_df), collapse = ", ")
+    )
   }
-  
+
   # ---- Validate group_filter if provided ----
   if (!is.null(group_filter)) {
     if (!all(group_filter %in% unique(data_df[[group_var]]))) {
       missing <- setdiff(group_filter, unique(data_df[[group_var]]))
-      warning("The following values in 'group_filter' were not found in '", group_var, "': ",
-              paste(missing, collapse = ", "),
-              ". These will be ignored.")
+      warning(
+        "The following values in 'group_filter' were not found in '", group_var, "': ",
+        paste(missing, collapse = ", "),
+        ". These will be ignored."
+      )
     }
   }
-  
+
   # ---- Prepare variables ----
-  variables   <- data$meta$variables
+  variables <- data$meta$variables
   column_vars <- setdiff(variables, x_var)
-  
+
   # Convert to symbols (handles spaces safely)
   pathway_sym <- sym(group_var)
-  x_sym       <- sym(x_var)
+  x_sym <- sym(x_var)
   column_syms <- syms(column_vars)
-  
+
   # ---- Optional pathway filtering ----
   if (!is.null(group_filter)) {
     data_df <- data_df %>%
       dplyr::filter(!!pathway_sym %in% group_filter)
   }
-  
+
   # ---- Data cleaning ----
   data_filtered <- data_df %>%
     dplyr::filter(.data$Chemical != "No Chemical") %>%
     dplyr::mutate(
       ID = paste0(.data$Plate.Type, "_", .data$Well, "_", .data$Chemical)
     )
-  
+
   # ---- Apply transformation ----
   if (scale_type == "log10") {
     data_filtered <- data_filtered %>%
       dplyr::mutate(AUC_ratio_plot = log10(.data$AUC_ratio))
-    
+
     midpoint_value <- 0
-    legend_title   <- expression(log[10]~"(AUC ratio)")
-    
+    legend_title <- expression(log[10] ~ "(AUC ratio)")
   } else {
     data_filtered <- data_filtered %>%
       dplyr::mutate(AUC_ratio_plot = .data$AUC_ratio)
-    
+
     midpoint_value <- 1
-    legend_title   <- "AUC ratio"
+    legend_title <- "AUC ratio"
   }
-  
+
   # ---- Reverse ID order ----
   id_levels <- data_filtered %>%
     dplyr::distinct(.data$ID) %>%
     dplyr::pull(.data$ID)
-  
+
   data_filtered <- data_filtered %>%
     dplyr::mutate(
       ID = factor(.data$ID, levels = rev(id_levels))
     )
-  
+
   # ---- Plot ----
   p <- ggplot2::ggplot(
     data_filtered,
@@ -151,7 +155,7 @@ plot_auc_ratio_by_group <- function(data,
     )
   ) +
     ggplot2::geom_tile(color = "grey90", linewidth = 0.2)
-  
+
   # ---- Faceting (tidy evaluation safe) ----
   if (length(column_syms) > 0) {
     p <- p +
@@ -159,7 +163,7 @@ plot_auc_ratio_by_group <- function(data,
         rows = vars(!!pathway_sym),
         cols = vars(!!!column_syms),
         scales = "free_y",
-        space  = "free_y",
+        space = "free_y",
         labeller = ggplot2::label_wrap_gen(width = 20)
       )
   } else {
@@ -167,11 +171,11 @@ plot_auc_ratio_by_group <- function(data,
       ggplot2::facet_grid(
         rows = vars(!!pathway_sym),
         scales = "free_y",
-        space  = "free_y",
+        space = "free_y",
         labeller = ggplot2::label_wrap_gen(width = 20)
       )
   }
-  
+
   # ---- Final styling ----
   p +
     ggplot2::scale_fill_gradient2(
@@ -185,8 +189,10 @@ plot_auc_ratio_by_group <- function(data,
     ggplot2::labs(
       x = x_var,
       y = "Plate_Well_Chemical",
-      title = paste0("AUC Ratio by ", group_var,
-                     " (", scale_type, " scale)"),
+      title = paste0(
+        "AUC Ratio by ", group_var,
+        " (", scale_type, " scale)"
+      ),
       subtitle = paste0(
         "AUC ratio = AUC[well] / mean(AUC[control on plate])",
         "\nlight grey: inappropriate curve types, dark grey: NA"

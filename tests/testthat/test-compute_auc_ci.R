@@ -1,35 +1,34 @@
-make_auc_input <- function(n_timepoints = 10, 
+make_auc_input <- function(n_timepoints = 10,
                            empty = FALSE,
                            include_chemical = TRUE) {
-  
   hours <- seq(0, n_timepoints - 1)
   wells <- c("A01", "A02", "A03")
-  
+
   base <- expand.grid(
-    Hour       = hours,
-    Well       = wells,
+    Hour = hours,
+    Well = wells,
     Plate.Type = "PM-M1",
-    cell.line  = "H460",
-    PlateId    = "plate_001",
+    cell.line = "H460",
+    PlateId = "plate_001",
     stringsAsFactors = FALSE
   )
   base$diff_OD_590_740 <- seq(0.05, 0.5, length.out = nrow(base))
-  
+
   if (include_chemical) {
     base$Chemical <- "DrugX"
-    base$control  <- NA_character_
+    base$control <- NA_character_
   }
-  
+
   df <- if (empty) base[0, ] else base
-  
+
   well_summary <- data.frame(
-    Well       = wells,
+    Well = wells,
     Plate.Type = "PM-M1",
-    cell.line  = "H460",
+    cell.line = "H460",
     curve_type = "growing",
     stringsAsFactors = FALSE
   )
-  
+
   list(
     data = df,
     meta = list(
@@ -82,7 +81,7 @@ test_that("compute_auc_ci stops when 'classification' element is missing", {
 # ── meta structure checks ─────────────────────────────────────────────────────
 
 test_that("compute_auc_ci stops when data$meta is not a list", {
-  input      <- make_auc_input()
+  input <- make_auc_input()
   input$meta <- "not_a_list"
   expect_error(
     compute_auc_ci(input),
@@ -91,7 +90,7 @@ test_that("compute_auc_ci stops when data$meta is not a list", {
 })
 
 test_that("compute_auc_ci stops when data$meta is missing 'variables'", {
-  input      <- make_auc_input()
+  input <- make_auc_input()
   input$meta <- list(data_path = "fake/path")
   expect_error(
     compute_auc_ci(input),
@@ -102,7 +101,7 @@ test_that("compute_auc_ci stops when data$meta is missing 'variables'", {
 # ── classification structure checks ──────────────────────────────────────────
 
 test_that("compute_auc_ci stops when data$classification is not a list", {
-  input                <- make_auc_input()
+  input <- make_auc_input()
   input$classification <- "not_a_list"
   expect_error(
     compute_auc_ci(input),
@@ -111,8 +110,8 @@ test_that("compute_auc_ci stops when data$classification is not a list", {
 })
 
 test_that("compute_auc_ci stops when well_summary is missing from classification", {
-  input                              <- make_auc_input()
-  input$classification$well_summary  <- NULL
+  input <- make_auc_input()
+  input$classification$well_summary <- NULL
   expect_error(
     compute_auc_ci(input),
     "'data\\$classification' must be a named list containing 'well_summary'"
@@ -122,7 +121,7 @@ test_that("compute_auc_ci stops when well_summary is missing from classification
 # ── data$data checks ──────────────────────────────────────────────────────────
 
 test_that("compute_auc_ci stops when data$data is not a data frame", {
-  input      <- make_auc_input()
+  input <- make_auc_input()
   input$data <- "not_a_data_frame"
   expect_error(
     compute_auc_ci(input),
@@ -141,7 +140,7 @@ test_that("compute_auc_ci stops when data$data is empty", {
 # ── variables checks ──────────────────────────────────────────────────────────
 
 test_that("compute_auc_ci stops when variables is empty", {
-  input                <- make_auc_input()
+  input <- make_auc_input()
   input$meta$variables <- character(0)
   expect_error(
     compute_auc_ci(input),
@@ -150,7 +149,7 @@ test_that("compute_auc_ci stops when variables is empty", {
 })
 
 test_that("compute_auc_ci stops when variables is NULL", {
-  input                <- make_auc_input()
+  input <- make_auc_input()
   input$meta$variables <- NULL
   expect_error(
     compute_auc_ci(input),
@@ -159,7 +158,7 @@ test_that("compute_auc_ci stops when variables is NULL", {
 })
 
 test_that("compute_auc_ci stops when variables is not character", {
-  input                <- make_auc_input()
+  input <- make_auc_input()
   input$meta$variables <- 1:3
   expect_error(
     compute_auc_ci(input),
@@ -170,8 +169,8 @@ test_that("compute_auc_ci stops when variables is not character", {
 # ── Required column checks ────────────────────────────────────────────────────
 
 test_that("compute_auc_ci stops when Well is missing from data$data", {
-  input            <- make_auc_input()
-  input$data$Well  <- NULL
+  input <- make_auc_input()
+  input$data$Well <- NULL
   expect_error(
     compute_auc_ci(input),
     "'data\\$data' is missing required columns: Well"
@@ -179,8 +178,8 @@ test_that("compute_auc_ci stops when Well is missing from data$data", {
 })
 
 test_that("compute_auc_ci stops when Hour is missing from data$data", {
-  input            <- make_auc_input()
-  input$data$Hour  <- NULL
+  input <- make_auc_input()
+  input$data$Hour <- NULL
   expect_error(
     compute_auc_ci(input),
     "'data\\$data' is missing required columns: Hour"
@@ -188,7 +187,7 @@ test_that("compute_auc_ci stops when Hour is missing from data$data", {
 })
 
 test_that("compute_auc_ci stops when Plate.Type is missing from data$data", {
-  input                 <- make_auc_input()
+  input <- make_auc_input()
   input$data$Plate.Type <- NULL
   expect_error(
     compute_auc_ci(input),
@@ -197,7 +196,7 @@ test_that("compute_auc_ci stops when Plate.Type is missing from data$data", {
 })
 
 test_that("compute_auc_ci stops when diff_OD_590_740 is missing from data$data", {
-  input                      <- make_auc_input()
+  input <- make_auc_input()
   input$data$diff_OD_590_740 <- NULL
   expect_error(
     compute_auc_ci(input),
@@ -206,7 +205,7 @@ test_that("compute_auc_ci stops when diff_OD_590_740 is missing from data$data",
 })
 
 test_that("compute_auc_ci stops when variable column is missing from data$data", {
-  input                <- make_auc_input()
+  input <- make_auc_input()
   input$data$cell.line <- NULL
   expect_error(
     compute_auc_ci(input),
@@ -253,9 +252,9 @@ test_that("compute_auc_ci accepts all valid curve types", {
   valid <- c("growing", "OD_drop", "slow_growing", "flat_low")
   # update well_summary to contain all types
   input$classification$well_summary <- data.frame(
-    Well       = c("A01","A02","A03","A04"),
+    Well = c("A01", "A02", "A03", "A04"),
     Plate.Type = "PM-M1",
-    cell.line  = "H460",
+    cell.line = "H460",
     curve_type = valid,
     stringsAsFactors = FALSE
   )
@@ -385,21 +384,21 @@ test_that("compute_auc_ci stops when store is NA", {
 # ── Return structure ──────────────────────────────────────────────────────────
 
 test_that("compute_auc_ci returns modified data list when store is TRUE", {
-  input  <- make_auc_input()
+  input <- make_auc_input()
   result <- compute_auc_ci(input, n_boot = 10)
   expect_type(result, "list")
   expect_true("auc_results" %in% names(result))
 })
 
 test_that("compute_auc_ci returns tibble when store is FALSE", {
-  input  <- make_auc_input()
+  input <- make_auc_input()
   result <- compute_auc_ci(input, n_boot = 10, store = FALSE)
   expect_s3_class(result, "data.frame")
   expect_false("auc_results" %in% names(result))
 })
 
 test_that("compute_auc_ci preserves data and meta when store is TRUE", {
-  input  <- make_auc_input()
+  input <- make_auc_input()
   result <- compute_auc_ci(input, n_boot = 10)
   expect_identical(result$data, input$data)
   expect_identical(result$meta, input$meta)
@@ -408,29 +407,29 @@ test_that("compute_auc_ci preserves data and meta when store is TRUE", {
 # ── auc_results content ───────────────────────────────────────────────────────
 
 test_that("compute_auc_ci auc_results contains required columns", {
-  input  <- make_auc_input()
+  input <- make_auc_input()
   result <- compute_auc_ci(input, n_boot = 10)
   required <- c("AUC", "AUC_low", "AUC_high", "n_points", "Chemical", "control")
   expect_true(all(required %in% names(result$auc_results)))
 })
 
 test_that("compute_auc_ci auc_results has one row per well per condition", {
-  input   <- make_auc_input()
-  result  <- compute_auc_ci(input, n_boot = 10)
+  input <- make_auc_input()
+  result <- compute_auc_ci(input, n_boot = 10)
   n_wells <- length(unique(input$data$Well))
   expect_equal(nrow(result$auc_results), n_wells)
 })
 
 test_that("compute_auc_ci AUC values are numeric", {
-  input  <- make_auc_input()
+  input <- make_auc_input()
   result <- compute_auc_ci(input, n_boot = 10)
   expect_true(is.numeric(result$auc_results$AUC))
 })
 
 test_that("compute_auc_ci AUC_low is always <= AUC_high", {
-  input  <- make_auc_input()
+  input <- make_auc_input()
   result <- compute_auc_ci(input, n_boot = 10)
-  valid  <- !is.na(result$auc_results$AUC_low) & !is.na(result$auc_results$AUC_high)
+  valid <- !is.na(result$auc_results$AUC_low) & !is.na(result$auc_results$AUC_high)
   expect_true(all(
     result$auc_results$AUC_low[valid] <= result$auc_results$AUC_high[valid]
   ))

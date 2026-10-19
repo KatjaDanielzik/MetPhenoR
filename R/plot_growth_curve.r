@@ -67,60 +67,63 @@
 #' @export
 
 plot_growth_curve <- function(
-    data,
-    curve_types_to_plot = NULL,
-    store_plots = TRUE
+  data,
+  curve_types_to_plot = NULL,
+  store_plots = TRUE
 ) {
-  
   # ---- Validate top-level data structure ----
   if (!is.list(data) || !all(c("data", "meta", "classification") %in% names(data))) {
     stop("'data' must be a named list with elements 'data', 'meta', and 'classification', as produced by classify_growth_curve_types().")
   }
-  
+
   if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
     stop("'data$meta' must be a named list containing 'variables', as produced by read_folder().")
   }
-  
+
   if (!is.list(data$classification) ||
-      !all(c("well_summary", "derivative_data") %in% names(data$classification))) {
+    !all(c("well_summary", "derivative_data") %in% names(data$classification))) {
     stop("'data$classification' must be a named list with elements 'well_summary' and 'derivative_data'. Run classify_growth_curve_types() first.")
   }
-  
+
   # ---- Extract ----
-  raw_data     <- data$data
-  variables    <- data$meta$variables
+  raw_data <- data$data
+  variables <- data$meta$variables
   well_summary <- data$classification$well_summary
-  
+
   # ---- Validate data$data ----
   if (!is.data.frame(raw_data)) {
     stop("'data$data' must be a data.frame.")
   }
-  
+
   if (nrow(raw_data) == 0) {
     stop("'data$data' must contain at least one row.")
   }
-  
+
   # ---- Validate variables ----
   if (!is.character(variables) || length(variables) == 0) {
     stop("'data$meta$variables' must be a non-empty character vector.")
   }
-  
+
   # ---- Validate required columns in data$data ----
   required_data_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
-  missing_data_cols  <- setdiff(required_data_cols, names(raw_data))
+  missing_data_cols <- setdiff(required_data_cols, names(raw_data))
   if (length(missing_data_cols) > 0) {
-    stop(paste("'data$data' is missing required columns:",
-               paste(missing_data_cols, collapse = ", ")))
+    stop(paste(
+      "'data$data' is missing required columns:",
+      paste(missing_data_cols, collapse = ", ")
+    ))
   }
-  
+
   # ---- Validate required columns in well_summary ----
   required_ws_cols <- c(variables, "Plate.Type", "Well", "curve_type")
-  missing_ws_cols  <- setdiff(required_ws_cols, names(well_summary))
+  missing_ws_cols <- setdiff(required_ws_cols, names(well_summary))
   if (length(missing_ws_cols) > 0) {
-    stop(paste("'data$classification$well_summary' is missing required columns:",
-               paste(missing_ws_cols, collapse = ", ")))
+    stop(paste(
+      "'data$classification$well_summary' is missing required columns:",
+      paste(missing_ws_cols, collapse = ", ")
+    ))
   }
-  
+
   # ---- Validate curve_types_to_plot ----
   if (!is.null(curve_types_to_plot)) {
     if (!is.character(curve_types_to_plot) || length(curve_types_to_plot) == 0) {
@@ -129,17 +132,19 @@ plot_growth_curve <- function(
     valid_types <- c("growing", "flat_low", "OD_drop", "slow_growing", "uncertain")
     unknown_types <- setdiff(curve_types_to_plot, valid_types)
     if (length(unknown_types) > 0) {
-      warning(paste("'curve_types_to_plot' contains unrecognised curve types:",
-                    paste(unknown_types, collapse = ", "),
-                    "\nValid types are:", paste(valid_types, collapse = ", ")))
+      warning(paste(
+        "'curve_types_to_plot' contains unrecognised curve types:",
+        paste(unknown_types, collapse = ", "),
+        "\nValid types are:", paste(valid_types, collapse = ", ")
+      ))
     }
   }
-  
+
   # ---- Validate store_plots ----
   if (!is.logical(store_plots) || length(store_plots) != 1) {
     stop("'store_plots' must be a single logical value (TRUE or FALSE).")
   }
-  
+
   # Shared color palette
   curve_colors <- c(
     "OD_drop"      = "red",
@@ -147,38 +152,37 @@ plot_growth_curve <- function(
     "growing"      = "darkgreen",
     "slow_growing" = "orange"
   )
-  
+
   curve_levels <- names(curve_colors)
-  
+
   # Extract data
   join_keys <- c(variables, "Plate.Type")
-  
+
   conditions <- well_summary %>%
     dplyr::distinct(dplyr::across(dplyr::all_of(join_keys)))
-  
+
   plot_list <- vector("list", nrow(conditions))
   names(plot_list) <- apply(conditions, 1, paste, collapse = "_")
-  
+
   # Loop over conditions
   for (i in seq_len(nrow(conditions))) {
-    
     cond <- conditions[i, ]
-    
+
     ws <- well_summary %>%
       dplyr::semi_join(cond, by = join_keys)
-    
+
     # Plate layout
     plate_layout <- expand.grid(
       category = LETTERS[1:8],
       number   = 1:12
     )
-    
+
     ws_plate <- ws %>%
       dplyr::mutate(
         category = stringr::str_extract(.data$Well, "^[A-H]"),
         number   = as.numeric(stringr::str_extract(.data$Well, "\\d+"))
       )
-    
+
     plate_df <- plate_layout %>%
       dplyr::left_join(
         dplyr::select(ws_plate, dplyr::all_of(c("category", "number", "curve_type"))),
@@ -189,9 +193,9 @@ plot_growth_curve <- function(
         curve_type = factor(.data$curve_type, levels = curve_levels),
         category   = factor(.data$category, levels = LETTERS[8:1])
       )
-    
+
     title_text <- paste(cond, collapse = " | ")
-    
+
     p_plate <- ggplot2::ggplot(
       plate_df,
       ggplot2::aes(x = .data$number, y = .data$category)
@@ -216,10 +220,10 @@ plot_growth_curve <- function(
       ggplot2::theme_minimal(base_size = 13) +
       ggplot2::theme(
         panel.grid = ggplot2::element_blank(),
-        axis.text  = ggplot2::element_text(size = 8),
+        axis.text = ggplot2::element_text(size = 8),
         legend.position = "bottom"
       )
-    
+
     # Raw curve data
     raw_subset <- raw_data %>%
       dplyr::semi_join(cond, by = join_keys) %>%
@@ -227,7 +231,7 @@ plot_growth_curve <- function(
         dplyr::select(ws, dplyr::all_of(join_keys), .data$Well, .data$curve_type),
         by = c(join_keys, "Well")
       )
-    
+
     # Determine which curve types to plot
     if (is.null(curve_types_to_plot)) {
       curve_types_current <- raw_subset %>%
@@ -238,28 +242,28 @@ plot_growth_curve <- function(
     } else {
       curve_types_current <- curve_types_to_plot
     }
-    
+
     raw_subset <- raw_subset %>%
       dplyr::filter(.data$curve_type %in% curve_types_current)
-    
+
     # Handle empty case
     if (nrow(raw_subset) == 0) {
-      
-      p_raw <- ggplot2::ggplot() + ggplot2::theme_void()
-      
+      p_raw <- ggplot2::ggplot() +
+        ggplot2::theme_void()
+
       plot_list[[i]] <- patchwork::wrap_plots(
         p_plate, p_raw,
         widths = c(1, 1.7)
       )
-      
+
       next
     }
-    
+
     raw_subset <- raw_subset %>%
       dplyr::mutate(
         curve_type = factor(.data$curve_type, levels = curve_levels)
       )
-    
+
     # Raw curve plot
     p_raw <- ggplot2::ggplot(
       raw_subset,
@@ -285,14 +289,14 @@ plot_growth_curve <- function(
         legend.key.height = grid::unit(0.4, "cm"),
         legend.text = ggplot2::element_text(size = 6)
       )
-    
+
     # Combine plots
     plot_list[[i]] <- patchwork::wrap_plots(
       p_plate, p_raw,
       widths = c(1, 1.7)
     )
   }
-  
+
   # Return
   if (store_plots) {
     data$growth_curve_plots <- plot_list

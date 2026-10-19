@@ -3,27 +3,30 @@
 make_auc_plot_input <- function(empty = FALSE,
                                 n_variables = 2,
                                 plate = "PM-M1") {
-  
   n <- 6
   df <- data.frame(
-    Well       = paste0("A0", seq_len(n)),
+    Well = paste0("A0", seq_len(n)),
     Plate.Type = plate,
-    Chemical   = c("Negative Control", "a-D-Glucose",
-                   "DrugA", "DrugB", "DrugC", "DrugD"),
-    control    = c("negative", "positive",
-                   NA, NA, NA, NA),
-    AUC        = runif(n, 0.1, 1.0),
-    AUC_low    = runif(n, 0.05, 0.4),
-    AUC_high   = runif(n, 0.5,  1.2),
-    cell.line  = "H460",
-    treatment  = "drug",
+    Chemical = c(
+      "Negative Control", "a-D-Glucose",
+      "DrugA", "DrugB", "DrugC", "DrugD"
+    ),
+    control = c(
+      "negative", "positive",
+      NA, NA, NA, NA
+    ),
+    AUC = runif(n, 0.1, 1.0),
+    AUC_low = runif(n, 0.05, 0.4),
+    AUC_high = runif(n, 0.5, 1.2),
+    cell.line = "H460",
+    treatment = "drug",
     stringsAsFactors = FALSE
   )
-  df$AUC_low  <- pmin(df$AUC_low,  df$AUC_high)
-  df$AUC_high <- pmax(df$AUC_low,  df$AUC_high)
-  
+  df$AUC_low <- pmin(df$AUC_low, df$AUC_high)
+  df$AUC_high <- pmax(df$AUC_low, df$AUC_high)
+
   vars <- c("cell.line", "treatment")[seq_len(n_variables)]
-  
+
   list(
     auc_results = if (empty) df[0, ] else df,
     meta = list(
@@ -60,7 +63,7 @@ test_that("plot_auc stops when auc_results element is missing", {
 # ── auc_results checks ────────────────────────────────────────────────────────
 
 test_that("plot_auc stops when auc_results is not a data frame", {
-  input             <- make_auc_plot_input()
+  input <- make_auc_plot_input()
   input$auc_results <- "not_a_df"
   expect_error(
     plot_auc(input, selected_plate = "PM-M1"),
@@ -77,8 +80,8 @@ test_that("plot_auc stops when auc_results is empty", {
 })
 
 test_that("plot_auc stops when required column is missing", {
-  input                  <- make_auc_plot_input()
-  input$auc_results$AUC  <- NULL
+  input <- make_auc_plot_input()
+  input$auc_results$AUC <- NULL
   expect_error(
     plot_auc(input, selected_plate = "PM-M1"),
     "missing required columns: AUC"
@@ -86,8 +89,8 @@ test_that("plot_auc stops when required column is missing", {
 })
 
 test_that("plot_auc reports all missing columns", {
-  input                      <- make_auc_plot_input()
-  input$auc_results$AUC      <- NULL
+  input <- make_auc_plot_input()
+  input$auc_results$AUC <- NULL
   input$auc_results$Chemical <- NULL
   expect_error(
     plot_auc(input, selected_plate = "PM-M1"),
@@ -98,7 +101,7 @@ test_that("plot_auc reports all missing columns", {
 # ── meta and variables checks ─────────────────────────────────────────────────
 
 test_that("plot_auc stops when data$meta is missing", {
-  input      <- make_auc_plot_input()
+  input <- make_auc_plot_input()
   input$meta <- NULL
   expect_error(
     plot_auc(input, selected_plate = "PM-M1"),
@@ -177,8 +180,10 @@ test_that("plot_auc stops when facet_vars is empty character", {
 test_that("plot_auc stops when facet_vars has more than 2 elements", {
   input <- make_auc_plot_input()
   expect_error(
-    plot_auc(input, selected_plate = "PM-M1",
-             facet_vars = c("cell.line", "treatment", "extra")),
+    plot_auc(input,
+      selected_plate = "PM-M1",
+      facet_vars = c("cell.line", "treatment", "extra")
+    ),
     "'facet_vars' must contain at most 2 variables"
   )
 })
@@ -186,8 +191,10 @@ test_that("plot_auc stops when facet_vars has more than 2 elements", {
 test_that("plot_auc stops when facet_vars column not in auc_results", {
   input <- make_auc_plot_input()
   expect_error(
-    plot_auc(input, selected_plate = "PM-M1",
-             facet_vars = c("cell.line", "nonexistent")),
+    plot_auc(input,
+      selected_plate = "PM-M1",
+      facet_vars = c("cell.line", "nonexistent")
+    ),
     "not present in 'data\\$auc_results'"
   )
 })
@@ -202,34 +209,34 @@ test_that("plot_auc accepts NULL facet_vars", {
 # ── Return structure ──────────────────────────────────────────────────────────
 
 test_that("plot_auc returns a list", {
-  input  <- make_auc_plot_input()
+  input <- make_auc_plot_input()
   result <- plot_auc(input, selected_plate = "PM-M1")
   expect_type(result, "list")
 })
 
 test_that("plot_auc returns ggplot objects in list", {
-  input  <- make_auc_plot_input()
+  input <- make_auc_plot_input()
   result <- plot_auc(input, selected_plate = "PM-M1")
   expect_true(all(sapply(result, inherits, "ggplot")))
 })
 
 test_that("plot_auc plot title contains 'AUC response'", {
-  input  <- make_auc_plot_input()
+  input <- make_auc_plot_input()
   result <- plot_auc(input, selected_plate = "PM-M1")
   expect_equal(result[[1]]$labels$title, "AUC response")
 })
 
 test_that("plot_auc subtitle contains selected_plate", {
-  input  <- make_auc_plot_input()
+  input <- make_auc_plot_input()
   result <- plot_auc(input, selected_plate = "PM-M1")
   expect_true(grepl("PM-M1", result[[1]]$labels$subtitle))
 })
 
 test_that("plot_auc works with user-supplied facet_vars", {
-  input  <- make_auc_plot_input()
-  result <- plot_auc(input, selected_plate = "PM-M1",
-                     facet_vars = c("cell.line", "treatment"))
+  input <- make_auc_plot_input()
+  result <- plot_auc(input,
+    selected_plate = "PM-M1",
+    facet_vars = c("cell.line", "treatment")
+  )
   expect_true(all(sapply(result, inherits, "ggplot")))
 })
-
-                             

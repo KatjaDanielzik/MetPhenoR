@@ -41,47 +41,49 @@
 #' data("PM_M01_M02")
 #' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 #' head(processed_data$data)
-#' 
+#'
 #' @export
 annotate_chemical <- function(
-    data,
-    annotation,
-    control_map = list( negative = c("Negative Control", "No Chemical"), 
-                        positive = c("a-D-Glucose", "D-(+)-Glucose") ) ) {
-  
+  data,
+  annotation,
+  control_map = list(
+    negative = c("Negative Control", "No Chemical"),
+    positive = c("a-D-Glucose", "D-(+)-Glucose")
+  )
+) {
   Chemical <- NULL
-  
+
   # ---- Validate top-level data structure ----
   if (!is.list(data) || !all(c("data", "meta") %in% names(data))) {
     stop("'data' must be a named list with elements 'data' and 'meta',
           as produced by read_folder().")
   }
-  
+
   if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
     stop("'data$meta' must be a named list containing 'variables',
           as produced by read_folder().")
   }
-  
+
   data_df <- data$data
-  
+
   if (!is.data.frame(data_df)) {
     stop("'data$data' must be a data.frame.")
   }
-  
+
   if (nrow(data_df) == 0) {
     stop("'data$data' must contain at least one row.")
   }
-  
+
   # ---- Validate required columns in data$data ----
   required_data_cols <- c("Plate.Type", "Well")
-  missing_data_cols  <- setdiff(required_data_cols, names(data_df))
+  missing_data_cols <- setdiff(required_data_cols, names(data_df))
   if (length(missing_data_cols) > 0) {
     stop(paste(
       "'data$data' is missing required columns:",
       paste(missing_data_cols, collapse = ", ")
     ))
   }
-  
+
   # ---- Validate annotation input type ----
   if (is.data.frame(annotation)) {
     annotations_list <- list(annotation)
@@ -90,7 +92,7 @@ annotate_chemical <- function(
   } else {
     stop("'annotation' must be a data.frame or a list of data.frames.")
   }
-  
+
   # ---- Validate required columns in each annotation table individually ----
   required_ann_cols <- c("Plate.Type", "Well", "Chemical")
   purrr::iwalk(annotations_list, function(df, idx) {
@@ -102,22 +104,22 @@ annotate_chemical <- function(
       ))
     }
   })
-  
+
   # ---- Validate control_map ----
   if (!is.null(control_map)) {
-    if (!is.list(control_map) || is.null(names(control_map)) || 
-        any(names(control_map) == "")) {
+    if (!is.list(control_map) || is.null(names(control_map)) ||
+      any(names(control_map) == "")) {
       stop("'control_map' must be a named list.")
     }
     if (!all(sapply(control_map, is.character))) {
       stop("All elements of 'control_map' must be character vectors.")
     }
   }
-  
+
   # ---- Combine and deduplicate annotations ----
   annotations <- dplyr::bind_rows(annotations_list) %>%
     dplyr::distinct()
-  
+
   # ---- Warn if annotations are empty after deduplication ----
   if (nrow(annotations) == 0) {
     warning(
@@ -125,26 +127,27 @@ annotate_chemical <- function(
       "No chemical identities will be assigned to wells."
     )
   }
-  
+
   # ---- Merge ----
   data_df <- dplyr::left_join(
     data_df,
     dplyr::select(annotations, "Plate.Type", "Well", "Chemical"),
     by = c("Plate.Type", "Well")
   )
-  
-  
+
+
   # ---- Control classification ----
   if (!is.null(control_map) && "Chemical" %in% names(data_df)) {
-    
     # ---- Warn if any wells have NA in Chemical after merge ----
     n_annotated <- sum(!is.na(data_df$Chemical))
     n_total <- nrow(data_df)
-    
+
     if (n_annotated == 0) {
-      warning("No chemical annotations were successfully merged. ",
-              "All wells have NA in 'Chemical'. Check that 'Plate.Type' and 'Well' ",
-              "match between the data and annotation tables.")
+      warning(
+        "No chemical annotations were successfully merged. ",
+        "All wells have NA in 'Chemical'. Check that 'Plate.Type' and 'Well' ",
+        "match between the data and annotation tables."
+      )
     } else if (n_annotated < n_total) {
       # Find the missing wells (those with NA in Chemical)
       missing_wells <- data_df %>%
@@ -152,25 +155,29 @@ annotate_chemical <- function(
         dplyr::select("Plate.Type", "Well") %>%
         dplyr::distinct() %>%
         dplyr::arrange("Plate.Type", "Well") %>%
-        dplyr::mutate(missing=paste0(Plate.Type, "_", Well))%>%
+        dplyr::mutate(missing = paste0(Plate.Type, "_", Well)) %>%
         dplyr::pull(missing)
-      
+
       # Format the list nicely
       if (length(missing_wells) <= 10) {
-        warning("Only ", n_annotated, " out of ", n_total, " wells were annotated. ",
-                "The following ", length(missing_wells), " wells were not matched: ",
-                paste(missing_wells, collapse = ", "), ".",
-                "This may indicate missing or mismatched 'Plate.Type' or 'Well' values.")
+        warning(
+          "Only ", n_annotated, " out of ", n_total, " wells were annotated. ",
+          "The following ", length(missing_wells), " wells were not matched: ",
+          paste(missing_wells, collapse = ", "), ".",
+          "This may indicate missing or mismatched 'Plate.Type' or 'Well' values."
+        )
       } else {
-        warning("Only ", n_annotated, " out of ", n_total, " wells were annotated. ",
-                "The following ", length(missing_wells), " wells were not matched: ",
-                paste(head(missing_wells, 5), collapse = ", "), "... (and ", 
-                length(missing_wells) - 5, " more).",
-                "Check 'Plate.Type' and 'Well' values for mismatches.")
+        warning(
+          "Only ", n_annotated, " out of ", n_total, " wells were annotated. ",
+          "The following ", length(missing_wells), " wells were not matched: ",
+          paste(head(missing_wells, 5), collapse = ", "), "... (and ",
+          length(missing_wells) - 5, " more).",
+          "Check 'Plate.Type' and 'Well' values for mismatches."
+        )
       }
     }
-    
-    
+
+
     data_df <- dplyr::mutate(
       data_df,
       control = dplyr::case_when(
@@ -179,7 +186,7 @@ annotate_chemical <- function(
       )
     )
   }
-  
+
   # ---- Return ----
   data$data <- data_df
   return(data)

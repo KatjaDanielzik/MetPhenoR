@@ -1,34 +1,32 @@
-
 # Helper: minimal valid input matching the structure from read_folder()
 make_qc_input <- function(n_replicates = 1, include_duplicate = FALSE) {
-  
   hours <- seq(0, 10, by = 2)
   wells <- c("A01", "A02", "A03", "A04", "A05")
-  
+
   base <- expand.grid(
-    Hour         = hours,
-    Well         = wells,
-    Plate.Type   = "PM-M1",
-    cell.line    = "H460",
+    Hour = hours,
+    Well = wells,
+    Plate.Type = "PM-M1",
+    cell.line = "H460",
     radiation.dose = "CT",
-    time.point   = "0h",
+    time.point = "0h",
     stringsAsFactors = FALSE
   )
   base$diff_OD_590_740 <- runif(nrow(base))
   base$PlateId <- "plate_001"
-  
+
   df <- base
-  
+
   if (n_replicates == 2) {
     rep2 <- base
     rep2$PlateId <- "plate_002"
     df <- rbind(df, rep2)
   }
-  
+
   if (include_duplicate) {
     df <- rbind(df, base[1, ])
   }
-  
+
   list(
     data = df,
     meta = list(
@@ -192,7 +190,7 @@ test_that("qc_data error lists all missing columns at once", {
 
 test_that("qc_data stops when no rows remain after well filtering", {
   input <- make_qc_input()
-  input$data$Well <- "H12"  # replace all wells with one outside A01-A05
+  input$data$Well <- "H12" # replace all wells with one outside A01-A05
   expect_error(
     qc_data(input),
     "No data found for the specified wells"
@@ -212,25 +210,25 @@ test_that("qc_data returns a ggplot object", {
 test_that("qc_data only includes wells A01 to A05 in plot data", {
   input <- make_qc_input()
   # Add a well outside the expected range
-  extra_row        <- input$data[1, ]
-  extra_row$Well   <- "H12"
-  input$data       <- rbind(input$data, extra_row)
-  
+  extra_row <- input$data[1, ]
+  extra_row$Well <- "H12"
+  input$data <- rbind(input$data, extra_row)
+
   result <- qc_data(input)
   expect_false("H12" %in% unique(result$data$Well))
-  expect_true(all(unique(result$data$Well) %in% c("A01","A02","A03","A04","A05")))
+  expect_true(all(unique(result$data$Well) %in% c("A01", "A02", "A03", "A04", "A05")))
 })
 
 # ── Replicate counts ──────────────────────────────────────────────────────────
 
 test_that("qc_data shows n_entries == 1 for a single non-duplicated replicate", {
-  input  <- make_qc_input(n_replicates = 1)
+  input <- make_qc_input(n_replicates = 1)
   result <- qc_data(input)
   expect_equal(unique(result$data$n_entries), 1)
 })
 
 test_that("qc_data shows n_entries == 2 for two distinct replicates", {
-  input  <- make_qc_input(n_replicates = 2)
+  input <- make_qc_input(n_replicates = 2)
   result <- qc_data(input)
   expect_equal(unique(result$data$n_entries), 2)
 })
@@ -238,13 +236,13 @@ test_that("qc_data shows n_entries == 2 for two distinct replicates", {
 # ── Duplicate detection ───────────────────────────────────────────────────────
 
 test_that("qc_data reflects duplicated rows as n_entries > 1", {
-  input  <- make_qc_input(include_duplicate = TRUE)
+  input <- make_qc_input(include_duplicate = TRUE)
   result <- qc_data(input)
   expect_true(any(result$data$n_entries > 1))
 })
 
 test_that("qc_data shows only n_entries == 1 when there are no duplicates", {
-  input  <- make_qc_input(include_duplicate = FALSE)
+  input <- make_qc_input(include_duplicate = FALSE)
   result <- qc_data(input)
   expect_true(all(result$data$n_entries == 1))
 })
@@ -252,31 +250,31 @@ test_that("qc_data shows only n_entries == 1 when there are no duplicates", {
 # ── Plot structure ────────────────────────────────────────────────────────────
 
 test_that("qc_data plot maps Well to x-axis", {
-  input  <- make_qc_input()
+  input <- make_qc_input()
   result <- qc_data(input)
   expect_equal(rlang::as_label(result$mapping$x), "Well")
 })
 
 test_that("qc_data plot maps n_entries to fill", {
-  input  <- make_qc_input()
+  input <- make_qc_input()
   result <- qc_data(input)
   expect_equal(rlang::as_label(result$mapping$fill), "n_entries")
 })
 
 test_that("qc_data plot has correct title", {
-  input  <- make_qc_input()
+  input <- make_qc_input()
   result <- qc_data(input)
   expect_equal(result$labels$title, "QC heatmap: Number of observations = 1?")
 })
 
 test_that("qc_data plot has correct subtitle", {
-  input  <- make_qc_input()
+  input <- make_qc_input()
   result <- qc_data(input)
   expect_equal(result$labels$subtitle, "raw_value entries of the first 5 wells")
 })
 
 test_that("qc_data plot is faceted by Plate_Type", {
-  input  <- make_qc_input()
+  input <- make_qc_input()
   result <- qc_data(input)
   facet_vars <- as.character(result$facet$params$facets[[1]])
   expect_true(any(grepl("Plate_Type", facet_vars)))
@@ -285,21 +283,21 @@ test_that("qc_data plot is faceted by Plate_Type", {
 # ── Multiple Plate.Type values ────────────────────────────────────────────────
 
 test_that("qc_data produces two facet panels for two distinct Plate.Type values", {
-  input       <- make_qc_input()
-  extra        <- input$data
+  input <- make_qc_input()
+  extra <- input$data
   extra$Plate.Type <- "PM-M2"
-  input$data   <- rbind(input$data, extra)
-  
-  result      <- qc_data(input)
-  built       <- ggplot2::ggplot_build(result)
-  n_panels    <- length(unique(built$layout$layout$PANEL))
+  input$data <- rbind(input$data, extra)
+
+  result <- qc_data(input)
+  built <- ggplot2::ggplot_build(result)
+  n_panels <- length(unique(built$layout$layout$PANEL))
   expect_equal(n_panels, 2)
 })
 
 # ── Single variable edge case ─────────────────────────────────────────────────
 
 test_that("qc_data works when variables contains only one element", {
-  input                  <- make_qc_input()
-  input$meta$variables   <- "cell.line"
+  input <- make_qc_input()
+  input$meta$variables <- "cell.line"
   expect_s3_class(qc_data(input), "ggplot")
 })

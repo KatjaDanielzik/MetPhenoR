@@ -106,7 +106,7 @@ If you are using RStudio an object (data frame) should now be loaded to the
 Environment tab. You can click on it's name to inspect the dataframe or type
 
 ```{r}
-head(RawRead) 
+head(RawRead)
 ```
 
 which prints the first rows of the dataframe to your console.
@@ -153,7 +153,7 @@ but also separate variables. This comes in especially handy for custom analysis
 and visualization. 
 
 ```{r}
-processed_data$meta  # display meta information: folder path, sample column, variables
+processed_data$meta # display meta information: folder path, sample column, variables
 ```
 
 Now that our data is read in let's check if we read in the data correctly.
@@ -208,7 +208,7 @@ The package includes built-in annotations for:
 data("PM_M01_M02") # load annotation file for PM-M01 and PM-M02
 head(PM_M01_M02) # inspect for few rows
 processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02) # annotate Chemical Information
-head(processed_data$data) 
+head(processed_data$data)
 ```
 
 Now you’ll see two new columns:
@@ -288,7 +288,7 @@ As we only saw the before mentioned growth types OdinR is also only able to dete
 these. 
 
 ```{r,fig.width=8,fig.height=6}
-processed_data <- plot_growth_curve(processed_data) # store plots 
+processed_data <- plot_growth_curve(processed_data) # store plots
 processed_data$growth_curve_plots$`A_treatment_inhibitor_2h_PM-M01` # just show one plot
 ```
 
@@ -309,11 +309,14 @@ is not suited for further analysis we can omit this plate with:
 
 ```{r}
 processed_data <- filter_data(processed_data,
-                              plate_type = "PM-M01",
-                              filters = list(cell.line="A",
-                                             treatment="treatment",
-                                             inhibitor="inhibitor",
-                                             time="2h"))
+  plate_type = "PM-M01",
+  filters = list(
+    cell.line = "A",
+    treatment = "treatment",
+    inhibitor = "inhibitor",
+    time = "2h"
+  )
+)
 ```
 
 We can re-use the qc_data function to check if we omitted the correct plate:
@@ -336,11 +339,14 @@ complete plates from analysis you can decide which curve types to keep.
 In our example data set I demonstrate how to omit the curves with OD drops (and therefore keep "growing", "flat_low" and "slow_growing". The default setting is only to keep growing.
 
 ```{r}
-processed_data <- compute_auc_ci(processed_data, 
-                                 target_curve_type = c("growing",
-                                                       "flat_low",
-                                                       "slow_growing"),# keep these curve types for AUC calculation
-                                 n_boot = 10) # low number of bootstraps for vignette
+processed_data <- compute_auc_ci(processed_data,
+  target_curve_type = c(
+    "growing",
+    "flat_low",
+    "slow_growing"
+  ), # keep these curve types for AUC calculation
+  n_boot = 10
+) # low number of bootstraps for vignette
 head(processed_data$auc_results)
 ```
 
@@ -384,8 +390,9 @@ If we want to get a first glimpse on how the AUCs of different biological condit
 compare on the same plate we can use the plot_control_tween_per_plate() function.
 
 ```{r,fig.width=8,fig.height=8}
-plot_controls_tween_per_plate(processed_data, 
-                              selected_plate = "PM-M01") # which Plate Type to compare
+plot_controls_tween_per_plate(processed_data,
+  selected_plate = "PM-M01"
+) # which Plate Type to compare
 ```
 
 In the above plot we can e.g. see that the variance of control wells is comparably
@@ -397,9 +404,10 @@ After we inspected the variance of the control Wells we can proceed with visuali
 all Wells on one plate type in all biological conditions:
 
 ```{r,fig.width=10, fig.height=12}
-plot_auc(processed_data, 
-         selected_plate = "PM-M02",
-         facet_vars = c("treatment")) # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
+plot_auc(processed_data,
+  selected_plate = "PM-M02",
+  facet_vars = c("treatment")
+) # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
 ```
 
 In the resulting plots the metabolites are ordered by their mean AUC across
@@ -429,9 +437,10 @@ Depending on which biological conditions you want to compare you can set the
 *x_var* argument to the variable that should be displayed on the x-axis.
 
 ```{r,fig.width=10,fig.height=12}
-plot_auc_ratio_heatmap(processed_data, 
-                       plate_type = "PM-M01", # which plate type to visualize
-                       x_var = "treatment") # which variable should go on x-axis, all other go in x-axis panels
+plot_auc_ratio_heatmap(processed_data,
+  plate_type = "PM-M01", # which plate type to visualize
+  x_var = "treatment"
+) # which variable should go on x-axis, all other go in x-axis panels
 ```
 
 Missing values due to filtering or dropping of OD curve types will be displayed 
@@ -443,11 +452,11 @@ Please note that **this distorts your perception of results** with higher visual
 emphasis on small AUC ratios compared to natural scale.
 
 ```{r,fig.width=10,fig.height=12}
-plot_auc_ratio_heatmap(processed_data, 
-                       plate_type = "PM-M01", 
-                       x_var = "treatment",
-                       scale_type = "log10" # switch from natural to log10 scale
-                       ) 
+plot_auc_ratio_heatmap(processed_data,
+  plate_type = "PM-M01",
+  x_var = "treatment",
+  scale_type = "log10" # switch from natural to log10 scale
+)
 ```
 
 
@@ -482,11 +491,14 @@ only display certain entries in one specific plot. We can again choose the x-axi
 and whether we want to display the AUC ratio on the natural or log10 scale.
 
 ```{r,fig.width=10,fig.height=10}
-plot_auc_ratio_by_group(processed_data, 
-                        group_var = "middle_hierarchy", # column in metadata
-                        x_var = "treatment",
-                        group_filter = c("Nucleotide metabolism", #  which entries in 'group_var' to display
-                                         "Amino acid metabolism"))
+plot_auc_ratio_by_group(processed_data,
+  group_var = "middle_hierarchy", # column in metadata
+  x_var = "treatment",
+  group_filter = c(
+    "Nucleotide metabolism", #  which entries in 'group_var' to display
+    "Amino acid metabolism"
+  )
+)
 ```
 
 Another summary visualization are violin plots implemented in function
@@ -495,9 +507,10 @@ possible. In this plot we use the information which metabolite or drug belongs t
 which point in the violin, but for detailed inspection the heat maps are available.
 
 ```{r,fig.width=10,fig.height=10}
-plot_auc_ratio_violin(processed_data, 
-                      group_var = "middle_hierarchy", 
-                      color_var = "treatment") # which variable should be displayed on color scale
+plot_auc_ratio_violin(processed_data,
+  group_var = "middle_hierarchy",
+  color_var = "treatment"
+) # which variable should be displayed on color scale
 ```
 
 We now have the AUC ratio on the x-axis and every point represents one metabolite/drug
@@ -506,11 +519,11 @@ coded and all other experimental variables are displayed in the x-axis facets.
 We can also again switch from natural to log-scale.
 
 ```{r,fig.width=10,fig.height=10}
-plot_auc_ratio_violin(processed_data, 
-                      group_var = "middle_hierarchy", 
-                      color_var = "inhibitor", # switch color variable
-                      scale_type = "log10" # log 10
-                      ) 
+plot_auc_ratio_violin(processed_data,
+  group_var = "middle_hierarchy",
+  color_var = "inhibitor", # switch color variable
+  scale_type = "log10" # log 10
+)
 ```
 
 

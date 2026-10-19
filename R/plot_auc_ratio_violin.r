@@ -33,18 +33,19 @@
 #' @importFrom ggforce geom_sina
 #' @importFrom scales label_number
 #' @importFrom rlang .data
-#' 
-#' 
+#'
+#'
 #' @examples
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
-#' processed_data <- compute_auc_ci(processed_data)
+#' processed_data <- compute_auc_ci(processed_data, n_boot = 10)
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-#' plot_auc_ratio_violin(processed_data, 
-#'                       group_var = "middle_hierarchy", 
-#'                       group_filter = "Nucleotide metabolism", 
-#'                       color_var = "treatment")
+#' plot_auc_ratio_violin(processed_data,
+#'   group_var = "middle_hierarchy",
+#'   group_filter = "Nucleotide metabolism",
+#'   color_var = "treatment"
+#' )
 #'
 #' @export
 
@@ -53,81 +54,88 @@ plot_auc_ratio_violin <- function(data,
                                   group_filter = NULL,
                                   color_var,
                                   scale_type = c("natural", "log10")) {
-  
   # ---- Validate top-level structure ----
   if (!is.list(data) || is.data.frame(data) ||
-      !"auc_ratio" %in% names(data)) {
+    !"auc_ratio" %in% names(data)) {
     stop("'data' must be a named list containing an 'auc_ratio' element,
           as produced by compute_auc_ratio().")
   }
-  
+
   # ---- Validate auc_ratio ----
   data_df <- data$auc_ratio
-  
+
   if (!is.data.frame(data_df)) {
     stop("'data$auc_ratio' must be a data.frame.")
   }
-  
+
   if (nrow(data_df) == 0) {
     stop("'data$auc_ratio' must contain at least one row.")
   }
-  
+
   # ---- Validate meta and variables ----
   if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
     stop("'data$meta' must be a named list containing 'variables',
           as produced by read_folder().")
   }
-  
+
   variables <- data$meta$variables
-  
+
   if (!is.character(variables) || length(variables) == 0) {
     stop("'data$meta$variables' must be a non-empty character vector.")
   }
-  
+
   # ---- Validate AUC_ratio column ----
   if (!"AUC_ratio" %in% names(data_df)) {
     stop("'data$auc_ratio' is missing required column: AUC_ratio.")
   }
-  
+
   # ---- Validate group_var ----
   if (missing(group_var) || is.null(group_var)) {
     stop("'group_var' must be provided.")
   }
-  
+
   if (!is.character(group_var) || length(group_var) != 1) {
     stop("'group_var' must be a single character string.")
   }
-  
+
   if (!group_var %in% names(data_df)) {
-    stop(paste0("'group_var' value '", group_var,
-                "' is not a column in 'data$auc_ratio'. ",
-                "Available columns: ",
-                paste(names(data_df), collapse = ", ")))
+    stop(paste0(
+      "'group_var' value '", group_var,
+      "' is not a column in 'data$auc_ratio'. ",
+      "Available columns: ",
+      paste(names(data_df), collapse = ", ")
+    ))
   }
-  
+
   # ---- Validate color_var ----
   if (missing(color_var) || is.null(color_var)) {
     if (length(variables) == 0) {
-      stop("No 'variables' found in 'data$meta'. Cannot auto-select 'color_var'.",
-           " Please provide a valid 'color_var'.")
+      stop(
+        "No 'variables' found in 'data$meta'. Cannot auto-select 'color_var'.",
+        " Please provide a valid 'color_var'."
+      )
     }
     color_var <- variables[1]
-    message("No 'color_var' specified. Using '", color_var,
-            "' as default (first entry in 'data$meta$variables').")
+    message(
+      "No 'color_var' specified. Using '", color_var,
+      "' as default (first entry in 'data$meta$variables')."
+    )
   }
-  
+
   if (!is.character(color_var) || length(color_var) != 1) {
     stop("'color_var' must be a single character string.")
   }
-  
+
   if (!color_var %in% names(data_df)) {
-    stop(paste0("'color_var' value '", color_var,
-                "' is not a column in 'data$auc_ratio'."))
+    stop(paste0(
+      "'color_var' value '", color_var,
+      "' is not a column in 'data$auc_ratio'."
+    ))
   }
-  
+
   # ---- Validate scale_type ----
   scale_type <- match.arg(scale_type)
-  
+
   # ---- Validate group_filter ----
   if (!is.null(group_filter)) {
     if (!is.character(group_filter) || length(group_filter) == 0) {
@@ -135,42 +143,46 @@ plot_auc_ratio_violin <- function(data,
     }
     missing_vals <- setdiff(group_filter, unique(data_df[[group_var]]))
     if (length(missing_vals) > 0) {
-      warning(paste0("The following 'group_filter' values were not found in '",
-                     group_var, "': ",
-                     paste(missing_vals, collapse = ", "),
-                     ". These will be ignored."))
+      warning(paste0(
+        "The following 'group_filter' values were not found in '",
+        group_var, "': ",
+        paste(missing_vals, collapse = ", "),
+        ". These will be ignored."
+      ))
     }
   }
-  
+
   # ---- Apply group_filter ----
   pathway_sym <- rlang::sym(group_var)
-  
+
   if (!is.null(group_filter)) {
     data_df <- data_df %>%
       dplyr::filter(!!pathway_sym %in% group_filter)
-    
+
     if (nrow(data_df) == 0) {
-      stop("No rows remain after applying 'group_filter'. ",
-           "Check that filter values exist in '", group_var, "'.")
+      stop(
+        "No rows remain after applying 'group_filter'. ",
+        "Check that filter values exist in '", group_var, "'."
+      )
     }
   }
-  
+
   scale_type <- match.arg(scale_type)
-  
+
   # ---- Convert to symbols (FIX for spaces!) ----
   pathway_sym <- sym(group_var)
-  color_sym   <- sym(color_var)
-  
-  variables   <- data$meta$variables
+  color_sym <- sym(color_var)
+
+  variables <- data$meta$variables
   column_vars <- setdiff(variables, c(group_var, color_var))
-  column_syms  <- syms(column_vars)
-  
+  column_syms <- syms(column_vars)
+
   # ---- Optional filtering ----
   if (!is.null(group_filter)) {
     data_df <- data_df %>%
       dplyr::filter(!!pathway_sym %in% group_filter)
   }
-  
+
   # ---- Remove invalid AUC ratios ----
   data_filtered <- data_df %>%
     dplyr::filter(
@@ -179,36 +191,35 @@ plot_auc_ratio_violin <- function(data,
       !is.infinite(.data$AUC_ratio),
       .data$AUC_ratio > 0
     )
-  
+
   if (nrow(data_filtered) == 0) {
     stop("No valid AUC_ratio values available for plotting.")
   }
-  
+
   # ---- X transformation ----
   if (scale_type == "log10") {
     data_filtered <- data_filtered %>%
       mutate(AUC_ratio_plot = log10(.data$AUC_ratio))
-    
+
     x_scale <- scale_x_continuous(
       labels = scales::label_number(accuracy = 0.01)
     )
-    
+
     x_label <- "AUC ratio (log10 scale)"
-    
   } else {
     data_filtered <- data_filtered %>%
       mutate(AUC_ratio_plot = .data$AUC_ratio)
-    
+
     x_scale <- scale_x_continuous(
       labels = scales::label_number(accuracy = 0.01)
     )
-    
+
     x_label <- "AUC ratio"
   }
-  
+
   # ---- Legend title ----
   legend_title <- gsub("_", " ", color_var)
-  
+
   # ---- Plot ----
   p <- ggplot(
     data_filtered,
@@ -216,7 +227,7 @@ plot_auc_ratio_violin <- function(data,
       x = .data$AUC_ratio_plot,
       y = !!pathway_sym,
       color = !!color_sym,
-      fill  = !!color_sym
+      fill = !!color_sym
     )
   ) +
     geom_violin(
@@ -236,7 +247,7 @@ plot_auc_ratio_violin <- function(data,
       colour = "black",
       linewidth = 0.6
     )
-  
+
   # ---- Faceting (FIXED) ----
   if (length(column_syms) > 0) {
     p <- p +
@@ -244,32 +255,32 @@ plot_auc_ratio_violin <- function(data,
         rows = vars(!!pathway_sym),
         cols = vars(!!!column_syms),
         scales = "free_y",
-        space  = "free_y"
+        space = "free_y"
       )
   } else {
     p <- p +
       facet_grid(
         rows = vars(!!pathway_sym),
         scales = "free_y",
-        space  = "free_y"
+        space = "free_y"
       )
   }
-  
+
   # ---- Scales ----
   p +
     x_scale +
     ggplot2::scale_color_viridis_d(option = "turbo", name = gsub("_", " ", color_var)) +
-    ggplot2::scale_fill_viridis_d(option = "turbo",  name = gsub("_", " ", color_var)) +
-    
+    ggplot2::scale_fill_viridis_d(option = "turbo", name = gsub("_", " ", color_var)) +
+
     # ---- Labels ----
-  labs(
-    x = x_label,
-    y = group_var,
-    title = paste0("Distribution of AUC ratios per ", group_var)
-  ) +
-    
+    labs(
+      x = x_label,
+      y = group_var,
+      title = paste0("Distribution of AUC ratios per ", group_var)
+    ) +
+
     # ---- Theme ----
-  theme_bw(base_size = 11) +
+    theme_bw(base_size = 11) +
     theme(
       legend.position = "right",
       legend.title = element_text(face = "bold"),
