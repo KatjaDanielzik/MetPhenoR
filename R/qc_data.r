@@ -16,13 +16,13 @@
 #' \describe{
 #'   \item{data}{A \code{data.frame} with experimental measurements}
 #'   \item{meta}{A list containing metadata, including a character vector
-#'   \code{variables} specifying grouping variables}
+#'   \code{variables} a character vector specifying grouping variables}
 #' }
 #'
 #' @details
 #' The function internally restricts analysis to a fixed set of wells
 #' (\code{A01–A05}). Replicate counts are computed across grouping variables
-#' defined by \code{data$meta$variables}, in addition to \code{"Plate Type"},
+#' defined by \code{data$meta$variables}, in addition to \code{"Plate.Type"},
 #' \code{"Hour"}, and \code{"Well"}.
 #'
 #' Duplicate entries are defined as observations sharing identical values across
@@ -48,56 +48,61 @@
 #' @export
 qc_data <- function(data) {
   
-  # Extract data
-  data_df <- data$data
+  # Check top-level input structure
+  if (!is.list(data) || !all(c("data", "meta") %in% names(data))) {
+    stop("'data' must be a named list with elements 'data' and 'meta', as produced by 'read_folder()'")
+  }
+  
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables', as produced by read_folder().")
+  }
+  
+  # Extract
+  data_df   <- data$data
   variables <- data$meta$variables
   
-  wells <- c("A01","A02","A03","A04", "A05")
+  if (!is.data.frame(data_df)) {
+    stop("'data$data' must be a data frame.")
+  }
   
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
+  # Derived internals
+  wells      <- c("A01", "A02", "A03", "A04", "A05")
   group_vars <- c(variables, "Hour", "Well")
   
-  # Input validation
-  if (!is.data.frame(data_df)) {
-    stop("'data$data' must be a data.frame.")
-  }
-  
-  if (!is.character(wells) || length(wells) == 0) {
-    stop("'wells' must be a non-empty character vector.")
-  }
-  
-  if (!is.character(group_vars) || length(group_vars) == 0) {
-    stop("'group_vars' must be a non-empty character vector.")
-  }
-  
-  missing_cols <- setdiff(group_vars, names(data_df))
+  # Column existence
+  required_cols <- c(group_vars, "Plate.Type", "diff_OD_590_740")
+  missing_cols  <- setdiff(required_cols, names(data_df))
   if (length(missing_cols) > 0) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
-  # Filter wells
+  # Post-filter check
   qc_data <- dplyr::filter(data_df, .data$Well %in% wells)
-  
   if (nrow(qc_data) == 0) {
     stop("No data found for the specified wells.")
   }
   
   # Duplicate detection
   duplicates <- qc_data %>%
-    dplyr::count(dplyr::across(dplyr::all_of(c(group_vars, "Plate Type"))), name = "n") %>%
+    dplyr::count(dplyr::across(dplyr::all_of(c(group_vars, "Plate.Type"))), name = "n") %>%
     dplyr::filter(.data$n > 1)
   
   # Replicate summary
   qc_table <- qc_data %>%
     dplyr::count(
-      dplyr::across(dplyr::all_of(c(group_vars, "Plate Type"))),
+      dplyr::across(dplyr::all_of(c(group_vars, "Plate.Type"))),
       name = "n"
     ) %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(setdiff(c(group_vars, "Plate Type"), "Hour")))
+      dplyr::across(dplyr::all_of(setdiff(c(group_vars, "Plate.Type"), "Hour")))
     ) %>%
     dplyr::summarise(
       n_entries = max(.data$n),
-      Plate_Type = dplyr::first(.data$`Plate Type`),
+      Plate_Type = dplyr::first(.data$Plate.Type),
       .groups = "drop"
     )
   

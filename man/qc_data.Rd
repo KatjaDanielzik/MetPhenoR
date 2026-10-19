@@ -11,7 +11,7 @@ qc_data(data)
 \describe{
 \item{data}{A \code{data.frame} with experimental measurements}
 \item{meta}{A list containing metadata, including a character vector
-\code{variables} specifying grouping variables}
+\code{variables} a character vector specifying grouping variables}
 }}
 }
 \value{
@@ -34,7 +34,7 @@ The QC workflow comprises:
 
 The function internally restricts analysis to a fixed set of wells
 (\code{A01–A05}). Replicate counts are computed across grouping variables
-defined by \code{data$meta$variables}, in addition to \code{"Plate Type"},
+defined by \code{data$meta$variables}, in addition to \code{"Plate.Type"},
 \code{"Hour"}, and \code{"Well"}.
 
 Duplicate entries are defined as observations sharing identical values across
