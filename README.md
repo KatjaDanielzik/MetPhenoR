@@ -70,7 +70,7 @@ Before analyzing your data:
 ## Contact
 
 Have questions, feedback, or want to contribute?  
-Email: [katja.danielzik@uni-due.de](mailto:katja.danielzik@uni-due.de)
+Open an Issue
 
 
 ## Final Tip

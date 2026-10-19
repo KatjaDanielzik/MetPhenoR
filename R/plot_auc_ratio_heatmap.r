@@ -4,7 +4,7 @@
 #' and experimental conditions using the \code{auc_ratio} element of the input data.
 #'
 #' @param data A list containing a data frame element \code{auc_ratio}.
-#'   The data frame must include columns \code{"Plate Type"}, \code{"Well"},
+#'   The data frame must include columns \code{"Plate.Type"}, \code{"Well"},
 #'   \code{"Chemical"}, and \code{"AUC_ratio"}.
 #' @param plate_type Character vector specifying one or more plate types to include.
 #' @param x_var Character string indicating the column to be mapped to the x-axis.
@@ -42,27 +42,71 @@
 #' @export
 plot_auc_ratio_heatmap <- function(data,
                                    plate_type,
-                                   x_var,
+                                   x_var = NULL,
                                    scale_type = c("natural", "log10")) {
   
-  # ---- Validate input ----
-  if (!("auc_ratio" %in% names(data))) {
-    stop("'data' must contain an 'auc_ratio' element. Run and check output of function 'compute_auc_ratio()'.")
+  # ---- Validate top-level structure ----
+  if (!is.list(data) || is.data.frame(data) ||
+      !"auc_ratio" %in% names(data)) {
+    stop("'data' must be a named list containing an 'auc_ratio' element,
+          as produced by compute_auc_ratio().")
   }
   
+  # ---- Validate auc_ratio ----
   data_df <- data$auc_ratio
   
   if (!is.data.frame(data_df)) {
     stop("'data$auc_ratio' must be a data.frame.")
   }
   
+  if (nrow(data_df) == 0) {
+    stop("'data$auc_ratio' must contain at least one row.")
+  }
+  
+  # ---- Validate meta and variables ----
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables',
+          as produced by read_folder().")
+  }
+  
+  variables <- data$meta$variables
+  
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate required columns in auc_ratio ----
+  required_cols <- c("Plate.Type", "Well", "Chemical", "AUC_ratio")
+  missing_cols  <- setdiff(required_cols, names(data_df))
+  if (length(missing_cols) > 0) {
+    stop(paste("'data$auc_ratio' is missing required columns:",
+               paste(missing_cols, collapse = ", ")))
+  }
+  
+  # ---- Validate plate_type ----
+  if (missing(plate_type) || is.null(plate_type) || length(plate_type) == 0) {
+    stop("'plate_type' must be a non-empty character vector.")
+  }
+  
+  if (!is.character(plate_type)) {
+    stop("'plate_type' must be a character vector.")
+  }
+  
+  unknown_plates <- setdiff(plate_type, unique(data_df$Plate.Type))
+  if (length(unknown_plates) > 0) {
+    warning(paste("The following 'plate_type' values were not found in",
+                  "'data$auc_ratio$Plate.Type':",
+                  paste(unknown_plates, collapse = ", ")))
+  }
+  
+  # ---- Validate scale_type ----
   scale_type <- match.arg(scale_type)
   
   # ---- Auto-select x_var if NULL ----
   if (is.null(x_var)) {
     if (is.null(data$meta$variables) || length(data$meta$variables) == 0) {
       stop("No 'variables' found in 'data$meta'. Cannot auto-select 'x_var'.",
-           " Please provide a valid 'x_var'.")
+           " Please provide a valid 'x_var'.") 
     }
     
     # Use the first candidate
@@ -70,16 +114,22 @@ plot_auc_ratio_heatmap <- function(data,
     message("Using '", x_var, "' as default 'x_var' (first entry 'data$meta$variables').")
   }
   
-
-  # ---- Validate plate_type ----
-  if (!is.character(plate_type)) {
-    stop("'plate_type' must be a character vector.")
-  }
-  if (length(plate_type) == 0) {
-    stop("'plate_type' cannot be empty.")
+  if (!is.character(x_var) || length(x_var) != 1) {
+    stop("'x_var' must be a single character string.")
   }
   
+  if (!x_var %in% names(data_df)) {
+    stop(paste0("'x_var' value '", x_var,
+                "' is not a column in 'data$auc_ratio'."))
+  }
   
+  # ---- Post-filter check ----
+  data_filtered <- data_df %>%
+    dplyr::filter(.data$"Plate.Type" %in% plate_type)
+  
+  if (nrow(data_filtered) == 0) {
+    stop("No data found for the specified 'plate_type' values.")
+  }
   
   # ---- Prepare variables ----
   
@@ -87,9 +137,9 @@ plot_auc_ratio_heatmap <- function(data,
   column_vars <- setdiff(variables, x_var)
   
   data_filtered <- data_df %>%
-    dplyr::filter(.data$"Plate Type" %in% plate_type) %>%
+    dplyr::filter(.data$"Plate.Type" %in% plate_type) %>%
     dplyr::mutate(
-      ID = paste0(.data$"Plate Type", "_", .data$Well, "_", .data$Chemical)
+      ID = paste0(.data$"Plate.Type", "_", .data$Well, "_", .data$Chemical)
     )
   
   # ---- Check if x_var has only one unique value ----
@@ -131,10 +181,10 @@ plot_auc_ratio_heatmap <- function(data,
   # ---- Facet formula ----
   if (length(column_vars) > 0) {
     facet_formula <- as.formula(
-      paste("`Plate Type` ~", paste(column_vars, collapse = " + "))
+      paste("Plate.Type ~", paste(column_vars, collapse = " + "))
     )
   } else {
-    facet_formula <- as.formula("`Plate Type` ~ .")
+    facet_formula <- as.formula("Plate.Type ~ .")
   }
   
   # ---- Plot ----
@@ -166,7 +216,7 @@ plot_auc_ratio_heatmap <- function(data,
       y = "Plate_Well_Chemical",
       title = paste0("AUC Ratio Heatmap (", scale_type, " scale)"),
       subtitle = paste0(
-        "Plate Type: ", paste(plate_type, collapse = ", "),
+        "Plate.Type: ", paste(plate_type, collapse = ", "),
         "\nAUC ratio = AUC[well] / mean(AUC[control on plate])",
         "\nlight grey: inappropriate curve types, dark grey: NA"
       )
