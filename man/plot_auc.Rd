@@ -58,7 +58,7 @@ Response categories are encoded as:
 data(processed_data)
 processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 processed_data <- classify_growth_curve_types(processed_data)
-processed_data <- compute_auc_ci(processed_data)
+processed_data <- compute_auc_ci(processed_data, n_boot = 10)
 plot_auc(processed_data, selected_plate = "PM-M01")
 
 }
