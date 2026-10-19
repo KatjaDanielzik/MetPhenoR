@@ -486,7 +486,7 @@ which point in the violin, but for detailed inspection the heat maps are availab
 
 ```{r,fig.width=10,fig.height=10}
 plot_auc_ratio_violin(processed_data, 
-                      pathway_var = "middle_hierarchy", 
+                      group_var = "middle_hierarchy", 
                       color_var = "treatment") # which variable should be displayed on color scale
 ```
 
@@ -497,7 +497,7 @@ We can also again switch from natural to log-scale.
 
 ```{r,fig.width=10,fig.height=10}
 plot_auc_ratio_violin(processed_data, 
-                      pathway_var = "middle_hierarchy", 
+                      group_var = "middle_hierarchy", 
                       color_var = "inhibitor", # switch color variable
                       scale_type = "log10" # log 10
                       ) 

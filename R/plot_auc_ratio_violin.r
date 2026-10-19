@@ -6,12 +6,12 @@
 #' @param data A list containing a data frame element \code{auc_ratio}.
 #'   The data frame must include columns \code{"AUC_ratio"}, the specified
 #'   hierarchy variable, and the specified color variable.
-#' @param pathway_var Character string specifying the variable used for
+#' @param group_var Character string specifying the variable used for
 #'   grouping along the y-axis.
-#' @param pathway_filter Optional character vector specifying values of
-#'   \code{pathway_var} to include. If \code{NULL}, all values are retained.
+#' @param group_filter Optional character vector specifying values of
+#'   \code{group_var} to include. If \code{NULL}, all values are retained.
 #' @param color_var Character string specifying the variable used for color
-#'   and fill aesthetics.
+#'   and fill aesthetics. Defaults to first entry in data$meta$variables
 #' @param scale_type Character string specifying the x-axis scale. Must be
 #'   one of \code{"natural"} or \code{"log10"}.
 #'
@@ -42,21 +42,21 @@
 #' processed_data <- compute_auc_ratio(processed_data)
 #' processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
 #' plot_auc_ratio_violin(processed_data, 
-#'                       pathway_var = "middle_hierarchy", 
-#'                       pathway_filter = "Nucleotide metabolism", 
-#'                       color_var = "radiation.dose")
+#'                       group_var = "middle_hierarchy", 
+#'                       group_filter = "Nucleotide metabolism", 
+#'                       color_var = "treatment")
 #'
 #' @export
 
 plot_auc_ratio_violin <- function(data,
-                                  pathway_var,
-                                  pathway_filter = NULL,
+                                  group_var,
+                                  group_filter = NULL,
                                   color_var,
                                   scale_type = c("natural", "log10")) {
   
   # ---- Validate input ----
   if (!("auc_ratio" %in% names(data))) {
-    stop("'data' must contain an 'auc_ratio' element.")
+    stop("'data' must contain an 'auc_ratio' element. Run and check output of function 'compute_auc_ratio()'.")
   }
   
   variable <- NULL
@@ -66,20 +66,46 @@ plot_auc_ratio_violin <- function(data,
     stop("'data$auc_ratio' must be a data.frame.")
   }
   
+  # ---- Validate group_var exists ----
+  if (!group_var %in% names(data_df)) {
+    stop("Column '", group_var, "' not found in 'data$auc_ratio'.",
+         " Available columns: ", paste(names(data_df), collapse = ", "))
+  }
+  
+  # ---- Auto-select color_var if NULL ----
+  if (is.null(color_var)) {
+    if (is.null(data$meta$variables) || length(data$meta$variables) == 0) {
+      stop("No 'variables' found in 'data$meta'. Cannot auto-select 'color_var'.",
+           " Please provide a valid 'color_var'.")
+    }
+    color_var <- data$meta$variables[1]
+    message("No 'color_var' specified. Using '", color_var, "' as default 'color_var' (first entry in 'data$meta$variables').")
+  }
+  
+  # ---- Validate group_filter if provided ----
+  if (!is.null(group_filter)) {
+    if (!all(group_filter %in% unique(data_df[[group_var]]))) {
+      missing <- setdiff(group_filter, unique(data_df[[group_var]]))
+      warning("The following values in 'group_filter' were not found in '",
+              group_var, "': ", paste(missing, collapse = ", "),
+              ". These will be ignored.")
+    }
+  }
+  
   scale_type <- match.arg(scale_type)
   
   # ---- Convert to symbols (FIX for spaces!) ----
-  pathway_sym <- sym(pathway_var)
+  pathway_sym <- sym(group_var)
   color_sym   <- sym(color_var)
   
   variables   <- data$meta$variables
-  column_vars <- setdiff(variables, c(pathway_var, color_var))
+  column_vars <- setdiff(variables, c(group_var, color_var))
   column_syms  <- syms(column_vars)
   
   # ---- Optional filtering ----
-  if (!is.null(pathway_filter)) {
+  if (!is.null(group_filter)) {
     data_df <- data_df %>%
-      dplyr::filter(!!pathway_sym %in% pathway_filter)
+      dplyr::filter(!!pathway_sym %in% group_filter)
   }
   
   # ---- Remove invalid AUC ratios ----
@@ -175,8 +201,8 @@ plot_auc_ratio_violin <- function(data,
     # ---- Labels ----
   labs(
     x = x_label,
-    y = pathway_var,
-    title = paste0("Distribution of AUC ratios per ", pathway_var)
+    y = group_var,
+    title = paste0("Distribution of AUC ratios per ", group_var)
   ) +
     
     # ---- Theme ----

@@ -18,7 +18,8 @@ The data frame must include columns \code{"Plate Type"}, \code{"Well"},
 
 \item{plate_type}{Character vector specifying one or more plate types to include.}
 
-\item{x_var}{Character string indicating the column to be mapped to the x-axis.}
+\item{x_var}{Character string indicating the column to be mapped to the x-axis.
+Defaults to the first entry in data$meta$variables}
 
 \item{scale_type}{Character string specifying the transformation applied to
 AUC ratios. Must be one of \code{"natural"} or \code{"log10"}.}
@@ -47,7 +48,7 @@ processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 processed_data <- compute_auc_ci(processed_data)
 processed_data <- compute_auc_ratio(processed_data)
 processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
-plot_auc_ratio_heatmap(processed_data, plate_type = "PM-M01", x_var = "radiation.dose")
+plot_auc_ratio_heatmap(processed_data, plate_type = "PM-M01", x_var = "treatment")
 
 
 }

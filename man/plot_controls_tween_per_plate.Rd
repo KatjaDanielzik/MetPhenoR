@@ -18,7 +18,8 @@ plot_controls_tween_per_plate(
 to visualize.}
 
 \item{variables}{A character vector defining experimental grouping variables.
-At least two variables are recommended for meaningful faceting.}
+At least two variables are recommended for meaningful faceting. Defaults
+to data$meta$variables.}
 
 \item{tween_labels}{A character vector specifying the names of Tween
 compounds to include in the comparison (default:

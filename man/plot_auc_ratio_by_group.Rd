@@ -19,7 +19,8 @@ The data frame must include columns \code{"Plate.Type"}, \code{"Well"},
 
 \item{group_var}{Character string specifying the column to define groups.}
 
-\item{x_var}{Character string indicating the column to be mapped to the x-axis.}
+\item{x_var}{Character string indicating the column to be mapped to the x-axis.
+Defaults to first entry in data$meta$variables.}
 
 \item{group_filter}{Optional character vector specifying group values
 to include. If \code{NULL}, all groups are retained.}

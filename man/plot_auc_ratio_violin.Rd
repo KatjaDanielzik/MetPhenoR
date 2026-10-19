@@ -6,8 +6,8 @@
 \usage{
 plot_auc_ratio_violin(
   data,
-  pathway_var,
-  pathway_filter = NULL,
+  group_var,
+  group_filter = NULL,
   color_var,
   scale_type = c("natural", "log10")
 )
@@ -17,14 +17,14 @@ plot_auc_ratio_violin(
 The data frame must include columns \code{"AUC_ratio"}, the specified
 hierarchy variable, and the specified color variable.}
 
-\item{pathway_var}{Character string specifying the variable used for
+\item{group_var}{Character string specifying the variable used for
 grouping along the y-axis.}
 
-\item{pathway_filter}{Optional character vector specifying values of
-\code{pathway_var} to include. If \code{NULL}, all values are retained.}
+\item{group_filter}{Optional character vector specifying values of
+\code{group_var} to include. If \code{NULL}, all values are retained.}
 
 \item{color_var}{Character string specifying the variable used for color
-and fill aesthetics.}
+and fill aesthetics. Defaults to first entry in data$meta$variables}
 
 \item{scale_type}{Character string specifying the x-axis scale. Must be
 one of \code{"natural"} or \code{"log10"}.}
@@ -54,8 +54,8 @@ processed_data <- compute_auc_ci(processed_data)
 processed_data <- compute_auc_ratio(processed_data)
 processed_data <- annotate_metadata(processed_data, annotation = PM_M01_M02)
 plot_auc_ratio_violin(processed_data, 
-                      pathway_var = "middle_hierarchy", 
-                      pathway_filter = "Nucleotide metabolism", 
-                      color_var = "radiation.dose")
+                      group_var = "middle_hierarchy", 
+                      group_filter = "Nucleotide metabolism", 
+                      color_var = "treatment")
 
 }

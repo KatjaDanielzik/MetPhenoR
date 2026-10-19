@@ -8,6 +8,7 @@
 #'   \code{"Chemical"}, and \code{"AUC_ratio"}.
 #' @param plate_type Character vector specifying one or more plate types to include.
 #' @param x_var Character string indicating the column to be mapped to the x-axis.
+#'   Defaults to the first entry in data$meta$variables
 #' @param scale_type Character string specifying the transformation applied to
 #'   AUC ratios. Must be one of \code{"natural"} or \code{"log10"}.
 #'
@@ -46,7 +47,7 @@ plot_auc_ratio_heatmap <- function(data,
   
   # ---- Validate input ----
   if (!("auc_ratio" %in% names(data))) {
-    stop("'data' must contain an 'auc_ratio' element.")
+    stop("'data' must contain an 'auc_ratio' element. Run and check output of function 'compute_auc_ratio()'.")
   }
   
   data_df <- data$auc_ratio
@@ -56,6 +57,29 @@ plot_auc_ratio_heatmap <- function(data,
   }
   
   scale_type <- match.arg(scale_type)
+  
+  # ---- Auto-select x_var if NULL ----
+  if (is.null(x_var)) {
+    if (is.null(data$meta$variables) || length(data$meta$variables) == 0) {
+      stop("No 'variables' found in 'data$meta'. Cannot auto-select 'x_var'.",
+           " Please provide a valid 'x_var'.")
+    }
+    
+    # Use the first candidate
+    x_var <- data$meta$variables[1]
+    message("Using '", x_var, "' as default 'x_var' (first entry 'data$meta$variables').")
+  }
+  
+
+  # ---- Validate plate_type ----
+  if (!is.character(plate_type)) {
+    stop("'plate_type' must be a character vector.")
+  }
+  if (length(plate_type) == 0) {
+    stop("'plate_type' cannot be empty.")
+  }
+  
+  
   
   # ---- Prepare variables ----
   
@@ -67,6 +91,19 @@ plot_auc_ratio_heatmap <- function(data,
     dplyr::mutate(
       ID = paste0(.data$"Plate Type", "_", .data$Well, "_", .data$Chemical)
     )
+  
+  # ---- Check if x_var has only one unique value ----
+  unique_x <- unique(data_filtered[[x_var]])
+  n_unique_x <- length(unique_x)
+  
+  if (n_unique_x == 1) {
+    warning("The variable '", x_var, "' has only one unique value (",
+            unique_x, ").",
+            "A heatmap cannot show variation along this axis.
+            Consider selecting a different x_var or checking your data.")
+  }
+  
+  
   
   # ---- Apply scale transformation ----
   if (scale_type == "log10") {

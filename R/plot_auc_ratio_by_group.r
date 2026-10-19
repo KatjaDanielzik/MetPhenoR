@@ -8,6 +8,7 @@
 #'   \code{"Chemical"}, \code{"AUC_ratio"}, and the specified pathway variable.
 #' @param group_var Character string specifying the column to define groups.
 #' @param x_var Character string indicating the column to be mapped to the x-axis.
+#'  Defaults to first entry in data$meta$variables.
 #' @param group_filter Optional character vector specifying group values
 #'   to include. If \code{NULL}, all groups are retained.
 #' @param scale_type Character string specifying the transformation applied to
@@ -53,7 +54,7 @@ plot_auc_ratio_by_group <- function(data,
   
   # ---- Validate input ----
   if (!("auc_ratio" %in% names(data))) {
-    stop("'data' must contain an 'auc_ratio' element.")
+    stop("'data' must contain an 'auc_ratio' element. Run and check output of function 'compute_auc_ratio()'.")
   }
   
   data_df <- data$auc_ratio
@@ -63,6 +64,34 @@ plot_auc_ratio_by_group <- function(data,
   }
   
   scale_type <- match.arg(scale_type)
+  
+  # ---- Auto-select x_var if NULL ----
+  if (is.null(x_var)) {
+    if (is.null(data$meta$variables) || length(data$meta$variables) == 0) {
+      stop("No 'variables' found in 'data$meta'. Cannot auto-select 'x_var'.",
+           " Please provide a valid 'x_var'.")
+    }
+    
+    # Use the first entry
+    x_var <- data$meta$variables[1]
+    message("Using '", x_var, "' as default 'x_var' (first entry 'data$meta$variables').")
+  }
+  
+  # ---- Validate group_var exists ----
+  if (!group_var %in% names(data_df)) {
+    stop("Column '", group_var, "' not found in 'data$auc_ratio'.",
+         " Available columns: ", paste(names(data_df), collapse = ", "))
+  }
+  
+  # ---- Validate group_filter if provided ----
+  if (!is.null(group_filter)) {
+    if (!all(group_filter %in% unique(data_df[[group_var]]))) {
+      missing <- setdiff(group_filter, unique(data_df[[group_var]]))
+      warning("The following values in 'group_filter' were not found in '", group_var, "': ",
+              paste(missing, collapse = ", "),
+              ". These will be ignored.")
+    }
+  }
   
   # ---- Prepare variables ----
   variables   <- data$meta$variables

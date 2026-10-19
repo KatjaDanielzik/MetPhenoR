@@ -13,7 +13,8 @@
 #' @param selected_plate A character string specifying the \code{Plate.Type}
 #'   to visualize.
 #' @param variables A character vector defining experimental grouping variables.
-#'   At least two variables are recommended for meaningful faceting.
+#'   At least two variables are recommended for meaningful faceting. Defaults 
+#'   to data$meta$variables.
 #' @param tween_labels A character vector specifying the names of Tween
 #'   compounds to include in the comparison (default:
 #'   \code{c("Tween 20", "Tween 40", "Tween 80")}).
