@@ -82,5 +82,4 @@ data("processed_data")
 processed_data <- classify_growth_curve_types(processed_data)
 head(processed_data$classification)
 
-
 }

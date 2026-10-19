@@ -29,11 +29,15 @@ Excludes one 96-well plate specified by plate_type and filters from data$data.
 }
 \examples{
 data("processed_data")
-#before filtering
+# before filtering
 qc_data(processed_data)
-processed_data <- filter_data(processed_data, plate_type = "PM-M01",
-filters = list(cell.line="A",
-treatment="treatment",inhibitor="inhibitor",time="2h"))
+processed_data <- filter_data(processed_data,
+  plate_type = "PM-M01",
+  filters = list(
+    cell.line = "A",
+    treatment = "treatment", inhibitor = "inhibitor", time = "2h"
+  )
+)
 # after filtering
 qc_data(processed_data)
 

@@ -43,5 +43,4 @@ recorded time point.
 data("processed_data")
 plot_latest_timepoint(processed_data)
 
-
 }
