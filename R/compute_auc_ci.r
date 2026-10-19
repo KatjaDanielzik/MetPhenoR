@@ -40,37 +40,92 @@ compute_auc_ci <- function(data,
                            spline_df = 4,
                            store = TRUE){
   
-  #Validation
-  if (!all(c("data", "meta", "classification") %in% names(data))) {
-    stop("data must contain 'data', 'meta', and 'classification'")
+  # ---- Validate top-level data structure ----
+  if (!is.list(data) || !all(c("data", "meta", "classification") %in% names(data))) {
+    stop("'data' must be a named list with elements 'data', 'meta', and 'classification',
+          as produced by classify_growth_curve_types().")
   }
   
-  if (!all(target_curve_type %in% c("growing","OD_drop","slow_growing","flat_low"))) {
-    stop("target_curve_type can only be 'growing', 'OD_drop', 'slow_growing' or 'flat_low' or a combination of these")
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables',
+          as produced by read_folder().")
   }
   
-  if (!"well_summary" %in% names(data$classification)) {
-    stop("Run classify_growth_curve_types() first")
+  if (!is.list(data$classification) || !"well_summary" %in% names(data$classification)) {
+    stop("'data$classification' must be a named list containing 'well_summary'.
+          Run classify_growth_curve_types() first.")
+  }
+  
+  # ---- Extract ----
+  raw_data     <- data$data
+  variables    <- data$meta$variables
+  well_summary <- data$classification$well_summary
+  
+  # ---- Validate data$data ----
+  if (!is.data.frame(raw_data)) {
+    stop("'data$data' must be a data.frame.")
+  }
+  
+  if (nrow(raw_data) == 0) {
+    stop("'data$data' must contain at least one row.")
+  }
+  
+  # ---- Validate variables ----
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate required columns in data$data ----
+  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
+  missing_cols  <- setdiff(required_cols, names(raw_data))
+  if (length(missing_cols) > 0) {
+    stop(paste("'data$data' is missing required columns:",
+               paste(missing_cols, collapse = ", ")))
+  }
+  
+  # ---- Validate target_curve_type ----
+  if (!is.character(target_curve_type) || length(target_curve_type) == 0) {
+    stop("'target_curve_type' must be a non-empty character vector.")
+  }
+  
+  valid_curve_types <- c("growing", "OD_drop", "slow_growing", "flat_low")
+  unknown_types     <- setdiff(target_curve_type, valid_curve_types)
+  if (length(unknown_types) > 0) {
+    stop(paste0(
+      "'target_curve_type' contains invalid values: ",
+      paste(unknown_types, collapse = ", "),
+      "\nValid options are: ", paste(valid_curve_types, collapse = ", ")
+    ))
+  }
+  
+  # ---- Validate n_boot ----
+  if (!is.numeric(n_boot) || length(n_boot) != 1 ||
+      is.na(n_boot) || n_boot < 1 || n_boot != round(n_boot)) {
+    stop("'n_boot' must be a single positive integer.")
+  }
+  
+  # ---- Validate spline_df ----
+  if (!is.numeric(spline_df) || length(spline_df) != 1 ||
+      is.na(spline_df) || spline_df < 1 || spline_df != round(spline_df)) {
+    stop("'spline_df' must be a single positive integer.")
+  }
+  
+  # ---- Validate store ----
+  if (!is.logical(store) || length(store) != 1 || is.na(store)) {
+    stop("'store' must be a single logical value (TRUE or FALSE).")
   }
   
   variables <- NULL
-  raw_data     <- data$data
-  well_summary <- data$classification$well_summary
-  variables    <- data$meta$variables
-  
+
   #Join and filter
   combined_df <- dplyr::left_join(
     raw_data,
     well_summary,
-    by = c(variables, "Plate Type", "Well")
+    by = c(variables, "Plate.Type", "Well")
   ) %>%
     dplyr::filter(.data$curve_type %in% target_curve_type)
   
-  #Check required columns
-  if (!all(c("Chemical", "control") %in% colnames(combined_df))) {
-    stop("'Chemical' and/or 'control' not found in data$data")
-  }
-  
+
   #Global data sufficiency check
   sampling_summary <- combined_df %>%
     dplyr::group_by(.data$PlateId, .data$Well) %>%
@@ -130,7 +185,7 @@ compute_auc_ci <- function(data,
   # ---- Per-well estimation ----
   auc_results <- combined_df %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(c("Plate Type", "Well", variables)))
+      dplyr::across(dplyr::all_of(c("Plate.Type", "Well", variables)))
     ) %>%
     dplyr::group_modify(~{
       
