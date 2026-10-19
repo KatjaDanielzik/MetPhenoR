@@ -81,16 +81,17 @@ test_that("read_folder handles empty variables vector", {
 })
 
 test_that("read_folder preserves all required columns in output", {
-  test_dir <-file.path(test_path(), "data", "matching")
-  non_dir <- file.path(test_path(), "data", "non_matching")
-  result <- read_folder(data_path = test_dir, sample_column = "Sample", variables = c("cell.line", "radiation.dose", "time.point"))
+  test_dir <- file.path(test_path(), "data", "matching")
+  result <- read_folder(data_path = test_dir, 
+                        sample_column = "Sample", 
+                        variables = c("cell.line", "radiation.dose", "time.point"))
   
   required_cols <- c(
-    "PlateId", "Project Name", "Project Code", "Plate Type", "Sample",
-    "Loaded At", "Incubation Hours", "Incubation Temperature Celsius",
-    "Incubated Offline", "Cycle Time Minutes", "Position", "Protocol",
-    "Description", "Actual Temperature Celsius", "Target Temperature Celsius",
-    "Read At", "Hour", "Well", "diff_OD_590_740"
+    "PlateId", "Project.Name", "Project.Code", "Plate.Type", "Sample",
+    "Loaded.At", "Incubation.Hours", "Incubation.Temperature.Celsius",
+    "Incubated.Offline", "Cycle.Time.Minutes", "Position", "Protocol",
+    "Description", "Actual.Temperature.Celsius", "Target.Temperature.Celsius",
+    "Read.At", "Hour", "Well", "diff_OD_590_740"
   )
   
   expect_true(all(required_cols %in% names(result$data)))

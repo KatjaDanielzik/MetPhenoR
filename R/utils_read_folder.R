@@ -31,6 +31,9 @@
                    "Please ensure the file is either comma- or semicolon-separated."))
     }
     
+    # Replace spaces with dots for consistent naming of columns (e.g. Plate Types)
+    names(file) <- gsub(" ", ".", names(file))
+    
     return(file)
 }
 
@@ -49,15 +52,15 @@
 #' @importFrom dplyr filter
 .adjust_timestamp <- function(x){
   Wavelength <- NULL
-  `Read At` <- NULL
+  Read.At <- NULL
   # get time stamps for 590 nm
   timestamps <- x%>%
     dplyr::filter(Wavelength=="590")%>%
-    dplyr::select(`Read At`)
+    dplyr::select(Read.At)
   
   temp <- x%>%
     dplyr::filter(Wavelength=="740")# assume same read time for 740 and 590
-  temp$`Read At` <- timestamps$`Read At`
+  temp$Read.At <- timestamps$Read.At
   
   temp2 <- x%>%
     dplyr::filter(Wavelength=="590")
@@ -78,13 +81,13 @@
 #' @importFrom dplyr relocate
 
 .calculate_diff_starttime <- function(x) {
-  `Read At` <- NULL
+  Read.At <- NULL
   starttime <- NULL
   Hour <- NULL
-  x$starttime <- x$`Read At`[1]
+  x$starttime <- x$Read.At[1]
   x <- x%>%
-    dplyr::mutate(Hour=as.numeric(difftime(`Read At`,starttime,units="hours")))%>%
-    dplyr::relocate(Hour,.after=`Read At`)%>%
+    dplyr::mutate(Hour=as.numeric(difftime(Read.At,starttime,units="hours")))%>%
+    dplyr::relocate(Hour,.after=Read.At)%>%
     dplyr::select(-starttime)
   return(x)
 }
