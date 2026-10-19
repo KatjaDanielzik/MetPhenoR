@@ -72,13 +72,72 @@ plot_growth_curve <- function(
     store_plots = TRUE
 ) {
   
-  # Checks
-  if (!all(c("data", "meta", "classification") %in% names(data))) {
-    stop("data must contain 'data', 'meta', and 'classification'")
+  # ---- Validate top-level data structure ----
+  if (!is.list(data) || !all(c("data", "meta", "classification") %in% names(data))) {
+    stop("'data' must be a named list with elements 'data', 'meta', and 'classification', as produced by classify_growth_curve_types().")
   }
   
-  if (!"well_summary" %in% names(data$classification)) {
-    stop("Run classify_growth_curve_types() first")
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables', as produced by read_folder().")
+  }
+  
+  if (!is.list(data$classification) ||
+      !all(c("well_summary", "derivative_data") %in% names(data$classification))) {
+    stop("'data$classification' must be a named list with elements 'well_summary' and 'derivative_data'. Run classify_growth_curve_types() first.")
+  }
+  
+  # ---- Extract ----
+  raw_data     <- data$data
+  variables    <- data$meta$variables
+  well_summary <- data$classification$well_summary
+  
+  # ---- Validate data$data ----
+  if (!is.data.frame(raw_data)) {
+    stop("'data$data' must be a data.frame.")
+  }
+  
+  if (nrow(raw_data) == 0) {
+    stop("'data$data' must contain at least one row.")
+  }
+  
+  # ---- Validate variables ----
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate required columns in data$data ----
+  required_data_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
+  missing_data_cols  <- setdiff(required_data_cols, names(raw_data))
+  if (length(missing_data_cols) > 0) {
+    stop(paste("'data$data' is missing required columns:",
+               paste(missing_data_cols, collapse = ", ")))
+  }
+  
+  # ---- Validate required columns in well_summary ----
+  required_ws_cols <- c(variables, "Plate.Type", "Well", "curve_type")
+  missing_ws_cols  <- setdiff(required_ws_cols, names(well_summary))
+  if (length(missing_ws_cols) > 0) {
+    stop(paste("'data$classification$well_summary' is missing required columns:",
+               paste(missing_ws_cols, collapse = ", ")))
+  }
+  
+  # ---- Validate curve_types_to_plot ----
+  if (!is.null(curve_types_to_plot)) {
+    if (!is.character(curve_types_to_plot) || length(curve_types_to_plot) == 0) {
+      stop("'curve_types_to_plot' must be a non-empty character vector or NULL.")
+    }
+    valid_types <- c("growing", "flat_low", "OD_drop", "slow_growing", "uncertain")
+    unknown_types <- setdiff(curve_types_to_plot, valid_types)
+    if (length(unknown_types) > 0) {
+      warning(paste("'curve_types_to_plot' contains unrecognised curve types:",
+                    paste(unknown_types, collapse = ", "),
+                    "\nValid types are:", paste(valid_types, collapse = ", ")))
+    }
+  }
+  
+  # ---- Validate store_plots ----
+  if (!is.logical(store_plots) || length(store_plots) != 1) {
+    stop("'store_plots' must be a single logical value (TRUE or FALSE).")
   }
   
   # Shared color palette
@@ -92,11 +151,7 @@ plot_growth_curve <- function(
   curve_levels <- names(curve_colors)
   
   # Extract data
-  raw_data <- data$data
-  well_summary <- data$classification$well_summary
-  variables <- data$meta$variables
-  
-  join_keys <- c(variables, "Plate Type")
+  join_keys <- c(variables, "Plate.Type")
   
   conditions <- well_summary %>%
     dplyr::distinct(dplyr::across(dplyr::all_of(join_keys)))
