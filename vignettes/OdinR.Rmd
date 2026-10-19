@@ -20,9 +20,12 @@ knitr::opts_chunk$set(
 High-throughput metabolic phenotyping using Odin Biolog is still relatively new 
 in mammalian cell culture research. As such, many questions remain:
 
-- What do the results actually mean?
+- What do the results actually mean? i.e. is a lower or higher metabolic activity
+  on anti-cancer drug plates and indicator for effectiveness of treatment ?
+- Why can we observe OD drops if the dye should be irreversible ?
+- How can growth dynamics be recorded and incorporated in the analysis 
+  for mammalian cell cultures ?
 - How do medium composition or handling affect OD readings?
-- Should cell growth be accounted for in interpretation?
 - How do we handle unexpected curve shapes?
 
 This package aims to provide:
@@ -60,6 +63,12 @@ Also: **R is case-sensitive**.
 This can cause missing data or errors later — so be careful!
 
 # Workflow
+
+```{r graphic_logo, echo = FALSE, fig.align="left", out.width='100%'}
+knitr::include_graphics("../man/figures/OdinR_workflow_flowchart.png")
+```
+
+
 ## Step 1: Prepare your Data
 Before you can analyze, you need to organize your files properly.
 
