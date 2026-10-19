@@ -15,7 +15,7 @@ filter_data(data, plate_type, filters = NULL)
 \code{well_summary}).}
 }}
 
-\item{plate_type}{Character vector of Plate Type to exclude in combination with filters}
+\item{plate_type}{Character vector of Plate.Type to exclude in combination with filters}
 
 \item{filters}{Named list of filtering conditions that should be excluded in plates with 'plate_type'.
 E.g. list(radiation.dose="0Gy",time.h="2h"),

@@ -30,7 +30,7 @@ final time point.
 
 The function performs the following steps:
 \enumerate{
-\item Groups the data by experimental variables, plate type, and well.
+\item Groups the data by experimental variables, Plate.Type, and Well.
 \item Extracts the latest time point per well.
 \item Converts well identifiers (e.g., "A01") into plate coordinates.
 \item Generates a separate plate-layout plot for each experimental condition.

@@ -13,7 +13,7 @@ if (!require("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
 
-# Install OdinR from GitLab
+# Install OdinR from GitHub
 remotes::install_github(KatjaDanielzik/OdinR)
 ```
 
