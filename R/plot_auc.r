@@ -59,28 +59,85 @@ plot_auc <- function(data,
                      selected_plate,
                      facet_vars = NULL) {
   
-  # Validate
-  if (!is.list(data) || is.null(data$auc_results)) {
-    stop("`data` must contain `auc_results`.")
+  # ---- Validate top-level data structure ----
+  if (!is.list(data) || is.data.frame(data) ||
+      !"auc_results" %in% names(data)) {
+    stop("'data' must be a named list containing 'auc_results',
+          as produced by compute_auc_ci().")
   }
   
-  df <- data$auc_results
+  # ---- Validate auc_results ----
+  if (!is.data.frame(data$auc_results)) {
+    stop("'data$auc_results' must be a data.frame.")
+  }
+  
+  if (nrow(data$auc_results) == 0) {
+    stop("'data$auc_results' must contain at least one row.")
+  }
+  
+  # ---- Validate meta and variables ----
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables',
+          as produced by read_folder().")
+  }
+  
   variables <- data$meta$variables
   
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
   if (length(variables) < 2) {
-    stop("Need at least 2 variables.")
+    stop("'data$meta$variables' must contain at least 2 variables for faceting.")
   }
   
-  # Choose facet variables (max 2)
-  if (is.null(facet_vars)) {
-    facet_vars <- variables[1:2]
+  # ---- Validate required columns in auc_results ----
+  df <- data$auc_results
+  
+  required_cols <- c("Plate.Type", "Well", "Chemical",
+                     "AUC", "AUC_low", "AUC_high", "control")
+  missing_cols  <- setdiff(required_cols, names(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("'data$auc_results' is missing required columns:",
+               paste(missing_cols, collapse = ", ")))
   }
   
-  if (length(facet_vars) > 2) {
-    stop("Use at most 2 facet variables.")
+  # ---- Validate selected_plate ----
+  if (missing(selected_plate) || is.null(selected_plate)) {
+    stop("'selected_plate' must be provided.")
+  }
+  
+  if (!is.character(selected_plate) || length(selected_plate) != 1) {
+    stop("'selected_plate' must be a single character string.")
+  }
+  
+  if (!selected_plate %in% unique(df$Plate.Type)) {
+    stop(paste0("'selected_plate' value '", selected_plate,
+                   "' was not found in 'data$auc_results$Plate.Type'. ",
+                   "No data will be plotted."))
+  }
+  
+  # ---- Validate facet_vars ----
+  if (!is.null(facet_vars)) {
+    if (!is.character(facet_vars) || length(facet_vars) == 0) {
+      stop("'facet_vars' must be a non-empty character vector or NULL.")
+    }
+    if (length(facet_vars) > 2) {
+      stop("'facet_vars' must contain at most 2 variables.")
+    }
+    missing_facet_vars <- setdiff(facet_vars, names(df))
+    if (length(missing_facet_vars) > 0) {
+      stop(paste("The following 'facet_vars' are not present in 'data$auc_results':",
+                 paste(missing_facet_vars, collapse = ", ")))
+    }
   }
   
   split_vars <- setdiff(variables, facet_vars)
+  
+  # set facet_vars
+if (is.null(facet_vars)) {
+    facet_vars <- variables[1:2]
+    }
   
   # Colors
   color_values <- c(
@@ -92,7 +149,7 @@ plot_auc <- function(data,
   
   # Filter
   df <- df %>%
-    dplyr::filter(.data$`Plate Type` == selected_plate)
+    dplyr::filter(.data$Plate.Type == selected_plate)
   
   if (nrow(df) == 0) {
     stop("No data for selected plate.")
