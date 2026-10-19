@@ -12,7 +12,7 @@ Inhibition Target, ...
 \format{
   A data frame with 384 observations on the following 11 variables.
   \describe{
-    \item{\samp{Plate Type}}{Odin Plate Type}
+    \item{\samp{Plate.Type}}{Odin Plate Type}
     \item{\code{Well}}{Well ID on plate}
     \item{\code{Chemical}}{Chemical plated in 'Well' in 'PlateType'}
     \item{\code{Info}}{e.g. "antineoplastic, antiinflammatory"}
