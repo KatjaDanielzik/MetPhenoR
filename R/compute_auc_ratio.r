@@ -34,24 +34,68 @@ compute_auc_ratio <- function(data,
                               control_labels = c("Negative Control", "No Chemical"),
                               store = TRUE) {
   
-  # ---- Validation ----
-  if (!all(c("auc_results", "meta") %in% names(data))) {
-    stop("data must contain 'auc_results' and 'meta'")
+  # ---- Validate top-level structure ----
+  if (!is.list(data) || is.data.frame(data) ||
+      !all(c("auc_results", "meta") %in% names(data))) {
+    stop("'data' must be a named list containing 'auc_results' and 'meta',
+          as produced by compute_auc_ci().")
   }
   
-  df <- data$auc_results
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables',
+          as produced by read_folder().")
+  }
+  
+  # ---- Extract ----
+  df        <- data$auc_results
   variables <- data$meta$variables
   
-  required_cols <- c("AUC", "AUC_low", "AUC_high", "Chemical")
-  missing_cols <- setdiff(required_cols, colnames(df))
-  if (length(missing_cols) > 0) {
-    stop("Missing required columns in auc_results: ",
-         paste(missing_cols, collapse = ", "))
+  # ---- Validate auc_results ----
+  if (!is.data.frame(df)) {
+    stop("'data$auc_results' must be a data.frame.")
   }
   
-  join_vars <- c("Plate Type", variables)
+  if (nrow(df) == 0) {
+    stop("'data$auc_results' must contain at least one row.")
+  }
+  
+  # ---- Validate variables ----
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate required columns ----
+  required_cols <- c("Plate.Type", "AUC", "AUC_low", "AUC_high", "Chemical")
+  missing_cols  <- setdiff(required_cols, names(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("'data$auc_results' is missing required columns:",
+               paste(missing_cols, collapse = ", ")))
+  }
+  
+  # ---- Validate control_labels ----
+  if (!is.character(control_labels) || length(control_labels) == 0) {
+    stop("'control_labels' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate store ----
+  if (!is.logical(store) || length(store) != 1 || is.na(store)) {
+    stop("'store' must be a single logical value (TRUE or FALSE).")
+  }
+  
+  # ---- Warn if no controls found ----
+  n_controls <- sum(df$Chemical %in% control_labels, na.rm = TRUE)
+  if (n_controls == 0) {
+    stop(paste0(
+      "None of the 'control_labels' values were found in 'data$auc_results$Chemical'. ",
+      "All AUC_ratio values will be NA. ",
+      "Provided labels: ", paste(control_labels, collapse = ", ")
+    ))
+  }
+  
+  
   
   # ---- Control summary ----
+  join_vars <- c("Plate.Type", variables)
   ctrl_summary <- df %>%
     dplyr::filter(
       .data$Chemical %in% control_labels
@@ -69,7 +113,7 @@ compute_auc_ratio <- function(data,
       .groups = "drop"
     )
   
-  # ---- Join + ratio ----
+  c# ---- Join + ratio ----
   auc_ratio_results <- df %>%
     dplyr::left_join(ctrl_summary, by = join_vars) %>%
     dplyr::mutate(
