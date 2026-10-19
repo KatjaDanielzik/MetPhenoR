@@ -36,7 +36,7 @@
 #' @export
 compute_auc_ci <- function(data,
                            target_curve_type = "growing",
-                           n_boot = 1000,
+                           n_boot = 100,
                            spline_df = 4,
                            store = TRUE){
   
@@ -115,7 +115,6 @@ compute_auc_ci <- function(data,
     stop("'store' must be a single logical value (TRUE or FALSE).")
   }
   
-  variables <- NULL
 
   #Join and filter
   combined_df <- dplyr::left_join(

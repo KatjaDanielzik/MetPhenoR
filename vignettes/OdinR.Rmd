@@ -238,7 +238,7 @@ you can store as an .RData object that only can be read by R.
 - Use `read_csv()` and pass it to `annotate_chemical()`.
 
 ```{r}
-# instal needed package
+# install needed package
 # if (!require("readr", quietly = TRUE)) {
 #  install.packages("readr")
 # }
@@ -339,7 +339,8 @@ In our example data set I demonstrate how to omit the curves with OD drops (and 
 processed_data <- compute_auc_ci(processed_data, 
                                  target_curve_type = c("growing",
                                                        "flat_low",
-                                                       "slow_growing")) # keep these curve types for AUC calculation
+                                                       "slow_growing"),# keep these curve types for AUC calculation
+                                 n_boot = 10) # low number of bootstraps for vignette
 head(processed_data$auc_results)
 ```
 
@@ -348,7 +349,7 @@ The `AUC` column contains the area under the curve. `AUC_low` and `AUC_high` are
 Export for external analysis:
 
 ```{r}
-# write.csv(processed_data$auc_results,file="A:\results")
+# write.csv(processed_data$auc_results,file="A:\\results")
 ```
 
 ## Step 9: Check Control Well Variability wells

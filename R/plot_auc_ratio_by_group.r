@@ -112,7 +112,7 @@ plot_auc_ratio_by_group <- function(data,
   data_filtered <- data_df %>%
     dplyr::filter(.data$Chemical != "No Chemical") %>%
     dplyr::mutate(
-      ID = paste0(.data$`Plate Type`, "_", .data$Well, "_", .data$Chemical)
+      ID = paste0(.data$Plate.Type, "_", .data$Well, "_", .data$Chemical)
     )
   
   # ---- Apply transformation ----

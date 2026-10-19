@@ -54,41 +54,104 @@ plot_auc_ratio_violin <- function(data,
                                   color_var,
                                   scale_type = c("natural", "log10")) {
   
-  # ---- Validate input ----
-  if (!("auc_ratio" %in% names(data))) {
-    stop("'data' must contain an 'auc_ratio' element. Run and check output of function 'compute_auc_ratio()'.")
+  # ---- Validate top-level structure ----
+  if (!is.list(data) || is.data.frame(data) ||
+      !"auc_ratio" %in% names(data)) {
+    stop("'data' must be a named list containing an 'auc_ratio' element,
+          as produced by compute_auc_ratio().")
   }
   
-  variable <- NULL
+  # ---- Validate auc_ratio ----
   data_df <- data$auc_ratio
   
   if (!is.data.frame(data_df)) {
     stop("'data$auc_ratio' must be a data.frame.")
   }
   
-  # ---- Validate group_var exists ----
-  if (!group_var %in% names(data_df)) {
-    stop("Column '", group_var, "' not found in 'data$auc_ratio'.",
-         " Available columns: ", paste(names(data_df), collapse = ", "))
+  if (nrow(data_df) == 0) {
+    stop("'data$auc_ratio' must contain at least one row.")
   }
   
-  # ---- Auto-select color_var if NULL ----
-  if (is.null(color_var)) {
-    if (is.null(data$meta$variables) || length(data$meta$variables) == 0) {
+  # ---- Validate meta and variables ----
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables',
+          as produced by read_folder().")
+  }
+  
+  variables <- data$meta$variables
+  
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate AUC_ratio column ----
+  if (!"AUC_ratio" %in% names(data_df)) {
+    stop("'data$auc_ratio' is missing required column: AUC_ratio.")
+  }
+  
+  # ---- Validate group_var ----
+  if (missing(group_var) || is.null(group_var)) {
+    stop("'group_var' must be provided.")
+  }
+  
+  if (!is.character(group_var) || length(group_var) != 1) {
+    stop("'group_var' must be a single character string.")
+  }
+  
+  if (!group_var %in% names(data_df)) {
+    stop(paste0("'group_var' value '", group_var,
+                "' is not a column in 'data$auc_ratio'. ",
+                "Available columns: ",
+                paste(names(data_df), collapse = ", ")))
+  }
+  
+  # ---- Validate color_var ----
+  if (missing(color_var) || is.null(color_var)) {
+    if (length(variables) == 0) {
       stop("No 'variables' found in 'data$meta'. Cannot auto-select 'color_var'.",
            " Please provide a valid 'color_var'.")
     }
-    color_var <- data$meta$variables[1]
-    message("No 'color_var' specified. Using '", color_var, "' as default 'color_var' (first entry in 'data$meta$variables').")
+    color_var <- variables[1]
+    message("No 'color_var' specified. Using '", color_var,
+            "' as default (first entry in 'data$meta$variables').")
   }
   
-  # ---- Validate group_filter if provided ----
+  if (!is.character(color_var) || length(color_var) != 1) {
+    stop("'color_var' must be a single character string.")
+  }
+  
+  if (!color_var %in% names(data_df)) {
+    stop(paste0("'color_var' value '", color_var,
+                "' is not a column in 'data$auc_ratio'."))
+  }
+  
+  # ---- Validate scale_type ----
+  scale_type <- match.arg(scale_type)
+  
+  # ---- Validate group_filter ----
   if (!is.null(group_filter)) {
-    if (!all(group_filter %in% unique(data_df[[group_var]]))) {
-      missing <- setdiff(group_filter, unique(data_df[[group_var]]))
-      warning("The following values in 'group_filter' were not found in '",
-              group_var, "': ", paste(missing, collapse = ", "),
-              ". These will be ignored.")
+    if (!is.character(group_filter) || length(group_filter) == 0) {
+      stop("'group_filter' must be a non-empty character vector or NULL.")
+    }
+    missing_vals <- setdiff(group_filter, unique(data_df[[group_var]]))
+    if (length(missing_vals) > 0) {
+      warning(paste0("The following 'group_filter' values were not found in '",
+                     group_var, "': ",
+                     paste(missing_vals, collapse = ", "),
+                     ". These will be ignored."))
+    }
+  }
+  
+  # ---- Apply group_filter ----
+  pathway_sym <- rlang::sym(group_var)
+  
+  if (!is.null(group_filter)) {
+    data_df <- data_df %>%
+      dplyr::filter(!!pathway_sym %in% group_filter)
+    
+    if (nrow(data_df) == 0) {
+      stop("No rows remain after applying 'group_filter'. ",
+           "Check that filter values exist in '", group_var, "'.")
     }
   }
   
