@@ -18,7 +18,7 @@
 #' @details
 #' The function performs the following steps:
 #' \enumerate{
-#'   \item Groups the data by experimental variables, plate type, and well.
+#'   \item Groups the data by experimental variables, Plate.Type, and Well.
 #'   \item Extracts the latest time point per well.
 #'   \item Converts well identifiers (e.g., "A01") into plate coordinates.
 #'   \item Generates a separate plate-layout plot for each experimental condition.
@@ -47,17 +47,34 @@
 #' @export
 plot_latest_timepoint <- function(data) {
   
-  data_df <- data$data
+  # Check top-level structure
+  if (!is.list(data) || !all(c("data", "meta") %in% names(data))) {
+    stop("'data' must be a named list with elements 'data' and 'meta',
+          as produced by read_folder().")
+  }
+  
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables',
+          as produced by read_folder().")
+  }
+  
+  data_df   <- data$data
   variables <- data$meta$variables
   
-  #Input validation
   if (!is.data.frame(data_df)) {
     stop("'data$data' must be a data.frame.")
   }
   
-  required_cols <- c(variables, "Plate Type", "Well", "Hour", "diff_OD_590_740")
-  missing_cols <- setdiff(required_cols, names(data_df))
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
   
+  if (nrow(data_df) == 0) {
+    stop("'data$data' must contain at least one row.")
+  }
+  
+  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
+  missing_cols  <- setdiff(required_cols, names(data_df))
   if (length(missing_cols) > 0) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
@@ -65,7 +82,7 @@ plot_latest_timepoint <- function(data) {
   #Extract latest time point per well
   latest_timepoint <- data_df %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well")))
+      dplyr::across(dplyr::all_of(c(variables, "Plate.Type", "Well")))
     ) %>%
     dplyr::slice_max(.data$Hour, n = 1, with_ties = FALSE) %>%
     dplyr::ungroup()
@@ -81,7 +98,7 @@ plot_latest_timepoint <- function(data) {
   latest_timepoint <- latest_timepoint %>%
     tidyr::unite(
       "group_id",
-      tidyselect::all_of(c(variables, "Plate Type")),
+      tidyselect::all_of(c(variables, "Plate.Type")),
       remove = FALSE,
       sep = "_"
     )
