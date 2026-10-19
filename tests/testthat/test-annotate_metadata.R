@@ -1,21 +1,20 @@
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-make_annotate_meta_input <- function(empty            = FALSE,
-                                     na_chemical      = FALSE,
-                                     missing_col      = NULL) {
-  
+make_annotate_meta_input <- function(empty = FALSE,
+                                     na_chemical = FALSE,
+                                     missing_col = NULL) {
   df <- data.frame(
-    Well       = c("A01", "A02", "A03"),
+    Well = c("A01", "A02", "A03"),
     Plate.Type = "PM-M1",
-    Chemical   = c("DrugA", "DrugB", "DrugC"),
-    AUC        = runif(3, 0.1, 1.0),
-    AUC_ratio  = runif(3, 0.5, 2.0),
+    Chemical = c("DrugA", "DrugB", "DrugC"),
+    AUC = runif(3, 0.1, 1.0),
+    AUC_ratio = runif(3, 0.5, 2.0),
     stringsAsFactors = FALSE
   )
-  
+
   if (na_chemical) df$Chemical <- NA_character_
   if (!is.null(missing_col)) df[[missing_col]] <- NULL
-  
+
   list(
     auc_ratio = if (empty) df[0, ] else df,
     meta = list(
@@ -62,8 +61,8 @@ test_that("annotate_metadata stops when auc_ratio element is missing", {
 # ── auc_ratio checks ──────────────────────────────────────────────────────────
 
 test_that("annotate_metadata stops when auc_ratio is not a data frame", {
-  input             <- make_annotate_meta_input()
-  input$auc_ratio   <- "not_a_df"
+  input <- make_annotate_meta_input()
+  input$auc_ratio <- "not_a_df"
   expect_error(
     annotate_metadata(input, make_annotation()),
     "'data\\$auc_ratio' must be a data.frame"
@@ -124,7 +123,7 @@ test_that("annotate_metadata stops when annotation list contains non-data frames
 
 test_that("annotate_metadata stops when annotation is missing Chemical column", {
   input <- make_annotate_meta_input()
-  ann   <- make_annotation()
+  ann <- make_annotation()
   ann$Chemical <- NULL
   expect_error(
     annotate_metadata(input, ann),
@@ -134,8 +133,8 @@ test_that("annotate_metadata stops when annotation is missing Chemical column", 
 
 test_that("annotate_metadata identifies which annotation table has missing column", {
   input <- make_annotate_meta_input()
-  ann1  <- make_annotation()
-  ann2  <- make_annotation()
+  ann1 <- make_annotation()
+  ann2 <- make_annotation()
   ann2$Chemical <- NULL
   expect_error(
     annotate_metadata(input, list(ann1, ann2)),
@@ -147,7 +146,7 @@ test_that("annotate_metadata identifies which annotation table has missing colum
 
 test_that("annotate_metadata warns when annotation is empty after deduplication", {
   input <- make_annotate_meta_input()
-  ann   <- make_annotation()[0, ]
+  ann <- make_annotation()[0, ]
   expect_warning(
     annotate_metadata(input, ann),
     "No annotation data was provided"
@@ -164,7 +163,7 @@ test_that("annotate_metadata warns when Chemical column in auc_ratio is all NA",
 
 test_that("annotate_metadata warns when chemicals not found in annotation", {
   input <- make_annotate_meta_input()
-  ann   <- make_annotation(chemicals = c("DrugA"))  # DrugB and DrugC missing
+  ann <- make_annotation(chemicals = c("DrugA")) # DrugB and DrugC missing
   expect_warning(
     annotate_metadata(input, ann),
     "not found in the annotation table"
@@ -174,29 +173,29 @@ test_that("annotate_metadata warns when chemicals not found in annotation", {
 # ── Return structure ──────────────────────────────────────────────────────────
 
 test_that("annotate_metadata returns a list", {
-  input  <- make_annotate_meta_input()
+  input <- make_annotate_meta_input()
   result <- annotate_metadata(input, make_annotation())
   expect_type(result, "list")
 })
 
 test_that("annotate_metadata returns updated auc_ratio element", {
-  input  <- make_annotate_meta_input()
+  input <- make_annotate_meta_input()
   result <- annotate_metadata(input, make_annotation())
   expect_true("auc_ratio" %in% names(result))
   expect_s3_class(result$auc_ratio, "data.frame")
 })
 
 test_that("annotate_metadata adds annotation columns to auc_ratio", {
-  input  <- make_annotate_meta_input()
+  input <- make_annotate_meta_input()
   result <- annotate_metadata(input, make_annotation(extra_col = TRUE))
   expect_true("pathway" %in% names(result$auc_ratio))
 })
 
 test_that("annotate_metadata correctly merges on Chemical", {
-  input  <- make_annotate_meta_input()
-  ann    <- make_annotation()
+  input <- make_annotate_meta_input()
+  ann <- make_annotation()
   result <- annotate_metadata(input, ann)
-  
+
   expect_equal(
     result$auc_ratio$pathway[result$auc_ratio$Chemical == "DrugA"],
     "pathway_1"
@@ -204,16 +203,16 @@ test_that("annotate_metadata correctly merges on Chemical", {
 })
 
 test_that("annotate_metadata accepts a list of annotation data frames", {
-  input  <- make_annotate_meta_input()
-  ann1   <- make_annotation(chemicals = "DrugA")
-  ann2   <- make_annotation(chemicals = c("DrugB", "DrugC"))
+  input <- make_annotate_meta_input()
+  ann1 <- make_annotation(chemicals = "DrugA")
+  ann2 <- make_annotation(chemicals = c("DrugB", "DrugC"))
   result <- suppressWarnings(annotate_metadata(input, list(ann1, ann2)))
   expect_true("pathway" %in% names(result$auc_ratio))
 })
 
 test_that("annotate_metadata deduplicates combined annotation rows", {
-  input  <- make_annotate_meta_input()
-  ann    <- make_annotation()
+  input <- make_annotate_meta_input()
+  ann <- make_annotation()
   # passing the same annotation twice should not duplicate rows
   result <- annotate_metadata(input, list(ann, ann))
   expect_equal(
@@ -221,4 +220,3 @@ test_that("annotate_metadata deduplicates combined annotation rows", {
     nrow(input$auc_ratio)
   )
 })
-

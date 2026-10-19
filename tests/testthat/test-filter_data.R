@@ -1,17 +1,16 @@
 make_filter_input <- function(empty = FALSE) {
-  
   base <- expand.grid(
-    Hour           = seq(0, 5),
-    Well           = c("A01", "A02"),
-    Plate.Type     = c("PM-M1", "PM-M2"),
-    cell.line      = "H460",
+    Hour = seq(0, 5),
+    Well = c("A01", "A02"),
+    Plate.Type = c("PM-M1", "PM-M2"),
+    cell.line = "H460",
     radiation.dose = c("0Gy", "4Gy"),
     stringsAsFactors = FALSE
   )
   base$diff_OD_590_740 <- runif(nrow(base))
-  
+
   df <- if (empty) base[0, ] else base
-  
+
   list(
     data = df,
     meta = list(
@@ -48,7 +47,7 @@ test_that("filter_data stops when 'meta' element is missing", {
 # ── meta structure checks ─────────────────────────────────────────────────────
 
 test_that("filter_data stops when data$meta is not a list", {
-  input      <- make_filter_input()
+  input <- make_filter_input()
   input$meta <- "not_a_list"
   expect_error(
     filter_data(input, plate_type = "PM-M1"),
@@ -57,7 +56,7 @@ test_that("filter_data stops when data$meta is not a list", {
 })
 
 test_that("filter_data stops when data$meta is missing 'variables'", {
-  input      <- make_filter_input()
+  input <- make_filter_input()
   input$meta <- list(data_path = "fake/path")
   expect_error(
     filter_data(input, plate_type = "PM-M1"),
@@ -68,7 +67,7 @@ test_that("filter_data stops when data$meta is missing 'variables'", {
 # ── data$data checks ──────────────────────────────────────────────────────────
 
 test_that("filter_data stops when data$data is not a data frame", {
-  input      <- make_filter_input()
+  input <- make_filter_input()
   input$data <- "not_a_data_frame"
   expect_error(
     filter_data(input, plate_type = "PM-M1"),
@@ -87,7 +86,7 @@ test_that("filter_data stops when data$data is empty", {
 # ── variables checks ──────────────────────────────────────────────────────────
 
 test_that("filter_data stops when variables is empty", {
-  input                <- make_filter_input()
+  input <- make_filter_input()
   input$meta$variables <- character(0)
   expect_error(
     filter_data(input, plate_type = "PM-M1"),
@@ -96,7 +95,7 @@ test_that("filter_data stops when variables is empty", {
 })
 
 test_that("filter_data stops when variables is not character", {
-  input                <- make_filter_input()
+  input <- make_filter_input()
   input$meta$variables <- 1:3
   expect_error(
     filter_data(input, plate_type = "PM-M1"),
@@ -107,7 +106,7 @@ test_that("filter_data stops when variables is not character", {
 # ── Plate.Type column check ───────────────────────────────────────────────────
 
 test_that("filter_data stops when Plate.Type column is missing from data$data", {
-  input                 <- make_filter_input()
+  input <- make_filter_input()
   input$data$Plate.Type <- NULL
   expect_error(
     filter_data(input, plate_type = "PM-M1"),
@@ -152,8 +151,10 @@ test_that("filter_data stops when plate_type is not character", {
 test_that("filter_data warns when plate_type is not found in data", {
   input <- make_filter_input()
   expect_warning(
-    filter_data(input, plate_type = "PM-WRONG",
-                filters = list(cell.line = "H460")),
+    filter_data(input,
+      plate_type = "PM-WRONG",
+      filters = list(cell.line = "H460")
+    ),
     "not found in 'data\\$data\\$Plate.Type'"
   )
 })
@@ -194,8 +195,10 @@ test_that("filter_data stops when filters has unnamed elements", {
 test_that("filter_data stops when filters has partially unnamed elements", {
   input <- make_filter_input()
   expect_error(
-    filter_data(input, plate_type = "PM-M1",
-                filters = list(cell.line = "H460", "0Gy")),
+    filter_data(input,
+      plate_type = "PM-M1",
+      filters = list(cell.line = "H460", "0Gy")
+    ),
     "All elements of 'filters' must be named"
   )
 })
@@ -203,8 +206,10 @@ test_that("filter_data stops when filters has partially unnamed elements", {
 test_that("filter_data stops when filter name is not in variables", {
   input <- make_filter_input()
   expect_error(
-    filter_data(input, plate_type = "PM-M1",
-                filters = list(nonexistent = "value")),
+    filter_data(input,
+      plate_type = "PM-M1",
+      filters = list(nonexistent = "value")
+    ),
     "not in 'data\\$meta\\$variables'"
   )
 })
@@ -212,8 +217,10 @@ test_that("filter_data stops when filter name is not in variables", {
 test_that("filter_data stops when filter value is not a single character string", {
   input <- make_filter_input()
   expect_error(
-    filter_data(input, plate_type = "PM-M1",
-                filters = list(cell.line = c("H460", "A549"))),
+    filter_data(input,
+      plate_type = "PM-M1",
+      filters = list(cell.line = c("H460", "A549"))
+    ),
     "Each element of 'filters' must be a single character string"
   )
 })
@@ -221,8 +228,10 @@ test_that("filter_data stops when filter value is not a single character string"
 test_that("filter_data stops when filter value is numeric", {
   input <- make_filter_input()
   expect_error(
-    filter_data(input, plate_type = "PM-M1",
-                filters = list(cell.line = 1)),
+    filter_data(input,
+      plate_type = "PM-M1",
+      filters = list(cell.line = 1)
+    ),
     "Each element of 'filters' must be a single character string"
   )
 })
@@ -230,65 +239,82 @@ test_that("filter_data stops when filter value is numeric", {
 # ── Return structure ──────────────────────────────────────────────────────────
 
 test_that("filter_data returns a list", {
-  input  <- make_filter_input()
-  result <- filter_data(input, plate_type = "PM-M1",
-                        filters = list(cell.line = "H460"))
+  input <- make_filter_input()
+  result <- filter_data(input,
+    plate_type = "PM-M1",
+    filters = list(cell.line = "H460")
+  )
   expect_type(result, "list")
 })
 
 test_that("filter_data returns list with 'data' and 'meta' elements", {
-  input  <- make_filter_input()
-  result <- filter_data(input, plate_type = "PM-M1",
-                        filters = list(cell.line = "H460"))
+  input <- make_filter_input()
+  result <- filter_data(input,
+    plate_type = "PM-M1",
+    filters = list(cell.line = "H460")
+  )
   expect_true(all(c("data", "meta") %in% names(result)))
 })
 
 test_that("filter_data result$data is a data frame", {
-  input  <- make_filter_input()
-  result <- filter_data(input, plate_type = "PM-M1",
-                        filters = list(cell.line = "H460"))
+  input <- make_filter_input()
+  result <- filter_data(input,
+    plate_type = "PM-M1",
+    filters = list(cell.line = "H460")
+  )
   expect_s3_class(result$data, "data.frame")
 })
 
 test_that("filter_data preserves meta unchanged", {
-  input  <- make_filter_input()
-  result <- filter_data(input, plate_type = "PM-M1",
-                        filters = list(cell.line = "H460"))
+  input <- make_filter_input()
+  result <- filter_data(input,
+    plate_type = "PM-M1",
+    filters = list(cell.line = "H460")
+  )
   expect_identical(result$meta, input$meta)
 })
 
 # ── Filtering correctness ─────────────────────────────────────────────────────
 
 test_that("filter_data removes rows matching plate_type and filters", {
-  input  <- make_filter_input()
+  input <- make_filter_input()
   n_before <- nrow(input$data)
-  result <- filter_data(input, plate_type = "PM-M1",
-                        filters = list(cell.line = "H460",
-                                       radiation.dose = "0Gy"))
+  result <- filter_data(input,
+    plate_type = "PM-M1",
+    filters = list(
+      cell.line = "H460",
+      radiation.dose = "0Gy"
+    )
+  )
   n_after <- nrow(result$data)
   expect_lt(n_after, n_before)
 })
 
 test_that("filter_data does not remove rows from other plate types", {
-  input  <- make_filter_input()
-  result <- filter_data(input, plate_type = "PM-M1",
-                        filters = list(cell.line = "H460",
-                                       radiation.dose = "0Gy"))
+  input <- make_filter_input()
+  result <- filter_data(input,
+    plate_type = "PM-M1",
+    filters = list(
+      cell.line = "H460",
+      radiation.dose = "0Gy"
+    )
+  )
   # PM-M2 rows should be untouched
   expect_true("PM-M2" %in% result$data$Plate.Type)
 })
 
 test_that("filter_data with NULL filters removes all rows of plate_type", {
-  input  <- make_filter_input()
+  input <- make_filter_input()
   result <- filter_data(input, plate_type = "PM-M1", filters = NULL)
   expect_false("PM-M1" %in% result$data$Plate.Type)
 })
 
 test_that("filter_data with non-matching filter value removes no rows", {
-  input    <- make_filter_input()
+  input <- make_filter_input()
   n_before <- nrow(input$data)
-  result   <- filter_data(input, plate_type = "PM-M1",
-                          filters = list(cell.line = "NONEXISTENT"))
+  result <- filter_data(input,
+    plate_type = "PM-M1",
+    filters = list(cell.line = "NONEXISTENT")
+  )
   expect_equal(nrow(result$data), n_before)
 })
-
