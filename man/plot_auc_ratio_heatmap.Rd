@@ -7,13 +7,13 @@
 plot_auc_ratio_heatmap(
   data,
   plate_type,
-  x_var,
+  x_var = NULL,
   scale_type = c("natural", "log10")
 )
 }
 \arguments{
 \item{data}{A list containing a data frame element \code{auc_ratio}.
-The data frame must include columns \code{"Plate Type"}, \code{"Well"},
+The data frame must include columns \code{"Plate.Type"}, \code{"Well"},
 \code{"Chemical"}, and \code{"AUC_ratio"}.}
 
 \item{plate_type}{Character vector specifying one or more plate types to include.}

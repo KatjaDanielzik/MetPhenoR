@@ -9,7 +9,7 @@ annotate_metadata(data, annotation)
 \arguments{
 \item{data}{A list containing a data frame element \code{auc_ratio},
 typically produced by \code{read_folder()}. The data frame must include
-columns \code{"Plate Type"}, \code{"Well"}, and \code{"Chemical"}.}
+columns \code{"Plate.Type"}, \code{"Well"}, and \code{"Chemical"}.}
 
 \item{annotation}{A data frame or a list of data frames containing annotation
 metadata. Each must include columns \code{"Plate.Type"}, \code{"Well"},
