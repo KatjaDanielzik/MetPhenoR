@@ -77,38 +77,75 @@ classify_growth_curve_types <- function(
     max_od_threshold = 0.1
 ) {
   
-  #Validate structure
-  if (!is.list(data) || !"data" %in% names(data)) {
-    stop("Input must be a list with a 'data' element")
+  # ---- Validate top-level data structure ----
+  if (!is.list(data) || !all(c("data", "meta") %in% names(data))) {
+    stop("'data' must be a named list with elements 'data' and 'meta',
+          as produced by read_folder().")
   }
   
-  if (!"meta" %in% names(data) ||
-      !"variables" %in% names(data$meta)) {
-    stop("Missing 'meta$variables' in data")
+  if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+    stop("'data$meta' must be a named list containing 'variables',
+          as produced by read_folder().")
   }
   
-  variable <- NULL
-  df <- data$data
+  # ---- Extract ----
+  df        <- data$data
   variables <- data$meta$variables
   
-  #Column validation
-  required_cols <- c(variables, "Plate Type", "Well", "Hour", "diff_OD_590_740")
-  missing_cols <- setdiff(required_cols, names(df))
+  # ---- Validate data$data ----
+  if (!is.data.frame(df)) {
+    stop("'data$data' must be a data.frame.")
+  }
   
+  if (nrow(df) == 0) {
+    stop("'data$data' must contain at least one row.")
+  }
+  
+  # ---- Validate variables ----
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'data$meta$variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate required columns ----
+  required_cols <- c(variables, "Plate.Type", "Well", "Hour", "diff_OD_590_740")
+  missing_cols  <- setdiff(required_cols, names(df))
   if (length(missing_cols) > 0) {
     stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
   }
   
+  # ---- Validate numeric parameters ----
+  if (!is.numeric(spar) || length(spar) != 1 || spar < 0 || spar > 1) {
+    stop("'spar' must be a single numeric value between 0 and 1.")
+  }
+  
+  if (!is.numeric(drop_threshold) || length(drop_threshold) != 1) {
+    stop("'drop_threshold' must be a single numeric value.")
+  }
+  
+  if (!is.numeric(tol) || length(tol) != 1 || tol < 0) {
+    stop("'tol' must be a single non-negative numeric value.")
+  }
+  
+  if (!is.numeric(max_od_threshold) || length(max_od_threshold) != 1 ||
+      max_od_threshold < 0) {
+    stop("'max_od_threshold' must be a single non-negative numeric value.")
+  }
+  
+  # Data read in
+  variable <- NULL
+  df <- data$data
+  variables <- data$meta$variables
+  
   #Arrange
   df <- dplyr::arrange(
     df,
-    dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well", "Hour")))
+    dplyr::across(dplyr::all_of(c(variables, "Plate.Type", "Well", "Hour")))
   )
   
   #Derivatives
   deriv_data <- df %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well")))
+      dplyr::across(dplyr::all_of(c(variables, "Plate.Type", "Well")))
     ) %>%
     dplyr::group_modify(~ .fit_spline_safe(.x, spar)) %>%
     dplyr::ungroup()
@@ -116,7 +153,7 @@ classify_growth_curve_types <- function(
   #Summary
   well_summary <- deriv_data %>%
     dplyr::group_by(
-      dplyr::across(dplyr::all_of(c(variables, "Plate Type", "Well")))
+      dplyr::across(dplyr::all_of(c(variables, "Plate.Type", "Well")))
     ) %>%
     dplyr::summarise(
       n_points = dplyr::n(),
