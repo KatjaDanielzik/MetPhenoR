@@ -67,33 +67,71 @@ plot_controls_tween_per_plate <- function(
     tween_labels = c("Tween 20", "Tween 40", "Tween 80")
 ) {
   
-  #Extract components safely
-  if (!is.list(data) || is.null(data$auc_results)) {
-    stop("Input 'data' must be a list containing 'auc_results'.")
+  # ---- Validate top-level data structure ----
+  if (!is.list(data) || is.data.frame(data) ||
+      !"auc_results" %in% names(data)) {
+    stop("'data' must be a named list containing 'auc_results',
+          as produced by compute_auc_ci().")
   }
   
-  #Extract variables from metadata if not provided
+  # ---- Validate auc_results ----
+  if (!is.data.frame(data$auc_results)) {
+    stop("'data$auc_results' must be a data.frame.")
+  }
+  
+  if (nrow(data$auc_results) == 0) {
+    stop("'data$auc_results' must contain at least one row.")
+  }
+  
+  # ---- Validate variables ----
   if (is.null(variables)) {
-    if (!is.null(data$meta) && !is.null(data$meta$variables)) {
-      variables <- data$meta$variables
-    } else {
-      stop("'variables' must be provided or exist in data$meta$variables.")
+    if (!is.list(data$meta) || !"variables" %in% names(data$meta)) {
+      stop("'variables' must be provided or exist in 'data$meta$variables'.")
     }
+    variables <- data$meta$variables
   }
   
+  if (!is.character(variables) || length(variables) == 0) {
+    stop("'variables' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate selected_plate ----
+  if (missing(selected_plate) || is.null(selected_plate)) {
+    stop("'selected_plate' must be provided.")
+  }
+  
+  if (!is.character(selected_plate) || length(selected_plate) != 1) {
+    stop("'selected_plate' must be a single character string.")
+  }
+  
+  # ---- Validate tween_labels ----
+  if (!is.character(tween_labels) || length(tween_labels) == 0) {
+    stop("'tween_labels' must be a non-empty character vector.")
+  }
+  
+  # ---- Validate required columns in auc_results ----
   df <- data$auc_results
   
-  #Input validation
-  required_cols <- c("Plate Type", "AUC", "AUC_low", "AUC_high", 
+  required_cols <- c("Plate.Type", "AUC", "AUC_low", "AUC_high",
                      "Well", "Chemical", "control")
-  
-  if (!all(required_cols %in% names(df))) {
-    missing_cols <- setdiff(required_cols, names(df))
-    stop(paste("Missing required columns:", paste(missing_cols, collapse = ", ")))
+  missing_cols  <- setdiff(required_cols, names(df))
+  if (length(missing_cols) > 0) {
+    stop(paste("'data$auc_results' is missing required columns:",
+               paste(missing_cols, collapse = ", ")))
   }
   
-  if (!all(variables %in% names(df))) {
-    stop("Some 'variables' are not present in the dataset.")
+  # ---- Validate variables exist in auc_results ----
+  missing_vars <- setdiff(variables, names(df))
+  if (length(missing_vars) > 0) {
+    stop(paste("The following 'variables' are not present in 'data$auc_results':",
+               paste(missing_vars, collapse = ", ")))
+  }
+  
+  # ---- Warn if selected_plate not found ----
+  if (!selected_plate %in% unique(df$Plate.Type)) {
+    warning(paste0("'selected_plate' value '", selected_plate,
+                   "' was not found in 'data$auc_results$Plate.Type'. ",
+                   "No data will be plotted."))
   }
   
   #Flexible faceting
@@ -113,7 +151,7 @@ plot_controls_tween_per_plate <- function(
   #Filter relevant data
   plot_df <- dplyr::filter(
     df,
-    .data$`Plate Type` == selected_plate,
+    .data$Plate.Type == selected_plate,
     .data$control %in% c("negative", "positive") |
       .data$Chemical %in% tween_labels
   )
