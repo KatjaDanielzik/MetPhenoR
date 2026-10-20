@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(OdinR)
+library(MetPhenoR)
 
-test_check("OdinR")
+test_check("MetPhenoR")
