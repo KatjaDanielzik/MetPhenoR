@@ -31,7 +31,7 @@ in mammalian cell culture research. As such, many questions remain:
 This package aims to provide:
 
 - Simple reading of multiple `RawRead.csv` and `PlateInfo.csv` files into R.
-- Noise correction: OD₅₉₀ – OD₇₄₀ (as recommended by Biolog for mammalian cells).
+- Noise correction: OD(590nm) – OD(740nm) (as recommended by Biolog for mammalian cells).
 - Quality control plots to spot odd or problematic OD curves.
 - Filtering of entire plates or specific curve types before analysis.
 - Calculation of **Area Under the Curve (AUC)** as a summary metric.
@@ -42,7 +42,7 @@ This package aims to provide:
 
 **Important Limitations**:
 
-- **Not suitable for bacteria or suspension cultures** — in these systems, OD₇₄₀ *does* reflect cell growth, so noise correction is invalid.
+- **Not suitable for bacteria or suspension cultures** — in these systems, OD(740nm) *does* reflect cell growth, so noise correction is invalid.
 - **AUC does not capture curve dynamics** — two very different curves (e.g., early peak vs. slow rise) can have the same AUC.
 - **Does not account for cell growth** — if your cells are growing rapidly, this may confound results.
 - **Does not interpret biological meaning** — a "hit" in a metabolic module does not imply pathway activation; it only means the OD was higher or lower than controls.

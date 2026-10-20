@@ -48,7 +48,7 @@ Before analyzing your data:
 
 | Feature | Why It Matters |
 |-------|----------------|
-| Noise correction: `OD₅₉₀ - OD₇₄₀` | Removes background noise (valid for adherent cells only). |
+| Noise correction: `OD(590nm) - OD(740nm)` | Removes background noise (valid for adherent cells only). |
 | `qc_data()` plot | Spot missing files, inconsistent conditions, or technical issues early. |
 | `classify_growth_curve_types()` | Identify flat, dropping, or noisy curves — filter intelligently. |
 | AUC + normalization | Compare across plates and conditions fairly. |
@@ -58,7 +58,7 @@ Before analyzing your data:
 
 ##  Important Limitations
 
-- **Not for bacteria or suspension cultures** — OD₇₄₀ reflects cell growth in these systems.
+- **Not for bacteria or suspension cultures** — OD(740nm) reflects cell growth in these systems.
 - **AUC does not capture curve shape** — two very different curves can have the same AUC.
 - **Does not account for cell growth** — if your cells grow rapidly, this may confound results.
 - **Does not interpret biological meaning** — a "hit" in a pathway does not imply activation.
