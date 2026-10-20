@@ -177,7 +177,7 @@ plot_controls_tween_all_plate <- function(data, variables = NULL) {
       linewidth = 0.5
     ) +
     ggplot2::labs(
-      title = "AUC Comparison: Controls vs Tween Across Plates",
+      title = "AUC Comparison: Controls Across Plates",
       x = "AUC estimate",
       y = NULL,
       color = "Plate Type"

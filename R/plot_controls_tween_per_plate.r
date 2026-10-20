@@ -264,7 +264,7 @@ plot_controls_tween_per_plate <- function(
       linewidth = 0.5
     ) +
     ggplot2::labs(
-      title = paste("AUC Comparison: Controls vs Tween | Plate:", selected_plate),
+      title = paste("AUC Comparison: Controls | Plate:", selected_plate),
       x = "AUC estimate",
       y = NULL
     ) +

@@ -289,7 +289,7 @@ plot_auc <- function(data,
           xmax = .data$AUC_high,
           color = .data$color_label
         ),
-        height = 0.25
+        width = 0.25
       ) +
       ggplot2::geom_point(
         ggplot2::aes(
@@ -312,7 +312,7 @@ plot_auc <- function(data,
       ) +
       ggplot2::geom_vline(xintercept = 0, color = "blue", linewidth = 0.5) +
       ggplot2::labs(
-        title = "AUC response",
+        title = "AUC",
         subtitle = paste("Plate:", selected_plate, "|", subtitle_text),
         x = "AUC estimate",
         y = NULL,

@@ -234,7 +234,8 @@ you can store as an .RData object that only can be read by R.
 ### Custom annotation files
 **Want to use your own plate annotation?**  
 
-- Create a CSV file with columns: `Plate Type`, `Well`, `Chemical`  and `control`. 
+- Create a CSV file with columns: `Plate.Type`, `Well`, `Chemical`  and `control` (should only contain "positive", "negative" or no entry). 
+
 - Use `read_csv()` and pass it to `annotate_chemical()`.
 
 ```{r}
@@ -336,17 +337,17 @@ of your dataset and stores the results in the element *auc_results* in object
 
 Depending on your inspection of the curve types and after potentially omitting
 complete plates from analysis you can decide which curve types to keep.
-In our example data set I demonstrate how to omit the curves with OD drops (and therefore keep "growing", "flat_low" and "slow_growing". The default setting is only to keep growing.
+In our example data set I demonstrate how to omit the curves with OD drops (and therefore keep "growing", "flat_low" and "slow_growing"). The default setting is only to keep growing.
 
 ```{r}
 processed_data <- compute_auc_ci(processed_data,
-  target_curve_type = c(
+  target_curve_type = c( # keep these curve types for AUC calculation
     "growing",
     "flat_low",
     "slow_growing"
-  ), # keep these curve types for AUC calculation
-  n_boot = 10
-) # low number of bootstraps for vignette
+  ), 
+  n_boot = 10 # low number of bootstraps for vignette
+)
 head(processed_data$auc_results)
 ```
 
@@ -355,14 +356,15 @@ The `AUC` column contains the area under the curve. `AUC_low` and `AUC_high` are
 Export for external analysis:
 
 ```{r}
-# write.csv(processed_data$auc_results,file="A:\\results")
+# write.csv(processed_data$auc_results,file="A:\results")
 ```
 
-## Step 9: Check Control Well Variability wells
+## Step 9: Check Control Well Variability
 To get an idea about the variance of control wells (and wells containing Tween)
 of the same biological condition between different 96-well plates (e.g. Control wells on PM-M01 and PM-M02) 
 we can employ the function plot_controls_tween_all_plate(). In case of anti-cancer-drug plates only the control wells are displayed. If you used custom annotation and labelled your control wells
-as either "Negative Control" or "No Chemical" they will be displayed here.
+as either "negative" or "positive" in the 'control' column of your custom annotation file
+they will be displayed here.
 
 ```{r,fig.width=8,fig.height=8}
 plot_controls_tween_all_plate(processed_data)
@@ -371,12 +373,12 @@ plot_controls_tween_all_plate(processed_data)
 This returns a plot with:
 
 - x-axis: AUC per Well
-- y-axis: Control wells (anti-cancer drug plates) or wells containing Glucose or Tween, in case of anti-cancer drug plates: only control wells
+- y-axis: wells containing negative or positive controls
 - x-axis panels: experimental conditions
 - y-axis panels: experimental conditions
 - symbol of points: type of control Well
 - color of points: Plate Type
-- dashed vertical lines: range between minimum OD of *Negative Control* or *No Chemical* over all measured wells and maximum OD
+- dashed vertical lines: range between minimum and maximum OD of *Negative Control* or *No Chemical* over all measured wells
 
 In the upper plot in this case we can spot that the variance between control
 wells of different plates is pretty low. We can also get an idea about the variance
@@ -395,30 +397,42 @@ plot_controls_tween_per_plate(processed_data,
 ) # which Plate Type to compare
 ```
 
+- x-axis: AUC per Well
+- y-axis: wells containing negative or positive controls
+- x-axis and y-axis panels: experimental conditions
+- symbol of points: type of control Well
+- dashed vertical lines: range between minimum and maximum OD of *Negative Control* or *No Chemical*
+
 In the above plot we can e.g. see that the variance of control wells is comparably
 small in all biological conditions, but that the AUCs in Wells containing Glucose
 differ between conditions.
 
-## Step 10: Compare Controls Per Plate
+## Step 10: Compare AUCs Per Plate
 After we inspected the variance of the control Wells we can proceed with visualizing
 all Wells on one plate type in all biological conditions:
 
 ```{r,fig.width=10, fig.height=12}
 plot_auc(processed_data,
-  selected_plate = "PM-M02",
-  facet_vars = c("treatment")
-) # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
+  selected_plate = "PM-M02", # Plate Type to display
+  facet_vars = c("treatment") # which two biological conditions should be compared, first variable goes on y-axis panel, second on x-axis panel
+)
 ```
 
 In the resulting plots the metabolites are ordered by their mean AUC across
 all conditions which results in ordering from highest to lowest along the y-axis
 while still preserving the ability to easily compare metabolites between conditions.
 
+The dashed lines show the range between minimum and maximum OD of the 'negative'
+control wells to preserve an indicator for data variability. In the second plot
+on the left (PM-M02, ctrl) we can e.g. observe that the AUC of most wells lies
+within the range of AUC wells observed in control wells.
+
 ## Step 11: Normalize AUC to AUC ratios and visualize
 The above visualization does not scale for comparison between multiple experimental
-conditions. One way to
-facilitate comparison of more conditions it to normalize the AUC to the mean
-of the control wells of the respective 96-well plate.
+conditions. One way to facilitate comparison of more conditions it to normalize the AUC to the mean
+of the control wells of the respective 96-well plate. **The caveat is that we loose
+the information about variability of control wells**, so decide after data inspection
+if you should proceed.
 We can do this with the function compute_auc_ratio(). The results are stored in
 element *auc_ratio* results of *processed_data*
 
@@ -439,14 +453,14 @@ Depending on which biological conditions you want to compare you can set the
 ```{r,fig.width=10,fig.height=12}
 plot_auc_ratio_heatmap(processed_data,
   plate_type = "PM-M01", # which plate type to visualize
-  x_var = "treatment"
-) # which variable should go on x-axis, all other go in x-axis panels
+  x_var = "treatment"  # which variable should go on x-axis, all other go in x-axis panels
+) 
 ```
 
 Missing values due to filtering or dropping of OD curve types will be displayed 
 in grey.
 
-In some cases, e.g. very strong signal from Glucose making distinction of other 
+In some cases, e.g. a very strong signal from Glucose making distinction of other 
 Wells impossible, it might be helpful to display the AUC ratio on the log-scale. 
 Please note that **this distorts your perception of results** with higher visual 
 emphasis on small AUC ratios compared to natural scale.
@@ -462,8 +476,8 @@ plot_auc_ratio_heatmap(processed_data,
 
 ## Step 12: Annotation of metadata
 If we do not only want to visualize per plate type but leverage the fact that
-metabolite or drugs on different plates might belong to the same group we can
-annotate metadata. In case of the metabolic plates PM-M01 and PM-M02 OdinR
+metabolite or drugs on different plates might belong to one biological meaningfull
+group we can annotate metadata. In case of the metabolic plates PM-M01 and PM-M02 OdinR
 contains the annotation of metabolites to different hierarchies 
 (module_name = pathway plus different hierarchical orders of pathways) of the KEGG database. 
 
@@ -485,7 +499,7 @@ In case of custom annotation you just need a data frame with one column named *C
 and as many columns containing information on the Chemicals as needed.
 
 ## Step 13: Visualiation of AUC Ratios by group
-We can now group or heat map by any column of the metadata that we find suitable.
+We can now group our heat map by any column of the metadata that we find suitable.
 In case of many distinct entries in our chosen column it might be helpful to 
 only display certain entries in one specific plot. We can again choose the x-axis variable
 and whether we want to display the AUC ratio on the natural or log10 scale.
@@ -502,8 +516,8 @@ plot_auc_ratio_by_group(processed_data,
 ```
 
 Another summary visualization are violin plots implemented in function
-plot_auc_ratio_violin() which makes comparisons of AUC ratios of many groups at the same time
-possible. In this plot we use the information which metabolite or drug belongs to 
+*plot_auc_ratio_violin()* which makes comparisons of AUC ratios of many groups at the same time
+possible. In this plot we loose the information which metabolite or drug belongs to 
 which point in the violin, but for detailed inspection the heat maps are available.
 
 ```{r,fig.width=10,fig.height=10}
