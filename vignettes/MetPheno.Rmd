@@ -16,6 +16,11 @@ knitr::opts_chunk$set(
 )
 ```
 
+```{r graphic_logo, echo = FALSE, fig.align="left", out.width='40%'}
+knitr::include_graphics("../man/figures/README-logo.png")
+```
+
+
 # Aim of this package
 High-throughput metabolic phenotype microarray data is still relatively new 
 in mammalian cell culture research. As such, many questions remain:
@@ -64,7 +69,7 @@ This can cause missing data or errors later — so be careful!
 
 # Workflow
 
-```{r graphic_logo, echo = FALSE, fig.align="left", out.width='100%'}
+```{r workflow, echo = FALSE, fig.align="left", out.width='100%'}
 knitr::include_graphics("../man/figures/MetPhenoR_workflow_flowchart.png")
 ```
 
