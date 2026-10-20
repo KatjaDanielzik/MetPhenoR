@@ -1,5 +1,5 @@
-Package: OdinR
-Title: A Transparent Analysis Pipeline for Mammalian Odin Biolog Data
+Package: MetPhenoR
+Title: A Transparent Analysis Pipeline for Mammalian Metabolic Phenotype Microarray Data
 Version: 0.0.3
 Authors@R: 
   c(person(given="Katja",family= "Danielzik", email="katja.danielzik@uni-due.de", 
@@ -16,9 +16,7 @@ Authors@R:
     person(given="Daniel",family="Hoffmann",
             role="ctb",
            comment=c(ORCID="0000-0003-2973-7869")))
-Description: Provides a transparent, end-to-end workflow for analyzing Odin
-  Biolog metabolic phenotyping data in mammalian cell cultures. It begins with 
-  automated reading and noise correction (OD(590nm) – OD(740nm)), followed by comprehensive 
+Description: Provides a transparent, end-to-end workflow for analyzing high-throughput phenotype microarray data in mammalian cell cultures. It begins with automated reading and noise correction (OD(590nm) – OD(740nm)), followed by comprehensive 
   quality control via visual diagnostics—detecting missing wells, inconsistent 
   replicates, anomalous curve shapes and intra- and interplate variance. Area under
   Curve (AUC) is computed summarize metabolic activity. Biological annotations 

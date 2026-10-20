@@ -1,13 +1,16 @@
-# OdinR
+# MetPhenoR
+[![License: GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://cran.r-project.org/web/licenses/GPL)
+[![](https://cranlogs.r-pkg.org/badges/MetPhenoR)](https://cran.r-project.org/package=MetPhenoR)
 
-The **complete workflow** including examples can be found in vignettes/OdinR.html.
-A flowchart of the package can be found in man/figures/OdinR_workflow_flowchart.png
+
+The **complete workflow** including examples can be found in vignettes/MetPhenoR.html.
+A flowchart of the package can be found in man/figures/MetPhenoR_workflow_flowchart.png
 
 ## Installation 
-Odin R is available on CRAN:
+MetPhenoR is available on CRAN:
 
 ```r
-install.packages("OdinR")
+install.packages("MetPhenoR")
 ```
 
 ## Installation from GitHub
@@ -20,15 +23,15 @@ if (!require("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
 
-# Install OdinR from GitHub
-remotes::install_github(KatjaDanielzik/OdinR)
+# Install MetPhenoR from GitHub
+remotes::install_github(KatjaDanielzik/MetPhenoR)
 ```
 
 ## Data Preparation
 
 Before analyzing your data:
 
-1. Create a new folder (e.g., `Odin_Analysis`).
+1. Create a new folder (e.g., `Analysis`).
 2. Copy **all** your `RawRead.csv` and `PlateInfo.csv` files into this folder.
 3. In `PlateInfo.csv`, **create or select one column** (e.g., `Sample`) to store experimental metadata.
 4. Format entries like:  

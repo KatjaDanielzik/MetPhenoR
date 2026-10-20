@@ -1,3 +1,3 @@
-# OdinR (development version)
+# MetPhenoR (development version)
 
 * Initial CRAN submission.

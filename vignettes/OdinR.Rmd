@@ -1,10 +1,10 @@
 ---
-title: "OdinR"
+title: "MetPhenoR"
 author: Katja Danielzik (katja.danielzik@uni-due.de)
 output: 
   rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{OdinR}
+  %\VignetteIndexEntry{MetPhenoR}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 ```
 
 # Aim of this package
-High-throughput metabolic phenotyping using Odin Biolog is still relatively new 
+High-throughput metabolic phenotype microarray data is still relatively new 
 in mammalian cell culture research. As such, many questions remain:
 
 - What do the results actually mean? i.e. is a lower or higher metabolic activity
@@ -65,14 +65,14 @@ This can cause missing data or errors later — so be careful!
 # Workflow
 
 ```{r graphic_logo, echo = FALSE, fig.align="left", out.width='100%'}
-knitr::include_graphics("../man/figures/OdinR_workflow_flowchart.png")
+knitr::include_graphics("../man/figures/MetPhenoR_workflow_flowchart.png")
 ```
 
 
 ## Step 1: Prepare your Data
 Before you can analyze, you need to organize your files properly.
 
-1. Create a new folder (e.g., `Odin_Analysis`).
+1. Create a new folder (e.g., `Analysis`).
 2. Copy **all** your `RawRead.csv` and `PlateInfo.csv` files into this folder.
 3. Open each `PlateInfo.csv` file in Excel or a text editor.
 4. Choose **one consistent column** (e.g., `Description`, `Sample`) to store your experimental conditions.
@@ -98,8 +98,8 @@ Everything following a "#" in code are comments that should help understand what
 the code does. 
 
 ```{r}
-library(OdinR)
-data("RawRead") # load example RawRead file stored in OdinR
+library(MetPhenoR)
+data("RawRead") # load example RawRead file stored in MetPhenoR
 ```
 
 If you are using RStudio an object (data frame) should now be loaded to the 
@@ -114,7 +114,7 @@ which prints the first rows of the dataframe to your console.
 Let's look at the corresponding example PlateInfo.csv file.
 
 ```{r}
-data("PlateInfo") # loads PlateInfo example file from OdinR
+data("PlateInfo") # loads PlateInfo example file from MetPhenoR
 head(PlateInfo) # shows first few rows of PlateInfo dataframe
 ```
 
@@ -124,11 +124,11 @@ In this example file the column *Sample* contains the experimental information.
 head(PlateInfo$Sample) # shows first few rows of column storing experimental information
 ```
 
-In the next I show an example code to load you data from a folder named "Odin" on drive A:
+In the next I show an example code to load you data from a folder named "metabolic_phenotyping" on drive A:
 and assign it to an object called *data*. 
 
 ```{r}
-# data <- read_folder(data_path = "A:/Odin", # folder path
+# data <- read_folder(data_path = "A:/metabolic_phenotyping", # folder path
 #                    sample_column = "Sample", # which column in PlateInfo contains experimental information
 #                    variables = c("cell.line","condition","time.h") # sets the variable names for the following workflow)
 ```
@@ -187,8 +187,8 @@ If you see multiple replicates or grey wells, check:
 
 ## Step 4 (Optional): Visualize the Final Timepoint: plot_latest_timepoint()
 To get a first overview we first visualize the latest time point (i.e. end of 
-Odin read) in 96-well format. These plots should roughly represent how your
-Odin plate looks like after the OD recording. In the title the specific experiment
+read) in 96-well format. These plots should roughly represent how your
+plate looks like after the OD recording. In the title the specific experiment
 is automatically labelled and one plot is created per distinct 96-well plate
 in the read in data:
 
@@ -252,7 +252,7 @@ you can store as an .RData object that only can be read by R.
 ## Step 6: Quality control of OD curves
 In real experiments, we’ve seen:
 
-- Unexpected OD drops after an initial rise (in theory the dye provided by Odin Biolog is irreversible in physiological pH ranges).
+- Unexpected OD drops after an initial rise (in theory the dye provided by Biolog is irreversible in physiological pH ranges).
 - Wells with no increase at all.
 - Flat or noisy curves.
 
@@ -285,7 +285,7 @@ distinct plate is stored separately with it corresponding name compounded of
 the experimental variables and the plate type.
 
 **Limitation**
-As we only saw the before mentioned growth types OdinR is also only able to detect
+As we only saw the before mentioned growth types MetPhenoR is also only able to detect
 these. 
 
 ```{r,fig.width=8,fig.height=6}
@@ -477,7 +477,7 @@ plot_auc_ratio_heatmap(processed_data,
 ## Step 12: Annotation of metadata
 If we do not only want to visualize per plate type but leverage the fact that
 metabolite or drugs on different plates might belong to one biological meaningfull
-group we can annotate metadata. In case of the metabolic plates PM-M01 and PM-M02 OdinR
+group we can annotate metadata. In case of the metabolic plates PM-M01 and PM-M02 MetPhenoR
 contains the annotation of metabolites to different hierarchies 
 (module_name = pathway plus different hierarchical orders of pathways) of the KEGG database. 
 
