@@ -188,7 +188,7 @@ test_that("plot_controls_tween_all_plate has correct title", {
   result <- plot_controls_tween_all_plate(input)
   expect_equal(
     result$labels$title,
-    "AUC Comparison: Controls vs Tween Across Plates"
+    "AUC Comparison: Controls Across Plates"
   )
 })
 

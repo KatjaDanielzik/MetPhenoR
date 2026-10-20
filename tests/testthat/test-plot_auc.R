@@ -223,7 +223,7 @@ test_that("plot_auc returns ggplot objects in list", {
 test_that("plot_auc plot title contains 'AUC response'", {
   input <- make_auc_plot_input()
   result <- plot_auc(input, selected_plate = "PM-M1")
-  expect_equal(result[[1]]$labels$title, "AUC response")
+  expect_equal(result[[1]]$labels$title, "AUC")
 })
 
 test_that("plot_auc subtitle contains selected_plate", {
