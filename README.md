@@ -4,7 +4,7 @@ The **complete workflow** including examples can be found in vignettes/OdinR.htm
 A flowchart of the package can be found in man/figures/OdinR_workflow_flowchart.png
 
 ## Installation 
-Odin R is available on CRAN
+Odin R is available on CRAN:
 
 ```r
 install.packages("OdinR")
@@ -12,7 +12,7 @@ install.packages("OdinR")
 
 ## Installation from GitHub
 
-Install the latest version directly from your GitLab repository using the `remotes` package:
+Install the latest version directly from GitHub `remotes` package:
 
 ```r
 # Install remotes if you haven't already
