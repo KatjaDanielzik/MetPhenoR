@@ -32,8 +32,8 @@ Before analyzing your data:
 2. Copy **all** your `RawRead.csv` and `PlateInfo.csv` files into this folder.
 3. In `PlateInfo.csv`, **create or select one column** (e.g., `Sample`) to store experimental metadata.
 4. Format entries like:  
-   `H460_CT_2h`  
-   `74158M4_0Gy_RMC6236_2h`  
+   `cell.line_variable1_variable_2`  
+   `H460_treatment_2h`  
    → Use **underscores**, **no spaces**, and **consistent capitalization** (R is case-sensitive!).
 
 > **Never use spaces or mixed case** — this causes errors in `read_folder()`.
