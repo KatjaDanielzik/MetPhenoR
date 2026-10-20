@@ -24,7 +24,7 @@ if (!require("remotes", quietly = TRUE)) {
 remotes::install_github(KatjaDanielzik/OdinR)
 ```
 
-## Data Preparation (Before You Run Any Code)
+## Data Preparation
 
 Before analyzing your data:
 
@@ -36,41 +36,32 @@ Before analyzing your data:
    `H460_treatment_2h`  
    → Use **underscores**, **no spaces**, and **consistent capitalization** (R is case-sensitive!).
 
-> **Never use spaces or mixed case** — this causes errors in `read_folder()`.
-
----
-
-## Quick Start: For your first workflow please refer to the Vignette 
-
-**All functions are documented** — type `?function_name` in R to see help pages.
+**Never use spaces** — this causes errors in `read_folder()`.
 
 ## Key Features
 
-| Feature | Why It Matters |
+| Feature | Function |
 |-------|----------------|
 | Noise correction: `OD(590nm) - OD(740nm)` | Removes background noise (valid for adherent cells only). |
 | `qc_data()` plot | Spot missing files, inconsistent conditions, or technical issues early. |
-| `classify_growth_curve_types()` | Identify flat, dropping, or noisy curves — filter intelligently. |
-| AUC + normalization | Compare across plates and conditions fairly. |
+| `classify_growth_curve_types()` | Identify flat, dropping, or noisy curves. |
+| AUC + normalization | Compare across plates and conditions. |
 | Built-in annotations | KEGG pathways (PM-M01/M02), drug info (PM-M11–M14). |
-| Heatmaps & violin plots | Visualize biological trends without coding from scratch. |
+| Heatmaps & violin plots | Visualize biological trends. |
 
 
 ##  Important Limitations
 
-- **Not for bacteria or suspension cultures** — OD(740nm) reflects cell growth in these systems.
-- **AUC does not capture curve shape** — two very different curves can have the same AUC.
-- **Does not account for cell growth** — if your cells grow rapidly, this may confound results.
-- **Does not interpret biological meaning** — a "hit" in a pathway does not imply activation.
-
-> **Always interpret results in biological context** — this package helps you *analyze*, not *explain*.
-
+- **Not for bacteria or suspension cultures**: OD(740nm) reflects cell growth in these systems.
+- **AUC does not capture curve shape**: two very different curves can have the same AUC.
+- **Does not account for cell growth**: if your cells grow rapidly, this may confound results.
+- **Does not interpret biological meaning**: a "hit" in a pathway does not imply activation.
 
 ##  Troubleshooting
 
 | Issue | Solution |
 |------|----------|
-| `No data in qc_data()` | Check for spaces in `Sample` column; ensure all files are in the folder. |
+| `No data in qc_data()` | Check for spaces and variable names `Sample` column; ensure all files are in the folder. |
 | `Filtering didn’t work` | Double-check `plate_type` and `filters` spelling. |
 | `Plot is blank` | Check if `processed_data` contains data after filtering. 
 
@@ -79,11 +70,6 @@ Before analyzing your data:
 Have questions, feedback, or want to contribute?  
 Open an Issue
 
-
-## Final Tip
-
-**Always check `qc_data()` after reading your data.**  
-A few minutes of inspection now can save hours of confusion later.
 
 
 
