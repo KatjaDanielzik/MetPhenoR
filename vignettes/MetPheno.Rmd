@@ -546,4 +546,7 @@ plot_auc_ratio_violin(processed_data,
 ```
 
 
+```{r}
+sessionInfo()
+```
 
