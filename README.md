@@ -1,7 +1,4 @@
 # MetPhenoR
-[![License: GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://cran.r-project.org/web/licenses/GPL)
-[![](https://cranlogs.r-pkg.org/badges/MetPhenoR)](https://cran.r-project.org/package=MetPhenoR)
-
 <p align="center">
   <img src="man/figures/README-logo.png"/>
 </p>
