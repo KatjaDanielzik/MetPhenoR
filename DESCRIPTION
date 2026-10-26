@@ -18,7 +18,7 @@ Authors@R:
            comment=c(ORCID="0000-0003-2973-7869")))
 Description: Provides a transparent, end-to-end workflow for analyzing high-throughput phenotype microarray data in mammalian cell cultures. It begins with automated reading and noise correction (OD(590nm) – OD(740nm)), followed by comprehensive 
   quality control via visual diagnostics, i.e. detecting missing wells, inconsistent 
-  replicates, anomalous curve shapes and intra- and interplate variance. Area under
+  replicates, anomalous curve shapes and intra- and inter-plate variance. Area under
   Curve (AUC) is computed as a summary metric. Biological annotations 
   (custom or in-built for PM-M01,PM-M02, PM-M11 - PM-M14) enable group-level 
   comparisons of AUCs.
