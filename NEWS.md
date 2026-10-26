@@ -1,3 +1,5 @@
+# MetPhenoR 1.2
+
 # MetPhenoR 1.1
 
 * URL fix in Description
