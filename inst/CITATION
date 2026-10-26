@@ -1,0 +1,7 @@
+cibibentry(
+  bibtype = "Software",
+  title = {MetPhenoR: A Transparent Analysis Pipeline for Mammalian Metabolic Phenotype Microarray Data},
+  author = {Katja Danielzik, Willson Tjioe, Julia Asche, Johann Matschke, Daniel Hoffmann},
+  year = {2026},
+  url = {https://github.com/KatjaDanielzik/MetPhenoR}
+)

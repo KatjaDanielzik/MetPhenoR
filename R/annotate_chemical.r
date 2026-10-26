@@ -34,7 +34,7 @@
 #'
 #' @importFrom dplyr bind_rows distinct left_join mutate case_when select
 #' @importFrom purrr imap map_lgl
-#' @importFrom rlang expr
+#' @importFrom rlang expr .data
 #'
 #' @examples
 #' data("processed_data")
@@ -51,7 +51,7 @@ annotate_chemical <- function(
     positive = c("a-D-Glucose", "D-(+)-Glucose")
   )
 ) {
-  Chemical <- NULL
+
 
   # ---- Validate top-level data structure ----
   if (!is.list(data) || !all(c("data", "meta") %in% names(data))) {
@@ -155,7 +155,7 @@ annotate_chemical <- function(
         dplyr::select("Plate.Type", "Well") %>%
         dplyr::distinct() %>%
         dplyr::arrange("Plate.Type", "Well") %>%
-        dplyr::mutate(missing = paste0(Plate.Type, "_", Well)) %>%
+        dplyr::mutate(missing = paste0(.data$Plate.Type, "_", .data$Well)) %>%
         dplyr::pull(missing)
 
       # Format the list nicely

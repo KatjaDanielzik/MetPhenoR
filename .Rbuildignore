@@ -7,3 +7,4 @@
 ^\.claude$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
+^CITATION.cff

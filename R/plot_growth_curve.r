@@ -60,6 +60,9 @@
 #'
 #' @examples
 #' data("processed_data")
+#' # subset for fast example
+#' processed_data$data <- processed_data$data[processed_data$data$PlateId=="c2aa34c0-d80f-46f1-b089-ffe6d9883bb6",]
+#' processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 #' processed_data <- classify_growth_curve_types(processed_data)
 #' processed_data <- plot_growth_curve(processed_data)
 #' print(processed_data[["growth_curve_plots"]])
