@@ -49,7 +49,7 @@ The function performs the following steps:
 \examples{
 data(processed_data)
 # subset for fast example
-pprocessed_data$data <- processed_data$data[1:13728,]
+processed_data$data <- processed_data$data[1:13728,]
 processed_data <- annotate_chemical(processed_data, annotation = PM_M01_M02)
 processed_data <- classify_growth_curve_types(processed_data)
 processed_data <- compute_auc_ci(processed_data, n_boot = 1)
