@@ -151,7 +151,7 @@ annotate_chemical <- function(
     } else if (n_annotated < n_total) {
       # Find the missing wells (those with NA in Chemical)
       missing_wells <- data_df %>%
-        dplyr::filter(is.na(Chemical)) %>%
+        dplyr::filter(is.na(.data$Chemical)) %>%
         dplyr::select("Plate.Type", "Well") %>%
         dplyr::distinct() %>%
         dplyr::arrange("Plate.Type", "Well") %>%
@@ -181,7 +181,7 @@ annotate_chemical <- function(
     data_df <- dplyr::mutate(
       data_df,
       control = dplyr::case_when(
-        !!!purrr::imap(control_map, ~ rlang::expr(Chemical %in% !!.x ~ !!.y)),
+        !!!purrr::imap(control_map, ~ rlang::expr(.data$Chemical %in% !!.x ~ !!.y)),
         TRUE ~ NA_character_
       )
     )
