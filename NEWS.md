@@ -1,3 +1,6 @@
+# MetPhenoR 1.3
+* check(note) fixes
+
 # MetPhenoR 1.2
 * check() note fixes
 
