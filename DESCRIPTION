@@ -1,6 +1,6 @@
 Package: MetPhenoR
 Title: A Transparent Analysis Pipeline for Mammalian Metabolic Phenotype Microarray Data
-Version: 0.99
+Version: 1.0
 Authors@R: 
   c(person(given="Katja",family= "Danielzik", email="katja.danielzik@uni-due.de", 
            role = c("aut", "cre", "cph"),
