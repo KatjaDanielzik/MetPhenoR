@@ -1,11 +1,18 @@
 # MetPhenoR
+[![License: GPL](https://img.shields.io/badge/license-GPL-blue.svg)](https://cran.r-project.org/web/licenses/GPL)
+[![](https://cranlogs.r-pkg.org/badges/MetPhenoR)](https://cran.r-project.org/package=MetPhenoR)
+
+
 <p align="center">
   <img src="man/figures/README-logo.png"/>
 </p>
 
 
-The **complete workflow** including examples can be found in vignettes/MetPhenoR.html.
-A flowchart of the package can be found in man/figures/MetPhenoR_workflow_flowchart.png
+The **complete workflow** including examples can be found in vignettes/MetPhenoR.html or [here](https://cran.r-project.org/web/packages/MetPhenoR/vignettes/MetPheno.html).
+A flowchart of the package can be found in man/figures/MetPhenoR_workflow_flowchart.png 
+
+# Citation
+Please cite: Danielzik, K., Tjioe, W., Asche, J., Matschke, J., & Hoffmann, D. MetPhenoR: A Transparent Analysis Pipeline for Mammalian Metabolic Phenotype Microarray Data, doi:10.32614/CRAN.package.MetPhenoR
 
 ## Installation 
 MetPhenoR is available on CRAN:
