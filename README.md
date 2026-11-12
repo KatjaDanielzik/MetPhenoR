@@ -15,7 +15,7 @@ A flowchart of the package can be found in man/figures/MetPhenoR_workflow_flowch
 Please cite: Danielzik, K., Tjioe, W., Asche, J., Matschke, J., & Hoffmann, D. MetPhenoR: A Transparent Analysis Pipeline for Mammalian Metabolic Phenotype Microarray Data, doi:10.32614/CRAN.package.MetPhenoR
 
 ## Installation 
-MetPhenoR is available on CRAN:
+MetPhenoR is available on [CRAN](https://cran.r-project.org/web/packages/MetPhenoR/index.html):
 
 ```r
 install.packages("MetPhenoR")
